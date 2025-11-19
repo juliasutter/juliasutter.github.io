@@ -38,7 +38,7 @@
   const els = document.querySelectorAll('.email-container, #email-container');
   if (!els.length) return;
   const user = 'impressum';
-  const domain = 'maxsutter.de';
+  const domain = 'juliasutter.de';
   const email = `${user}@${domain}`;
   els.forEach((slot) => {
     if (!slot) return;
@@ -100,7 +100,7 @@
       const existing = rightsEl.textContent || '';
       const yearMatch = existing.match(/\b(20\d{2})\b/);
       const year = yearMatch ? yearMatch[1] : String(new Date().getFullYear());
-      rightsEl.textContent = `© ${year} Max Sutter. ${dict.rights}`;
+      rightsEl.textContent = `© ${year} Julia Sutter. ${dict.rights}`;
     }
   };
 
