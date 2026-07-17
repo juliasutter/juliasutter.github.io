@@ -40,6 +40,14 @@ for (const page of pages) {
   const h1Count = (html.match(/<h1\b/gi) ?? []).length;
   if (h1Count !== 1) fail(`${page.route}: expected one h1, found ${h1Count}`);
 
+  const svgIcon = html.match(/<link\b(?=[^>]*\brel=["']icon["'])(?=[^>]*\btype=["']image\/svg\+xml["'])[^>]*>/i)?.[0] ?? "";
+  if (attribute(svgIcon, /<link\b[^>]*>/i, "href") !== "/assets/brand/favicon.svg") fail(`${page.route}: missing SVG favicon`);
+  const pngIcon = html.match(/<link\b(?=[^>]*\brel=["']icon["'])(?=[^>]*\btype=["']image\/png["'])(?=[^>]*\bsizes=["']32x32["'])[^>]*>/i)?.[0] ?? "";
+  if (attribute(pngIcon, /<link\b[^>]*>/i, "href") !== "/assets/images/favicon-32.png") fail(`${page.route}: missing PNG favicon fallback`);
+  const touchIcon = html.match(/<link\b[^>]*\brel=["']apple-touch-icon["'][^>]*>/i)?.[0] ?? "";
+  if (attribute(touchIcon, /<link\b[^>]*>/i, "href") !== "/assets/images/apple-touch-icon.png") fail(`${page.route}: missing Apple touch icon`);
+  if (!html.includes('src="/assets/brand/julia-logo.svg"')) fail(`${page.route}: official Julia logo is missing from the brand link`);
+
   const robots = attribute(html, /<meta\b[^>]*\bname=["']robots["'][^>]*>/i, "content");
   if (page.indexable && /noindex/i.test(robots)) fail(`${page.route}: indexable page contains noindex`);
   if (page.noindex && !/noindex/i.test(robots)) fail(`${page.route}: missing noindex`);

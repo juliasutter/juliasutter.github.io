@@ -355,17 +355,16 @@ html.js .reveal.is-visible {
 }
 
 .brand-mark {
-  display: grid;
-  width: 38px;
-  height: 38px;
-  place-items: center;
-  border: 1px solid rgb(255 255 255 / 60%);
-  border-radius: 50%;
-  background: rgb(255 255 255 / 10%);
+  display: block;
+  width: 42px;
+  height: 46px;
+  flex: 0 0 auto;
 }
 
 .brand-mark img {
-  width: 19px;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
   filter: brightness(0) invert(1);
 }
 
@@ -1759,8 +1758,8 @@ html:not(.forms-ready) .form-panel {
   }
 
   .brand-mark {
-    width: 34px;
-    height: 34px;
+    width: 38px;
+    height: 42px;
   }
 
   .hero {
