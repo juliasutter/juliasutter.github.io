@@ -16,7 +16,7 @@ pnpm-debug.log*
 .env
 .env.*.local
 
-# Dependencies and build output
+# Dependencies, build output and generated reports
 node_modules/
 dist/
 build/
@@ -29,3 +29,7 @@ build/
 out/
 storybook-static/
 coverage/
+playwright-report/
+test-results/
+.lighthouseci/
+artifacts/lighthouse/
