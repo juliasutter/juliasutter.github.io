@@ -20,6 +20,16 @@
     friendPriceEur: 349,
     defaultStartTime: "20:00",
     defaultEndTime: "22:30",
-    courses: []
+    courses: [
+      {
+        id: "starter-2026-autumn",
+        labelDe: "Herbst 2026",
+        labelEn: "Autumn 2026",
+        status: "open",
+        startTime: "09:00",
+        endTime: "11:00",
+        dates: ["2026-09-19", "2026-09-26", "2026-10-03", "2026-10-10", "2026-10-17", "2026-10-24"]
+      }
+    ]
   };
 })();
