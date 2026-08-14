@@ -557,7 +557,7 @@ html.js .reveal.is-visible {
 }
 
 .hero-meta strong,
-.hero-meta span {
+.hero-meta span:not(.hero-meta-icon) {
   display: block;
 }
 
@@ -568,7 +568,7 @@ html.js .reveal.is-visible {
   text-transform: uppercase;
 }
 
-.hero-meta span {
+.hero-meta span:not(.hero-meta-icon) {
   color: rgb(255 255 255 / 78%);
   font-size: 12px;
   line-height: 1.45;

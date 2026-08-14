@@ -35,6 +35,24 @@ for (const route of routes) {
   });
 }
 
+test("hero course logo stays centered in its circular badge", async ({ page }) => {
+  await page.goto("/");
+  const alignment = await page.locator(".hero-meta-icon").evaluate((badge) => {
+    const logo = badge.querySelector("img");
+    const badgeBounds = badge.getBoundingClientRect();
+    const logoBounds = logo.getBoundingClientRect();
+    return {
+      display: window.getComputedStyle(badge).display,
+      horizontalOffset: (logoBounds.left + logoBounds.width / 2) - (badgeBounds.left + badgeBounds.width / 2),
+      verticalOffset: (logoBounds.top + logoBounds.height / 2) - (badgeBounds.top + badgeBounds.height / 2)
+    };
+  });
+
+  expect(alignment.display).toBe("grid");
+  expect(Math.abs(alignment.horizontalOffset)).toBeLessThanOrEqual(1);
+  expect(Math.abs(alignment.verticalOffset)).toBeLessThanOrEqual(1);
+});
+
 test("editorial images keep natural proportions without overlapping content", async ({ page }) => {
   await page.goto("/");
   const layout = await page.evaluate(() => {
