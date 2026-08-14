@@ -1,0 +1,44 @@
+{
+  "campaign": "Hand in Hand Parenting Starter Class Herbst 2026",
+  "generatedAt": "2026-08-13T21:07:57.461Z",
+  "source": {
+    "website": "https://juliasutter.de/",
+    "courseConfig": "assets/course-config.js",
+    "enrollmentUrl": "https://juliasutter.de/#anmeldung"
+  },
+  "exactContent": {
+    "dates": [
+      "2026-09-19",
+      "2026-09-26",
+      "2026-10-03",
+      "2026-10-10",
+      "2026-10-17",
+      "2026-10-24"
+    ],
+    "time": "09:00-11:00 Uhr",
+    "priceEur": 399,
+    "friendPriceEur": 349,
+    "groupSize": "4-7 Eltern",
+    "format": "online"
+  },
+  "exports": [
+    {
+      "output": "starterclass-flyer-a5.png",
+      "label": "A5 hoch · 300 dpi",
+      "width": 1748,
+      "height": 2480
+    },
+    {
+      "output": "starterclass-instagram-feed-1080x1350.png",
+      "label": "Instagram Feed · 4:5",
+      "width": 1080,
+      "height": 1350
+    },
+    {
+      "output": "starterclass-story-whatsapp-status-1080x1920.png",
+      "label": "Instagram Story & WhatsApp Status · 9:16",
+      "width": 1080,
+      "height": 1920
+    }
+  ]
+}

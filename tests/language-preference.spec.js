@@ -11,3 +11,15 @@ test("explicit language links persist the landing preference", async ({ page }) 
   await expect(page).toHaveURL(/\/$/);
   expect(await page.evaluate(() => window.localStorage.getItem("preferredLanguage"))).toBe("de");
 });
+
+test("header language switch shows only the destination language", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator(".desktop-nav [data-language-link]")).toHaveCount(1);
+  await expect(page.locator(".desktop-nav [data-language-link]")).toHaveText("EN");
+  await expect(page.locator(".desktop-nav [data-language-link]")).toHaveAttribute("aria-label", "Auf Englisch wechseln");
+
+  await page.goto("/en/");
+  await expect(page.locator(".desktop-nav [data-language-link]")).toHaveCount(1);
+  await expect(page.locator(".desktop-nav [data-language-link]")).toHaveText("DE");
+  await expect(page.locator(".desktop-nav [data-language-link]")).toHaveAttribute("aria-label", "Switch to German");
+});

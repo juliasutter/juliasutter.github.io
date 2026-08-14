@@ -117,7 +117,7 @@ test("navigation and FAQ are keyboard friendly", async ({ page }, testInfo) => {
     const menuButton = page.locator("[data-menu-button]");
     await menuButton.click();
     await expect(menuButton).toHaveAttribute("aria-expanded", "true");
-    await expect(page.getByRole("link", { name: "Die Methode", exact: true })).toBeFocused();
+    await expect(page.locator("[data-mobile-nav]").getByRole("link", { name: "Die 5 Werkzeuge", exact: true })).toBeFocused();
     await page.keyboard.press("Escape");
     await expect(menuButton).toBeFocused();
     await expect(menuButton).toHaveAttribute("aria-expanded", "false");
@@ -138,7 +138,7 @@ test("mobile navigation remains reachable in a short viewport", async ({ page })
   await page.locator("[data-menu-button]").click();
   const nav = page.locator("[data-mobile-nav]");
   const links = nav.getByRole("link");
-  await expect(links).toHaveCount(7);
+  await expect(links).toHaveCount(6);
   const last = links.last();
   await last.scrollIntoViewIfNeeded();
   const bounds = await last.boundingBox();
@@ -183,8 +183,8 @@ test("course dates stay stable outside the configured time zone", async ({ brows
     body: `window.JULIA_SITE_CONFIG={formEndpoint:"",timeZone:"Europe/Berlin",courses:[{id:"timezone-test",labelDe:"Zeitzonentest",labelEn:"Time zone test",status:"open",dates:["2099-09-07","2099-09-14","2099-09-21","2099-09-28","2099-10-05","2099-10-12"]}]};`
   }));
   await page.goto("/");
-  await expect(page.locator("[data-course-status-detail]").first()).toContainText("7. September");
-  await expect(page.locator("[data-course-status-detail]").first()).not.toContainText("8. September");
+  await expect(page.locator(".course-status-card [data-course-status-detail]")).toContainText("7. September");
+  await expect(page.locator(".course-status-card [data-course-status-detail]")).not.toContainText("8. September");
   await context.close();
 });
 
@@ -204,7 +204,7 @@ test("open and waitlist courses remain selectable together", async ({ page }) =>
   await expect(page.locator("[name=registration_mode]")).toHaveValue("open");
   await expect(page.getByLabel("Straße und Hausnummer")).toBeVisible();
   await expect(page.getByLabel("Straße und Hausnummer")).toHaveAttribute("required", "");
-  await expect(page.getByRole("button", { name: "Verbindlich anmelden" }).last()).toBeVisible();
+  await expect(page.getByRole("button", { name: "Zahlungspflichtig anmelden" }).last()).toBeVisible();
 
   await courseSelect.selectOption("waitlist-first");
   await expect(page.locator("[name=registration_mode]")).toHaveValue("waitlist");
@@ -235,11 +235,79 @@ test("an upcoming course switches the site to binding registration", async ({ pa
   }));
   await page.goto("/");
   await expect(page.locator("[data-course-status]").first()).toHaveText("Nächster Kurs");
-  await expect(page.locator("[data-course-status-detail]").first()).toContainText("6. September");
+  await expect(page.locator(".course-status-card [data-course-status-detail]")).toContainText("6. September");
+  await expect(page.locator("[data-early-start-consent]")).toBeHidden();
   await page.locator(".hero-actions [data-open-form=course]").click();
   await expect(page.getByLabel("Straße und Hausnummer")).toBeVisible();
   await expect(page.getByLabel("Straße und Hausnummer")).toHaveAttribute("required", "");
-  await expect(page.getByText("Ich melde mich verbindlich an", { exact: false })).toBeVisible();
+  await expect(page.locator("[data-binding-order-summary]")).toContainText("6 Termine");
+  await expect(page.locator("[data-binding-order-summary]")).toContainText("399 €");
+  await expect(page.getByText("Mit Klick auf „Zahlungspflichtig anmelden“", { exact: false })).toBeVisible();
+  await expect(page.locator("[data-binding-checkout] input[type=checkbox]:visible")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Zahlungspflichtig anmelden" }).last()).toBeVisible();
+});
+
+test("early-start consent appears only inside the withdrawal period", async ({ page }) => {
+  await page.addInitScript(() => {
+    const NativeDate = Date;
+    const fixedNow = new NativeDate("2026-09-10T10:00:00+02:00").getTime();
+    class FixedDate extends NativeDate {
+      constructor(...args) {
+        super(...(args.length ? args : [fixedNow]));
+      }
+
+      static now() {
+        return fixedNow;
+      }
+    }
+    window.Date = FixedDate;
+  });
+  await page.route("**/assets/course-config.js", (route) => route.fulfill({
+    contentType: "application/javascript",
+    body: `window.JULIA_SITE_CONFIG={formEndpoint:"",timeZone:"Europe/Berlin",priceEur:399,friendPriceEur:349,courses:[{id:"starter-near",labelDe:"Herbst 2026",labelEn:"Autumn 2026",status:"open",startTime:"09:00",endTime:"11:00",dates:["2026-09-19","2026-09-26","2026-10-03","2026-10-10","2026-10-17","2026-10-24"]}]};`
+  }));
+
+  await page.goto("/");
+  const earlyStart = page.getByLabel("Ich verlange ausdrücklich", { exact: false });
+  await expect(earlyStart).toBeVisible();
+  await expect(earlyStart).toHaveAttribute("required", "");
+  await expect(page.locator("[data-early-start-consent]")).toContainText("vollständiger Vertragserfüllung");
+  await expect(page.locator("[data-course-status-detail-format=compact]")).toContainText("19. Sep.–24. Okt. 2026 · Sa 09:00–11:00 Uhr");
+});
+
+test("selected copy meets the desktop line-count targets", async ({ page }) => {
+  await page.setViewportSize({ width: 1453, height: 999 });
+  await page.goto("/");
+  const lines = await page.evaluate(() => {
+    const count = (selector) => {
+      const element = document.querySelector(selector);
+      const lineHeight = Number.parseFloat(window.getComputedStyle(element).lineHeight);
+      return Math.round(element.getBoundingClientRect().height / lineHeight);
+    };
+    return {
+      hero: count(".hero-intro"),
+      toolsTitle: count(".tools-heading h2"),
+      tools: count(".tools-heading > p"),
+      course: count(".course-copy .lede"),
+      courseFact: count(".course-facts li:nth-child(6) span"),
+      contactHeading: count(".contact-story h2"),
+      contactIntro: count(".contact-story p:not(.section-kicker)"),
+      contactDate: count(".contact-facts li:nth-child(4) [data-course-status-detail]"),
+      privacy: count("#course-panel .privacy-hint span")
+    };
+  });
+
+  expect(lines).toEqual({
+    hero: 2,
+    toolsTitle: 1,
+    tools: 2,
+    course: 2,
+    courseFact: 1,
+    contactHeading: 3,
+    contactIntro: 2,
+    contactDate: 1,
+    privacy: 1
+  });
 });
 
 test("a course with an invalid or duplicate date stays unavailable", async ({ page }) => {
@@ -294,6 +362,32 @@ test("configured forms send one sanitized request", async ({ page }) => {
   expect(submittedBody).toContain("inquiry");
   expect(submittedBody).toContain("http://127.0.0.1:4173/");
   expect(submittedBody).not.toContain("utm_source");
+});
+
+test("binding registration keeps its payment-obligation label after success", async ({ page }) => {
+  const endpoint = "https://formcarry.com/s/test-endpoint";
+  await page.route("**/assets/course-config.js", (route) => route.fulfill({
+    contentType: "application/javascript",
+    body: `window.JULIA_SITE_CONFIG={formEndpoint:"${endpoint}",timeZone:"Europe/Berlin",priceEur:399,courses:[{id:"open-course",labelDe:"Testkurs",labelEn:"Test course",status:"open",dates:["2099-01-05","2099-01-12","2099-01-19","2099-01-26","2099-02-02","2099-02-09"]}]};`
+  }));
+  await page.route(endpoint, (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({ code: 200, status: "success" })
+  }));
+
+  await page.goto("/#anmeldung");
+  await page.getByLabel("Vorname").fill("Test");
+  await page.getByLabel("Nachname").fill("Person");
+  await page.getByLabel("E-Mail-Adresse").first().fill("test@example.com");
+  await page.getByLabel("Straße und Hausnummer").fill("Testweg 1");
+  await page.getByLabel("Ort", { exact: true }).fill("Berlin");
+  await page.getByLabel("Postleitzahl").fill("10115");
+  const submit = page.getByRole("button", { name: "Zahlungspflichtig anmelden" }).last();
+  await submit.click();
+
+  await expect(page.locator("[data-course-form] [data-form-status]")).toHaveClass(/is-success/);
+  await expect(submit).toHaveText("Zahlungspflichtig anmelden");
 });
 
 test("a non-success Formcarry payload keeps the entered values", async ({ page }) => {

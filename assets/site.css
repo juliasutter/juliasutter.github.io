@@ -402,18 +402,11 @@ html.js .reveal.is-visible {
 
 .nav-language {
   display: inline-flex;
-  gap: 7px;
   align-items: center;
   padding-left: 2px;
   font-size: 12px;
-}
-
-.nav-language .active {
   font-weight: 800;
-}
-
-.nav-language span {
-  opacity: 0.5;
+  letter-spacing: 0.04em;
 }
 
 .nav-cta {
@@ -469,10 +462,15 @@ html.js .reveal.is-visible {
 
 .mobile-nav .mobile-language {
   display: flex;
-  gap: 14px;
   margin-top: 18px;
+}
+
+.mobile-nav .mobile-language a {
   font-family: var(--sans);
   font-size: 14px;
+  font-weight: 750;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
 .hero-content {
@@ -532,7 +530,7 @@ html.js .reveal.is-visible {
   right: 0;
   bottom: 62px;
   display: grid;
-  width: 255px;
+  width: 315px;
   grid-template-columns: 48px 1fr;
   align-items: center;
   gap: 14px;
@@ -553,8 +551,9 @@ html.js .reveal.is-visible {
 }
 
 .hero-meta-icon img {
-  width: 22px;
+  width: 34px;
   filter: brightness(0) invert(1);
+  transform: translateY(1px) scale(1.35);
 }
 
 .hero-meta strong,
@@ -573,6 +572,10 @@ html.js .reveal.is-visible {
   color: rgb(255 255 255 / 78%);
   font-size: 12px;
   line-height: 1.45;
+}
+
+.hero-meta [data-course-status-detail-format="hero"] {
+  white-space: pre-line;
 }
 
 /* Empathy and tools */
@@ -712,9 +715,9 @@ html.js .reveal.is-visible {
 .featured-testimonial figcaption {
   display: flex;
   grid-column: 2;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 3px 10px;
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 2px;
   color: var(--ink-soft);
   font-size: 12px;
 }
@@ -740,10 +743,6 @@ html.js .reveal.is-visible {
 }
 
 .tools-heading {
-  display: grid;
-  grid-template-columns: minmax(0, 0.75fr) minmax(320px, 1fr);
-  align-items: end;
-  gap: 80px;
   margin-bottom: 72px;
 }
 
@@ -752,13 +751,15 @@ html.js .reveal.is-visible {
 }
 
 .tools-heading h2 {
-  margin-bottom: 0;
+  margin-bottom: 22px;
+  white-space: nowrap;
 }
 
-.tools-heading p {
-  max-width: 540px;
+.tools-heading > p {
+  max-width: 650px;
   margin: 0;
   color: rgb(255 255 255 / 88%);
+  font-size: 1.05rem;
 }
 
 .tool-list {
@@ -1472,9 +1473,62 @@ html:not(.forms-ready) .form-panel {
 
 .checkboxes {
   display: grid;
-  grid-column: 1 / -1;
   gap: 14px;
-  margin-top: 4px;
+}
+
+.binding-checkout {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: 16px;
+}
+
+.binding-order-summary {
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--cream);
+  color: var(--ink-soft);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.binding-order-heading {
+  margin-bottom: 12px;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.binding-order-summary dl {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 10px;
+}
+
+.binding-order-summary dl > div {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 10px;
+}
+
+.binding-order-summary dt {
+  color: var(--ink);
+  font-weight: 750;
+}
+
+.binding-order-summary dd {
+  margin: 0;
+}
+
+.binding-order-summary > p:last-child,
+.binding-legal-notice {
+  margin: 0;
+}
+
+.binding-legal-notice {
+  color: var(--ink-soft);
+  font-size: 11px;
+  line-height: 1.55;
 }
 
 .checkbox {
@@ -1514,8 +1568,15 @@ html:not(.forms-ready) .form-panel {
 }
 
 .privacy-hint img {
+  flex: 0 0 auto;
   width: 17px;
   opacity: 0.65;
+}
+
+@media (min-width: 721px) {
+  .privacy-hint span {
+    white-space: nowrap;
+  }
 }
 
 .form-status {
@@ -1850,6 +1911,10 @@ html:not(.forms-ready) .form-panel {
 
   .tools-panel {
     padding: 64px 25px;
+  }
+
+  .tools-heading h2 {
+    white-space: normal;
   }
 
   .tool-list {

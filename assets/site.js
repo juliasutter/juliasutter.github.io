@@ -13,6 +13,7 @@
       inquiryFormTitle: "Kursplatz anfragen",
       inquirySummary: "Schreib mir, wann ein Kurs für dich gut passen würde. Die Anfrage ist unverbindlich.",
       bindingCta: "Verbindlich anmelden",
+      bindingSubmitCta: "Zahlungspflichtig anmelden",
       bindingStatus: "Nächster Kurs",
       bindingFormTitle: "Verbindlich anmelden",
       bindingSummary: "Wähle deinen Kurs und sende deine verbindliche Anmeldung ab.",
@@ -23,6 +24,8 @@
       courseFallback: "Neue Termine auf Anfrage",
       courseOptionFallback: "Über neue Termine informieren",
       sixDates: "6 Termine",
+      shortMonths: ["Jan.", "Feb.", "März", "Apr.", "Mai", "Juni", "Juli", "Aug.", "Sep.", "Okt.", "Nov.", "Dez."],
+      shortWeekdays: ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"],
       sending: "Wird gesendet…",
       success: "Vielen Dank — deine Nachricht ist unterwegs. Ich melde mich zeitnah.",
       error: "Das hat gerade nicht geklappt. Deine Eingaben sind noch da — bitte versuche es erneut oder schreib an julia@juliasutter.de.",
@@ -39,6 +42,7 @@
       inquiryFormTitle: "Request a course place",
       inquirySummary: "Tell me when a course would work well for you. Your request is non-binding.",
       bindingCta: "Register now",
+      bindingSubmitCta: "Register with payment obligation",
       bindingStatus: "Next course",
       bindingFormTitle: "Binding registration",
       bindingSummary: "Choose your course and send your binding registration.",
@@ -49,6 +53,8 @@
       courseFallback: "New dates on request",
       courseOptionFallback: "Tell me about new dates",
       sixDates: "6 sessions",
+      shortMonths: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+      shortWeekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
       sending: "Sending…",
       success: "Thank you — your message is on its way. I will get back to you soon.",
       error: "That did not work just now. Your entries are still here — please try again or email julia@juliasutter.de.",
@@ -268,6 +274,19 @@
     return `${dateFormatter.format(first)} – ${dateFormatter.format(last)}`;
   };
 
+  const formatCompactDateRange = (course) => {
+    if (!course) return copy.courseFallback;
+    const first = course.dates[0];
+    const last = course.dates[course.dates.length - 1];
+    const dayAndMonth = (date) => language === "de"
+      ? `${date.getUTCDate()}. ${copy.shortMonths[date.getUTCMonth()]}`
+      : `${date.getUTCDate()} ${copy.shortMonths[date.getUTCMonth()]}`;
+    if (first.getUTCFullYear() === last.getUTCFullYear()) {
+      return `${dayAndMonth(first)}–${dayAndMonth(last)} ${last.getUTCFullYear()}`;
+    }
+    return `${dayAndMonth(first)} ${first.getUTCFullYear()}–${dayAndMonth(last)} ${last.getUTCFullYear()}`;
+  };
+
   const formatSchedule = (course) => {
     if (!course) return language === "de" ? "montags 20:00–22:30 Uhr" : "Mondays, 20:00–22:30";
     const weekday = copy.weekdays[course.dates[0].getUTCDay()];
@@ -276,10 +295,19 @@
     return language === "de" ? `${weekday} ${start}–${end} Uhr` : `${weekday}, ${start}–${end}`;
   };
 
+  const formatCompactSchedule = (course, fullWeekday = false) => {
+    if (!course) return language === "de" ? "Mo · 20:00–22:30 Uhr" : "Mon · 20:00–22:30";
+    const weekday = fullWeekday ? copy.weekdays[course.dates[0].getUTCDay()] : copy.shortWeekdays[course.dates[0].getUTCDay()];
+    const start = course.startTime || config.defaultStartTime || "20:00";
+    const end = course.endTime || config.defaultEndTime || "22:30";
+    const separator = fullWeekday ? " · " : " ";
+    return language === "de" ? `${weekday}${separator}${start}–${end} Uhr` : `${weekday}${separator}${start}–${end}`;
+  };
+
   const modeCopy = {
-    inquiry: { cta: copy.inquiryCta, status: copy.inquiryStatus, title: copy.inquiryFormTitle, summary: copy.inquirySummary },
-    open: { cta: copy.bindingCta, status: copy.bindingStatus, title: copy.bindingFormTitle, summary: copy.bindingSummary },
-    waitlist: { cta: copy.waitlistCta, status: copy.waitlistStatus, title: copy.waitlistFormTitle, summary: copy.waitlistSummary }
+    inquiry: { cta: copy.inquiryCta, submitCta: copy.inquiryCta, status: copy.inquiryStatus, title: copy.inquiryFormTitle, summary: copy.inquirySummary },
+    open: { cta: copy.bindingCta, submitCta: copy.bindingSubmitCta, status: copy.bindingStatus, title: copy.bindingFormTitle, summary: copy.bindingSummary },
+    waitlist: { cta: copy.waitlistCta, submitCta: copy.waitlistCta, status: copy.waitlistStatus, title: copy.waitlistFormTitle, summary: copy.waitlistSummary }
   };
 
   const priceFormatter = new Intl.NumberFormat(language === "de" ? "de-DE" : "en-GB", {
@@ -293,6 +321,7 @@
     document.querySelectorAll(selector).forEach((element) => { element.textContent = priceFormatter.format(price); });
   };
   renderPrice("[data-course-price]", config.priceEur);
+  renderPrice("[data-binding-price]", config.priceEur);
   renderPrice("[data-friend-price]", config.friendPriceEur);
 
   const formTabs = Array.from(document.querySelectorAll("[data-form-tab]"));
@@ -322,7 +351,10 @@
   const courseSelect = courseForm ? courseForm.querySelector("[data-course-select]") : null;
   const courseSelectWrap = courseForm ? courseForm.querySelector("[data-course-select-wrap]") : null;
   const bindingFields = courseForm ? courseForm.querySelector("[data-binding-fields]") : null;
-  const bindingConsents = courseForm ? courseForm.querySelector("[data-binding-consents]") : null;
+  const bindingCheckout = courseForm ? courseForm.querySelector("[data-binding-checkout]") : null;
+  const bindingCourseLabel = courseForm ? courseForm.querySelector("[data-binding-course-label]") : null;
+  const bindingCourseSchedule = courseForm ? courseForm.querySelector("[data-binding-course-schedule]") : null;
+  const earlyStartConsent = courseForm ? courseForm.querySelector("[data-early-start-consent]") : null;
   const modeField = courseForm ? courseForm.querySelector("[name=registration_mode]") : null;
   const courseLabelField = courseForm ? courseForm.querySelector("[name=course_label]") : null;
 
@@ -335,21 +367,58 @@
     });
   };
 
+  const setEarlyStartConsentEnabled = (enabled) => {
+    if (!earlyStartConsent) return;
+    const field = earlyStartConsent.querySelector("input");
+    earlyStartConsent.hidden = !enabled;
+    if (!field) return;
+    field.disabled = !enabled;
+    field.required = enabled;
+    if (!enabled) field.checked = false;
+  };
+
+  const courseStartsWithinWithdrawalPeriod = (course) => {
+    if (!course) return false;
+    const withdrawalDeadline = new Date(today.getTime());
+    withdrawalDeadline.setUTCDate(withdrawalDeadline.getUTCDate() + 14);
+    return course.dates[0] <= withdrawalDeadline;
+  };
+
   const applyCourseSelection = (course) => {
     selectedCourse = course || null;
     courseMode = selectedCourse ? selectedCourse.status : "inquiry";
     const selectedCopy = modeCopy[courseMode];
     document.querySelectorAll("[data-course-cta-label]").forEach((element) => { element.textContent = selectedCopy.cta; });
+    document.querySelectorAll("[data-course-submit-label]").forEach((element) => { element.textContent = selectedCopy.submitCta; });
     document.querySelectorAll("[data-course-status]").forEach((element) => { element.textContent = selectedCopy.status; });
     document.querySelectorAll("[data-course-form-title]").forEach((element) => { element.textContent = selectedCopy.title; });
     document.querySelectorAll("[data-course-form-summary]").forEach((element) => { element.textContent = selectedCopy.summary; });
     document.querySelectorAll("[data-course-status-detail]").forEach((element) => {
-      element.textContent = selectedCourse ? `${formatDateRange(selectedCourse)} · ${formatSchedule(selectedCourse)}` : copy.courseFallback;
+      if (!selectedCourse) {
+        element.textContent = copy.courseFallback;
+        return;
+      }
+      if (element.dataset.courseStatusDetailFormat === "hero") {
+        element.textContent = `${formatCompactDateRange(selectedCourse)}\n${formatCompactSchedule(selectedCourse, true)}`;
+        return;
+      }
+      if (element.dataset.courseStatusDetailFormat === "compact") {
+        element.textContent = `${formatCompactDateRange(selectedCourse)} · ${formatCompactSchedule(selectedCourse)}`;
+        return;
+      }
+      element.textContent = `${formatDateRange(selectedCourse)} · ${formatSchedule(selectedCourse)}`;
     });
     if (modeField) modeField.value = courseMode;
     if (courseLabelField) courseLabelField.value = selectedCourse ? formatDateRange(selectedCourse) : copy.courseFallback;
+    if (bindingCourseLabel && selectedCourse) {
+      bindingCourseLabel.textContent = language === "de" ? selectedCourse.labelDe : selectedCourse.labelEn;
+    }
+    if (bindingCourseSchedule && selectedCourse) {
+      bindingCourseSchedule.textContent = `${copy.sixDates} · ${formatDateRange(selectedCourse)} · ${formatSchedule(selectedCourse)}`;
+    }
     setFieldGroupEnabled(bindingFields, courseMode === "open");
-    setFieldGroupEnabled(bindingConsents, courseMode === "open");
+    setFieldGroupEnabled(bindingCheckout, courseMode === "open");
+    setEarlyStartConsentEnabled(courseMode === "open" && courseStartsWithinWithdrawalPeriod(selectedCourse));
   };
 
   const visibleCourseOptions = courses;
@@ -457,7 +526,7 @@
         form.reset();
         if (courseForm === form) {
           syncCourseSelection();
-          finalLabel = modeCopy[courseMode].cta;
+          finalLabel = modeCopy[courseMode].submitCta;
         }
         setStatus(copy.success, "success");
       } catch (_) {
