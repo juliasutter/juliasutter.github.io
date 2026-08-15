@@ -207,7 +207,11 @@
             <li><img src="/assets/icons/check-circle.svg" alt=""><span>Praxisnah im Familienalltag</span></li>
           </ul>
           <div class="course-status-card">
-            <span><strong data-course-status>Nächster Kurs auf Anfrage</strong><span data-course-status-detail>Neue Termine auf Anfrage</span></span>
+            <span>
+              <strong data-course-status>Nächster Kurs auf Anfrage</strong>
+              <span data-course-status-detail>Neue Termine auf Anfrage</span>
+              <span data-course-format-wrap hidden><span data-course-format></span></span>
+            </span>
             <span class="course-price" data-course-price>399 €</span>
           </div>
           <a class="button" href="#anmeldung" data-open-form="course"><span data-course-cta-label>Kursplatz anfragen</span><img src="/assets/icons/arrow-right.svg" alt=""></a>
@@ -347,6 +351,7 @@
               <li><img src="/assets/icons/check-circle.svg" alt=""> Sechs Wochen mit klarer Struktur</li>
               <li><img src="/assets/icons/check-circle.svg" alt=""> <span data-course-price>399 €</span> · Freund:innen-Preis <span data-friend-price>349 €</span></li>
               <li><img src="/assets/icons/check-circle.svg" alt=""> <span data-course-status-detail data-course-status-detail-format="compact">Neue Termine auf Anfrage</span></li>
+              <li data-course-format-wrap hidden><img src="/assets/icons/check-circle.svg" alt=""> <span data-course-format></span></li>
             </ul>
           </div>
           <p class="contact-note"><img src="/assets/icons/heart.svg" alt=""> Du bist unsicher, ob der Kurs passt? Stell mir einfach zuerst eine Frage.</p>
@@ -411,6 +416,7 @@
                     <dl>
                       <div><dt>Kurs</dt><dd>Hand in Hand Parenting Starter Class · <span data-binding-course-label></span></dd></div>
                       <div><dt>Termine</dt><dd data-binding-course-schedule></dd></div>
+                      <div data-binding-course-format-row hidden><dt>Format</dt><dd data-binding-course-format></dd></div>
                       <div><dt>Gesamtpreis</dt><dd><strong data-binding-price>399 €</strong> · keine Umsatzsteuer gemäß § 19 UStG</dd></div>
                     </dl>
                     <p>Die Rechnung erhältst du mit der Anmeldebestätigung und bezahlst sie vor Kursbeginn.</p>

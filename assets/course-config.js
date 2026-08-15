@@ -2,6 +2,7 @@
   // New courses are maintained only here. Add the six dates in YYYY-MM-DD format.
   // status: "open" = binding registration, "waitlist" = non-binding waitlist,
   // "closed" = hidden from the public course selection.
+  // format: "online" = online course, "vor_ort" = in-person course.
   //
   // Example:
   // {
@@ -26,6 +27,7 @@
         labelDe: "Herbst 2026",
         labelEn: "Autumn 2026",
         status: "open",
+        format: "online",
         startTime: "09:00",
         endTime: "11:00",
         dates: ["2026-09-19", "2026-09-26", "2026-10-03", "2026-10-10", "2026-10-17", "2026-10-24"]

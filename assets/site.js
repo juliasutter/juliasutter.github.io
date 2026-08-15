@@ -24,6 +24,8 @@
       courseFallback: "Neue Termine auf Anfrage",
       courseOptionFallback: "Über neue Termine informieren",
       sixDates: "6 Termine",
+      courseFormatOnline: "Online",
+      courseFormatInPerson: "Vor Ort",
       shortMonths: ["Jan.", "Feb.", "März", "Apr.", "Mai", "Juni", "Juli", "Aug.", "Sep.", "Okt.", "Nov.", "Dez."],
       shortWeekdays: ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"],
       sending: "Wird gesendet…",
@@ -53,6 +55,8 @@
       courseFallback: "New dates on request",
       courseOptionFallback: "Tell me about new dates",
       sixDates: "6 sessions",
+      courseFormatOnline: "Online",
+      courseFormatInPerson: "In person",
       shortMonths: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
       shortWeekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
       sending: "Sending…",
@@ -354,6 +358,9 @@
   const bindingCheckout = courseForm ? courseForm.querySelector("[data-binding-checkout]") : null;
   const bindingCourseLabel = courseForm ? courseForm.querySelector("[data-binding-course-label]") : null;
   const bindingCourseSchedule = courseForm ? courseForm.querySelector("[data-binding-course-schedule]") : null;
+  const bindingCourseFormat = courseForm ? courseForm.querySelector("[data-binding-course-format]") : null;
+  const bindingCourseFormatRow = bindingCourseFormat ? bindingCourseFormat.closest("[data-binding-course-format-row]") : null;
+  const courseFormatElements = Array.from(document.querySelectorAll("[data-course-format]"));
   const earlyStartConsent = courseForm ? courseForm.querySelector("[data-early-start-consent]") : null;
   const modeField = courseForm ? courseForm.querySelector("[name=registration_mode]") : null;
   const courseLabelField = courseForm ? courseForm.querySelector("[name=course_label]") : null;
@@ -365,6 +372,24 @@
       field.disabled = !enabled;
       if (field.dataset.requiredWhenBinding === "true") field.required = enabled;
     });
+  };
+
+  const getCourseFormat = (course) => {
+    if (!course || typeof course.format !== "string") return "";
+    if (course.format === "online") return copy.courseFormatOnline;
+    if (course.format === "vor_ort") return copy.courseFormatInPerson;
+    return "";
+  };
+
+  const setCourseFormatFields = (course) => {
+    const formatLabel = getCourseFormat(course);
+    courseFormatElements.forEach((element) => {
+      const wrapper = element.closest("[data-course-format-wrap]");
+      if (wrapper) wrapper.hidden = !formatLabel;
+      element.textContent = formatLabel;
+    });
+    if (bindingCourseFormatRow) bindingCourseFormatRow.hidden = !formatLabel;
+    if (bindingCourseFormat) bindingCourseFormat.textContent = formatLabel;
   };
 
   const setEarlyStartConsentEnabled = (enabled) => {
@@ -416,6 +441,7 @@
     if (bindingCourseSchedule && selectedCourse) {
       bindingCourseSchedule.textContent = `${copy.sixDates} · ${formatDateRange(selectedCourse)} · ${formatSchedule(selectedCourse)}`;
     }
+    setCourseFormatFields(selectedCourse);
     setFieldGroupEnabled(bindingFields, courseMode === "open");
     setFieldGroupEnabled(bindingCheckout, courseMode === "open");
     setEarlyStartConsentEnabled(courseMode === "open" && courseStartsWithinWithdrawalPeriod(selectedCourse));

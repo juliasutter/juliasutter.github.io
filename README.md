@@ -9,6 +9,7 @@ Alle Kursdaten stehen ausschließlich in [`assets/course-config.js`](assets/cour
 - `open`: zeigt Termine und eine verbindliche Anmeldung; Rechnungsadresse, Bestellübersicht sowie der Hinweis auf AGB und Widerruf werden automatisch eingeblendet. Der abschließende Button heißt „Zahlungspflichtig anmelden“; für AGB und Widerrufsbelehrung sind keine separaten Checkboxen vorgesehen.
 - `waitlist`: zeigt Termine und „Auf die Warteliste“; die Anmeldung bleibt unverbindlich.
 - `closed`: blendet den Kurs aus.
+- `format`: optional `online` oder `vor_ort`; ohne Wert wird kein Format angezeigt.
 - Keine sichtbaren zukünftigen Kurse: die gesamte Seite wechselt automatisch auf „Kursplatz anfragen“.
 
 Vergangene Kurse verschwinden automatisch, sobald ihr letzter Termin vorbei ist. Offene Kurse und Wartelistenkurse können gleichzeitig angeboten werden; die Auswahl schaltet das Formular passend um. Deutsche und englische Seite nutzen dieselbe Konfiguration.

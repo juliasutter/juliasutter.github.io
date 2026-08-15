@@ -162,7 +162,14 @@
             <li><img src="/assets/icons/check-circle.svg" alt=""><span>Support via WhatsApp or Signal</span></li>
             <li><img src="/assets/icons/check-circle.svg" alt=""><span>Practical support for family life</span></li>
           </ul>
-          <div class="course-status-card"><span><strong data-course-status>Next course on request</strong><span data-course-status-detail>New dates on request</span></span><span class="course-price" data-course-price>€399</span></div>
+          <div class="course-status-card">
+            <span>
+              <strong data-course-status>Next course on request</strong>
+              <span data-course-status-detail>New dates on request</span>
+              <span data-course-format-wrap hidden><span data-course-format></span></span>
+            </span>
+            <span class="course-price" data-course-price>€399</span>
+          </div>
           <a class="button" href="#contact" data-open-form="course"><span data-course-cta-label>Request a course place</span><img src="/assets/icons/arrow-right.svg" alt=""></a>
           <p class="fine-print">Friends’ price: <span data-friend-price>€349</span> per person when registering together.</p>
         </div>
@@ -222,7 +229,7 @@
       <div class="contact-shell reveal">
         <div class="contact-story">
           <div><p class="section-kicker">Begin together</p><h2 id="contact-heading">Ready for the Starter Class?</h2><p>Curiosity and a wish for more connection – that is all you need.</p>
-            <ul class="contact-facts"><li><img src="/assets/icons/check-circle.svg" alt=""> Small, personal group</li><li><img src="/assets/icons/check-circle.svg" alt=""> Six weeks with a clear structure</li><li><img src="/assets/icons/check-circle.svg" alt=""> <span data-course-price>€399</span> · friends’ price <span data-friend-price>€349</span></li><li><img src="/assets/icons/check-circle.svg" alt=""> <span data-course-status-detail data-course-status-detail-format="compact">New dates on request</span></li></ul>
+            <ul class="contact-facts"><li><img src="/assets/icons/check-circle.svg" alt=""> Small, personal group</li><li><img src="/assets/icons/check-circle.svg" alt=""> Six weeks with a clear structure</li><li><img src="/assets/icons/check-circle.svg" alt=""> <span data-course-price>€399</span> · friends’ price <span data-friend-price>€349</span></li><li><img src="/assets/icons/check-circle.svg" alt=""> <span data-course-status-detail data-course-status-detail-format="compact">New dates on request</span></li><li data-course-format-wrap hidden><img src="/assets/icons/check-circle.svg" alt=""> <span data-course-format></span></li></ul>
           </div>
           <p class="contact-note"><img src="/assets/icons/heart.svg" alt=""> Not sure whether the course is right for you? Ask me a question first.</p>
         </div>
@@ -254,6 +261,7 @@
                     <dl>
                       <div><dt>Course</dt><dd>Hand in Hand Parenting Starter Class · <span data-binding-course-label></span></dd></div>
                       <div><dt>Dates</dt><dd data-binding-course-schedule></dd></div>
+                      <div data-binding-course-format-row hidden><dt>Format</dt><dd data-binding-course-format></dd></div>
                       <div><dt>Total price</dt><dd><strong data-binding-price>€399</strong> · no VAT charged under § 19 UStG</dd></div>
                     </dl>
                     <p>You will receive the invoice with your registration confirmation and pay it before the course begins.</p>
