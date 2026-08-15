@@ -1463,7 +1463,7 @@ html:not(.forms-ready) .form-panel {
 .binding-fields {
   display: grid;
   grid-column: 1 / -1;
-  grid-template-columns: 1.45fr 0.55fr;
+  grid-template-columns: 0.55fr 1.45fr;
   gap: 18px;
 }
 
