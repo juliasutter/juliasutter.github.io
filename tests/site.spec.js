@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 const routes = [
-  "/", "/en/", "/404.html", "/impressum/", "/datenschutz/", "/agb/", "/widerruf/",
+  "/", "/starterclass/", "/en/", "/404.html", "/impressum/", "/datenschutz/", "/agb/", "/widerruf/",
   "/en/imprint/", "/en/privacy/", "/en/terms/", "/en/withdrawal/"
 ];
 
@@ -34,6 +34,13 @@ for (const route of routes) {
     expect(failedLocalResponses).toEqual([]);
   });
 }
+
+test("/starterclass/ redirects to the Starter Class section", async ({ page }) => {
+  await page.goto("/starterclass/");
+  await expect(page).toHaveURL(/\/#starter-class$/);
+  await expect(page.locator("#starter-class")).toBeVisible();
+  await expect(page.locator("#starter-class h2")).toContainText("Starter Class");
+});
 
 test("hero course logo stays centered in its circular badge", async ({ page }) => {
   await page.goto("/");

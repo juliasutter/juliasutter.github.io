@@ -9,6 +9,7 @@ const origin = "https://juliasutter.de";
 const errors = [];
 const pages = [
   { file: "index.html", route: "/", lang: "de", canonical: "/", indexable: true, alternate: "/en/" },
+  { file: "starterclass/index.html", route: "/starterclass/", lang: "de", canonical: "/#starter-class", noindex: true },
   { file: "en/index.html", route: "/en/", lang: "en", canonical: "/en/", indexable: true, alternate: "/" },
   { file: "404.html", route: "/404.html", lang: "de", noindex: true },
   { file: "impressum/index.html", route: "/impressum/", lang: "de", canonical: "/impressum/", noindex: true, alternate: "/en/imprint/" },

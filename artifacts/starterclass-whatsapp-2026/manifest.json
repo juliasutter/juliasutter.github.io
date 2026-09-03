@@ -1,0 +1,182 @@
+{
+  "campaign": "Hand in Hand Parenting Starter Class · WhatsApp Status 2026",
+  "generatedAt": "2026-09-03T20:41:34.262Z",
+  "build": {
+    "command": "node tools/build-starterclass-whatsapp.mjs",
+    "method": "Deterministic HTML/CSS rendered with Playwright Chromium",
+    "canvas": "1080x1920 PNG",
+    "safeBand": "All visible text is audited inside y=180..1700",
+    "phonePreview": "390x693 PNG review copies",
+    "qr": "Not used; the short route is visible as text and remains secondary to the CTA"
+  },
+  "narrative": [
+    "Recognize the problem, audience, product, practical promise, and trusted instructor",
+    "See all five practical learning outcomes, the small-group course experience, and authentic proof",
+    "Evaluate the complete schedule, support, pricing, and next action",
+    "Understand the complete offer from one standalone share card"
+  ],
+  "source": {
+    "website": "https://juliasutter.de/",
+    "courseConfig": "assets/course-config.js",
+    "route": "/starterclass/",
+    "brandAssets": [
+      "assets/brand/julia-logo.svg",
+      "assets/fonts/manrope.woff2",
+      "assets/fonts/cormorant-garamond-500.woff2",
+      "assets/fonts/cormorant-garamond-600.woff2",
+      "assets/fonts/caveat-500.woff2",
+      "assets/images/certified-instructor.png"
+    ],
+    "photos": [
+      "assets/images/coaching.jpg",
+      "assets/images/course-group.jpg",
+      "assets/images/hero-mobile.webp"
+    ],
+    "toolArt": [
+      "assets/images/tool-special-time.png",
+      "assets/images/tool-setting-limits.png",
+      "assets/images/tool-staylistening.png",
+      "assets/images/tool-playlistening.png",
+      "assets/images/tool-listening-partnership.png"
+    ]
+  },
+  "exactContent": {
+    "audience": "parents with children aged 2–10",
+    "product": "Hand in Hand Parenting Starter Class",
+    "testimonial": "Durch die Tools von Hand in Hand Parenting fühle ich mich sicherer und weniger hilflos in schwierigen Situationen.",
+    "attribution": "Stephi · Mama eines Mädchens (4)",
+    "dates": [
+      "17.10.2026",
+      "24.10.2026",
+      "31.10.2026",
+      "07.11.2026",
+      "14.11.2026",
+      "21.11.2026"
+    ],
+    "time": "09:00–11:00 Uhr",
+    "format": "online",
+    "groupSize": "max. 7 Eltern",
+    "price": "399 EUR",
+    "friendPrice": "349 EUR pro Person",
+    "included": [
+      "1:1-Gespräch mit Julia inklusive",
+      "WhatsApp/Signal-Support"
+    ],
+    "cta": "Infos & Platz sichern",
+    "shortUrl": "juliasutter.de/starterclass",
+    "nativeLink": "https://juliasutter.de/starterclass/",
+    "outcomes": [
+      "Verbindung bewusst stärken",
+      "Liebevoll Grenzen setzen",
+      "Starke Gefühle begleiten",
+      "Anspannung spielerisch lösen",
+      "Eigene Kraft zurückgewinnen"
+    ]
+  },
+  "publishing": {
+    "guide": "POSTING-GUIDE.md",
+    "copyReadyLink": "status-link.txt"
+  },
+  "exports": [
+    {
+      "id": "status-hook",
+      "title": "Status 1 · Die Starter Class für Eltern von Kindern von 2 bis 10",
+      "source": "source/status-hook.html",
+      "output": "01-status-hook-1080x1920.png",
+      "preview": "previews/01-status-hook-phone-390x693.png",
+      "width": 1080,
+      "height": 1920,
+      "safeBand": {
+        "top": 180,
+        "bottom": 1700
+      },
+      "phonePreview": {
+        "width": 390,
+        "height": 693
+      },
+      "visibleTextBounds": {
+        "top": 200.15625,
+        "right": 1016,
+        "bottom": 1655.390625,
+        "left": 64
+      },
+      "sha256": "8bb0f16a8175403ea42b7b2f3869adc5eb1baf94c7b3a75e6dda221a82c100ca",
+      "phonePreviewSha256": "bcbe45b7d3b7f7d639433ccc3c0ad2c0307eb9f7e47b2321d0b5c195959fcfa9"
+    },
+    {
+      "id": "status-proof",
+      "title": "Status 2 · Was Eltern in sechs Wochen konkret lernen",
+      "source": "source/status-proof.html",
+      "output": "02-status-proof-1080x1920.png",
+      "preview": "previews/02-status-proof-phone-390x693.png",
+      "width": 1080,
+      "height": 1920,
+      "safeBand": {
+        "top": 180,
+        "bottom": 1700
+      },
+      "phonePreview": {
+        "width": 390,
+        "height": 693
+      },
+      "visibleTextBounds": {
+        "top": 200.15625,
+        "right": 1016,
+        "bottom": 1614.078125,
+        "left": 64
+      },
+      "sha256": "b967017597d30cebf2f2566d2de3f5a920c636f64400e1c143f26b309a28957e",
+      "phonePreviewSha256": "2f606a6d7cebdc1d41c2e661ec2803e2e2ce7f843766cb7d5a6f62cab54e4251"
+    },
+    {
+      "id": "status-offer",
+      "title": "Status 3 · Termine, Begleitung und Preis der Starter Class",
+      "source": "source/status-offer.html",
+      "output": "03-status-offer-1080x1920.png",
+      "preview": "previews/03-status-offer-phone-390x693.png",
+      "width": 1080,
+      "height": 1920,
+      "safeBand": {
+        "top": 180,
+        "bottom": 1700
+      },
+      "phonePreview": {
+        "width": 390,
+        "height": 693
+      },
+      "visibleTextBounds": {
+        "top": 200.15625,
+        "right": 1016,
+        "bottom": 1559.5,
+        "left": 64
+      },
+      "sha256": "654695d06e21c4a3241d3ce9b18ff186b93c4de5be1cb5da74fbe881d1dc8e32",
+      "phonePreviewSha256": "7a83d9d7e06c1a4dfb12e22cf1377919231cba70b4818a671f95a89773bc71a8"
+    },
+    {
+      "id": "standalone-share-card",
+      "title": "Standalone · Das komplette Starter-Class-Angebot auf einen Blick",
+      "source": "source/standalone-share-card.html",
+      "output": "04-standalone-share-card-1080x1920.png",
+      "preview": "previews/04-standalone-share-card-phone-390x693.png",
+      "width": 1080,
+      "height": 1920,
+      "safeBand": {
+        "top": 180,
+        "bottom": 1700
+      },
+      "phonePreview": {
+        "width": 390,
+        "height": 693
+      },
+      "visibleTextBounds": {
+        "top": 200.15625,
+        "right": 992,
+        "bottom": 1676,
+        "left": 64
+      },
+      "sha256": "9e796609a38ccf01eb36677221c18ad1578cf412296d9ceb034afe2f2995de4a",
+      "phonePreviewSha256": "495cc91790f626d53cc492a7f2fa54a7165bbb6c6036cd4bbbc8a8d0611e9423"
+    }
+  ]
+}
