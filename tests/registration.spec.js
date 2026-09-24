@@ -97,7 +97,7 @@ test("friend fields and price are excluded from non-binding submissions", async 
   await expect(form.locator("[data-binding-price]")).toHaveText("375 €");
 });
 
-test("a failed friend registration retains its price and payment-obligation button", async ({ page }) => {
+test("a failed friend registration retains its price and registration button", async ({ page }) => {
   await configure(page);
   await page.route(endpoint, (route) => route.fulfill({ contentType: "application/json", body: JSON.stringify({ code: 422, status: "error" }) }));
   await page.goto("/");
@@ -111,5 +111,5 @@ test("a failed friend registration retains its price and payment-obligation butt
   await expect(form.locator("[data-form-status]")).toHaveClass(/is-error/);
   await expect(form.locator("[data-binding-price]")).toHaveText("375 €");
   await expect(form.locator("[name=friend_name]")).toHaveValue("Alex Beispiel");
-  await expect(form.locator("button[type=submit]")).toHaveText("Zahlungspflichtig anmelden");
+  await expect(form.locator("button[type=submit]")).toHaveText("Anmelden");
 });

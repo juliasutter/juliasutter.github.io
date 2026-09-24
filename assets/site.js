@@ -12,7 +12,7 @@
       inquiryFormTitle: "Kursplatz anfragen",
       inquirySummary: "Schreib mir, wann ein Kurs für dich gut passen würde. Die Anfrage ist unverbindlich.",
       bindingCta: "Anmelden",
-      bindingSubmitCta: "Zahlungspflichtig anmelden",
+      bindingSubmitCta: "Anmelden",
       bindingFormTitle: "Anmelden",
       waitlistCta: "Auf die Warteliste",
       waitlistStatus: "Warteliste geöffnet",
@@ -40,7 +40,7 @@
       inquiryFormTitle: "Request a course place",
       inquirySummary: "Tell me when a course would work well for you. Your request is non-binding.",
       bindingCta: "Register",
-      bindingSubmitCta: "Register with payment obligation",
+      bindingSubmitCta: "Register",
       bindingFormTitle: "Register",
       waitlistCta: "Join the waitlist",
       waitlistStatus: "Waitlist open",
@@ -364,7 +364,6 @@
   const bindingCourseSchedule = courseForm ? courseForm.querySelector("[data-binding-course-schedule]") : null;
   const bindingCourseFormat = courseForm ? courseForm.querySelector("[data-binding-course-format]") : null;
   const bindingCourseFormatRow = bindingCourseFormat ? bindingCourseFormat.closest("[data-binding-course-format-row]") : null;
-  const courseFormatElements = Array.from(document.querySelectorAll("[data-course-format]"));
   const earlyStartConsent = courseForm ? courseForm.querySelector("[data-early-start-consent]") : null;
   const modeField = courseForm ? courseForm.querySelector("[name=registration_mode]") : null;
   const courseLabelField = courseForm ? courseForm.querySelector("[name=course_label]") : null;
@@ -405,11 +404,6 @@
 
   const setCourseFormatFields = (course) => {
     const formatLabel = getCourseFormat(course);
-    courseFormatElements.forEach((element) => {
-      const wrapper = element.closest("[data-course-format-wrap]");
-      if (wrapper) wrapper.hidden = !formatLabel;
-      element.textContent = formatLabel;
-    });
     if (bindingCourseFormatRow) bindingCourseFormatRow.hidden = !formatLabel;
     if (bindingCourseFormat) bindingCourseFormat.textContent = formatLabel;
   };
@@ -441,17 +435,6 @@
     document.querySelectorAll("[data-course-form-summary]").forEach((element) => {
       element.textContent = selectedCopy.summary;
       element.hidden = !selectedCopy.summary;
-    });
-    document.querySelectorAll("[data-course-status-detail]").forEach((element) => {
-      if (!selectedCourse) {
-        element.textContent = copy.courseFallback;
-        return;
-      }
-      if (element.dataset.courseStatusDetailFormat === "compact") {
-        element.textContent = `${formatCompactDateRange(selectedCourse)} · ${formatCompactSchedule(selectedCourse)}`;
-        return;
-      }
-      element.textContent = `${formatDateRange(selectedCourse)} · ${formatSchedule(selectedCourse)}`;
     });
     if (modeField) modeField.value = courseMode;
     if (courseLabelField) courseLabelField.value = selectedCourse ? formatDateRange(selectedCourse) : copy.courseFallback;

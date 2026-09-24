@@ -265,7 +265,7 @@ test("open and waitlist courses remain selectable together", async ({ page }) =>
   await expect(page.locator("[name=registration_mode]")).toHaveValue("open");
   await expect(page.getByLabel("Straße und Hausnummer")).toBeVisible();
   await expect(page.getByLabel("Straße und Hausnummer")).toHaveAttribute("required", "");
-  await expect(page.getByRole("button", { name: "Zahlungspflichtig anmelden" }).last()).toBeVisible();
+  await expect(page.getByRole("button", { name: "Anmelden" }).last()).toBeVisible();
 
   await courseSelect.selectOption("waitlist-first");
   await expect(page.locator("[name=registration_mode]")).toHaveValue("waitlist");
@@ -281,12 +281,12 @@ test("configured prices update both localized pages", async ({ page }) => {
   const normalizeSpaces = (values) => values.map((value) => value.replace(/\s/g, " "));
 
   await page.goto("/");
-  expect(normalizeSpaces(await page.locator("[data-course-price]").allTextContents())).toEqual(["425 €", "425 €"]);
-  expect(normalizeSpaces(await page.locator("[data-friend-price]").allTextContents())).toEqual(["375 €", "375 €", "375 €"]);
+  expect(normalizeSpaces(await page.locator("[data-course-price]").allTextContents())).toEqual(["425 €"]);
+  expect(normalizeSpaces(await page.locator("[data-friend-price]").allTextContents())).toEqual(["375 €", "375 €"]);
 
   await page.goto("/en/");
-  expect(normalizeSpaces(await page.locator("[data-course-price]").allTextContents())).toEqual(["€425", "€425"]);
-  expect(normalizeSpaces(await page.locator("[data-friend-price]").allTextContents())).toEqual(["€375", "€375", "€375"]);
+  expect(normalizeSpaces(await page.locator("[data-course-price]").allTextContents())).toEqual(["€425"]);
+  expect(normalizeSpaces(await page.locator("[data-friend-price]").allTextContents())).toEqual(["€375", "€375"]);
 });
 
 test("an upcoming course switches the site to binding registration", async ({ page }) => {
@@ -307,7 +307,7 @@ test("an upcoming course switches the site to binding registration", async ({ pa
   await expect(page.locator("[data-binding-checkout] input[type=checkbox]:visible")).toHaveCount(1);
   await expect(page.locator("[data-binding-checkout] [name=friend_registration]")).toBeVisible();
   await expect(page.locator("[data-binding-checkout] input[type=checkbox][required]:visible")).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Zahlungspflichtig anmelden" }).last()).toBeVisible();
+  await expect(page.getByRole("button", { name: "Anmelden" }).last()).toBeVisible();
 });
 
 test("early-start consent appears only inside the withdrawal period", async ({ page }) => {
@@ -335,8 +335,37 @@ test("early-start consent appears only inside the withdrawal period", async ({ p
   await expect(earlyStart).toBeVisible();
   await expect(earlyStart).toHaveAttribute("required", "");
   await expect(page.locator("[data-early-start-consent]")).toContainText("vollständiger Vertragserfüllung");
-  await expect(page.locator("[data-course-status-detail-format=compact]")).toContainText("19. Sep.–24. Okt. 2026 · Sa 09:00–11:00 Uhr");
+  await expect(page.locator("[data-binding-course-schedule]")).toContainText("19. Sep.–24. Okt. 2026 · Sa 09:00–11:00 Uhr");
 });
+
+for (const path of ["/", "/en/"]) {
+  test(`${path} registration keeps the form near the compact introduction`, async ({ page }) => {
+    await page.goto(path);
+    const compact = page.viewportSize().width <= 920;
+    await expect(page.locator(".contact-facts")).toBeVisible({ visible: !compact });
+    await expect(page.locator(".registration-testimonial")).toBeVisible({ visible: !compact });
+    await expect(page.locator(".contact-intro-compact")).toBeVisible({ visible: compact });
+    const layout = await page.evaluate(() => {
+      const rect = (selector) => document.querySelector(selector).getBoundingClientRect().toJSON();
+      return { story: rect(".contact-story"), form: rect(".contact-form-wrap"), tabs: rect(".form-tabs"), firstName: rect("#course-first-name"), note: rect(".contact-note") };
+    });
+    if (compact) {
+      expect(layout.story.height).toBeLessThan(300);
+      expect(layout.tabs.top - layout.story.top).toBeLessThan(380);
+      expect(layout.firstName.bottom - layout.story.top).toBeLessThan(page.viewportSize().height);
+      expect(layout.note.top).toBeGreaterThanOrEqual(layout.form.bottom - 1);
+    } else {
+      expect(layout.story.right).toBeLessThanOrEqual(layout.form.left + 1);
+      expect(layout.note.top).toBeGreaterThanOrEqual(layout.story.bottom - 1);
+    }
+    await page.locator("#contact-tab").click();
+    await expect(page.locator(".contact-intro-full")).toBeVisible();
+    await expect(page.locator(".contact-intro-compact")).toBeHidden();
+    await expect(page.locator(".contact-note")).toBeHidden();
+    await page.locator("#course-tab").click();
+    await expect(page.locator(".contact-note")).toBeVisible();
+  });
+}
 
 test("selected copy meets the desktop line-count targets", async ({ page }) => {
   await page.setViewportSize({ width: 1453, height: 999 });
@@ -353,9 +382,6 @@ test("selected copy meets the desktop line-count targets", async ({ page }) => {
       tools: count(".tools-heading > p"),
       course: count(".course-copy .lede"),
       courseFact: count(".course-facts li:nth-child(4) span"),
-      contactHeading: count(".contact-story h2"),
-      contactIntro: count(".contact-story p:not(.section-kicker)"),
-      contactDate: count(".contact-facts li:nth-child(4) [data-course-status-detail]"),
       privacy: count("#course-panel .privacy-hint span")
     };
   });
@@ -363,12 +389,9 @@ test("selected copy meets the desktop line-count targets", async ({ page }) => {
   expect(lines).toEqual({
     hero: 2,
     toolsTitle: 1,
-    tools: 2,
+    tools: 1,
     course: 1,
     courseFact: 1,
-    contactHeading: 3,
-    contactIntro: 2,
-    contactDate: 1,
     privacy: 1
   });
 });
@@ -428,7 +451,7 @@ test("configured forms send one sanitized request", async ({ page, baseURL }) =>
   expect(submittedBody).not.toContain("utm_source");
 });
 
-test("binding registration keeps its payment-obligation label after success", async ({ page }) => {
+test("binding registration keeps its registration label after success", async ({ page }) => {
   const endpoint = "https://formcarry.com/s/test-endpoint";
   await page.route("**/assets/course-config.js", (route) => route.fulfill({
     contentType: "application/javascript",
@@ -447,11 +470,11 @@ test("binding registration keeps its payment-obligation label after success", as
   await page.getByLabel("Straße und Hausnummer").fill("Testweg 1");
   await page.getByLabel("Ort", { exact: true }).fill("Berlin");
   await page.getByLabel("Postleitzahl").fill("10115");
-  const submit = page.getByRole("button", { name: "Zahlungspflichtig anmelden" }).last();
+  const submit = page.getByRole("button", { name: "Anmelden" }).last();
   await submit.click();
 
   await expect(page.locator("[data-course-form] [data-form-status]")).toHaveClass(/is-success/);
-  await expect(submit).toHaveText("Zahlungspflichtig anmelden");
+  await expect(submit).toHaveText("Anmelden");
 });
 
 test("a non-success Formcarry payload keeps the entered values", async ({ page }) => {
