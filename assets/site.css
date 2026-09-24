@@ -1401,10 +1401,6 @@ body.booking-open {
   color: #fff;
 }
 
-.contact-story .section-kicker {
-  color: #fff;
-}
-
 .contact-story h2 {
   max-width: 510px;
   font-size: clamp(2.5rem, 3.4vw, 3.5rem);
@@ -1949,10 +1945,6 @@ html:not(.forms-ready) .form-panel {
   .contact-story h2 {
     max-width: 620px;
     font-size: clamp(2rem, 4.5vw, 2.75rem);
-  }
-
-  .contact-story .section-kicker {
-    margin-bottom: 16px;
   }
 
   .contact-intro-full,
