@@ -24,8 +24,8 @@
     courses: [
       {
         id: "starter-2026-autumn",
-        labelDe: "Herbst 2026",
-        labelEn: "Autumn 2026",
+        labelDe: "Herbst 2026 · Samstagvormittag",
+        labelEn: "Autumn 2026 · Saturday mornings",
         status: "open",
         format: "online",
         startTime: "09:00",
@@ -34,8 +34,8 @@
       },
       {
         id: "starter-2027-winter",
-        labelDe: "Winter 2027",
-        labelEn: "Winter 2027",
+        labelDe: "Winter 2027 · Samstagvormittag",
+        labelEn: "Winter 2027 · Saturday mornings",
         status: "open",
         format: "online",
         startTime: "09:00",
@@ -44,8 +44,8 @@
       },
       {
         id: "starter-2027-february",
-        labelDe: "Februar 2027",
-        labelEn: "February 2027",
+        labelDe: "Winter 2027 · Freitagabend",
+        labelEn: "Winter 2027 · Friday evenings",
         status: "open",
         format: "online",
         startTime: "20:00",
