@@ -54,7 +54,7 @@ test("editorial images keep natural proportions without overlapping content", as
       viewportHeight: window.innerHeight,
       courseSection: rect("#starter-class"),
       courseImage: rect(".course-media img"),
-      courseSeal: rect(".course-seal"),
+      courseFacts: rect(".course-facts"),
       aboutImage: rect(".about-portrait img"),
       aboutQuote: rect(".about-quote-block"),
       aboutStory: rect(".about-story"),
@@ -65,7 +65,7 @@ test("editorial images keep natural proportions without overlapping content", as
 
   expect(layout.courseImage.width / layout.courseImage.height).toBeCloseTo(16 / 11, 1);
   expect(layout.aboutImage.width / layout.aboutImage.height).toBeCloseTo(2 / 3, 1);
-  expect(layout.courseSeal.top).toBeGreaterThanOrEqual(layout.courseImage.bottom - 1);
+  expect(layout.courseFacts.top).toBeGreaterThanOrEqual(layout.courseImage.bottom - 1);
   expect(layout.aboutImage.right).toBeLessThanOrEqual(layout.aboutQuote.left + 1);
   expect(layout.aboutStory.top).toBeGreaterThanOrEqual(layout.aboutQuote.bottom - 1);
   await expect(page.locator(".about-quote-block blockquote")).toContainText("Ich weiß, wie es sich anfühlt, am Limit zu sein");

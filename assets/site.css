@@ -960,27 +960,6 @@ body.booking-open {
   box-shadow: var(--shadow);
 }
 
-.course-seal {
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  padding: 0 4px;
-  color: var(--clay-dark);
-  font-size: 11px;
-  font-weight: 750;
-  letter-spacing: 0.1em;
-  line-height: 1.2;
-  text-align: center;
-  text-transform: uppercase;
-}
-
-.course-seal::before {
-  width: 34px;
-  height: 1px;
-  background: currentcolor;
-  content: "";
-}
-
 .course-copy {
   grid-column: 1 / -1;
 }
@@ -2164,15 +2143,6 @@ html:not(.forms-ready) .form-panel {
 
   .course-media picture img {
     border-radius: 24px;
-  }
-
-  .course-seal {
-    padding-inline: 2px;
-    font-size: 9px;
-  }
-
-  .course-seal::before {
-    width: 24px;
   }
 
   .course-option {
