@@ -531,30 +531,18 @@ html.js .reveal.is-visible {
 }
 
 .course-call {
-  margin-top: 28px;
-  padding-top: 24px;
+  margin-top: 20px;
+  padding-top: 16px;
   border-top: 1px solid var(--line);
-}
-
-.course-call h3 {
-  margin: 0 0 12px;
-  font-size: 1.9rem;
+  font-size: 14px;
 }
 
 .course-call > p {
-  margin: 0 0 18px;
+  margin: 0 0 8px;
 }
 
-.course-call .button.secondary {
-  border-color: var(--forest);
-  background: transparent;
-  color: var(--forest);
-}
-
-.course-call > a:last-child {
-  display: block;
-  margin-top: 16px;
-  font-size: 14px;
+.course-call a {
+  color: var(--clay-dark);
   text-underline-offset: 3px;
 }
 
@@ -936,21 +924,24 @@ body.booking-open {
 }
 
 /* Course */
-.course {
+.section.course {
+  padding: 40px 0;
   background: var(--white);
 }
 
 .course-grid {
   display: grid;
-  grid-template-columns: minmax(0, 0.98fr) minmax(400px, 1.02fr);
-  align-items: center;
-  gap: 76px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 28px 64px;
 }
 
 .course-media {
   display: grid;
-  max-width: 620px;
-  gap: 16px;
+  width: 100%;
+  max-width: 460px;
+  gap: 10px;
+  justify-self: center;
   justify-items: end;
 }
 
@@ -990,19 +981,31 @@ body.booking-open {
   content: "";
 }
 
+.course-copy {
+  grid-column: 1 / -1;
+}
+
+.course-copy .section-kicker {
+  margin-bottom: 10px;
+}
+
 .course-copy h2 {
-  font-size: clamp(3.3rem, 6vw, 5.7rem);
+  margin-bottom: 8px;
+  font-size: clamp(2.75rem, 4vw, 4rem);
 }
 
 .course-copy .lede {
-  margin-bottom: 30px;
+  max-width: 900px;
+  margin-bottom: 0;
+  font-size: 18px;
 }
 
 .course-facts {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0 24px;
-  margin: 34px 0;
+  width: 100%;
+  grid-template-columns: 1fr;
+  gap: 6px;
+  margin: 8px 0 0;
   padding: 0;
   list-style: none;
 }
@@ -1011,10 +1014,9 @@ body.booking-open {
   display: grid;
   grid-template-columns: 20px 1fr;
   gap: 10px;
-  padding: 14px 0;
-  border-top: 1px solid var(--line);
+  padding: 0;
   color: var(--ink-soft);
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .course-facts img {
@@ -1023,22 +1025,12 @@ body.booking-open {
   opacity: 0.7;
 }
 
-.course-reassurance {
-  margin: 0 0 26px;
-  color: var(--ink-soft);
-  font-size: 13px;
-}
-
-.course-dates {
-  margin-bottom: 26px;
-}
-
 .course-dates-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  margin-bottom: 14px;
+  margin-bottom: 4px;
 }
 
 .course-dates-heading h3 {
@@ -1060,9 +1052,13 @@ body.booking-open {
   line-height: 1;
 }
 
+.course-dates .fine-print {
+  margin: 0 0 18px;
+}
+
 .course-options {
   display: grid;
-  gap: 10px;
+  gap: 0;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -1073,12 +1069,10 @@ body.booking-open {
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  padding: 16px 18px;
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  background: var(--cream);
+  padding: 16px 0;
+  border-top: 1px solid var(--line);
   color: var(--ink-soft);
-  font-size: 12px;
+  font-size: 14px;
   text-decoration: none;
 }
 
@@ -1094,7 +1088,7 @@ body.booking-open {
 .course-option strong {
   margin-bottom: 4px;
   color: var(--forest-dark);
-  font-size: 13px;
+  font-size: 16px;
 }
 
 .course-option-action {
@@ -1852,7 +1846,7 @@ html:not(.forms-ready) .form-panel {
   }
 
   .course-grid {
-    gap: 54px;
+    column-gap: 40px;
   }
 
   .contact-story,
@@ -1862,10 +1856,6 @@ html:not(.forms-ready) .form-panel {
 }
 
 @media (max-width: 920px) {
-  .course-copy {
-    order: -1;
-  }
-
   .section {
     padding: 88px 0;
   }
@@ -1912,8 +1902,8 @@ html:not(.forms-ready) .form-panel {
   }
 
   .course-media {
-    max-width: 690px;
-    justify-self: center;
+    max-width: 460px;
+    justify-self: start;
   }
 
   .about-portrait {
@@ -2169,7 +2159,7 @@ html:not(.forms-ready) .form-panel {
   }
 
   .course-grid {
-    gap: 48px;
+    gap: 28px;
   }
 
   .course-media picture img {
@@ -2185,14 +2175,16 @@ html:not(.forms-ready) .form-panel {
     width: 24px;
   }
 
-  .course-facts {
-    grid-template-columns: 1fr;
+  .course-option {
+    gap: 12px;
   }
 
-  .course-option {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 8px;
+  .course-option strong {
+    font-size: 14px;
+  }
+
+  .course-option > span:first-child {
+    min-width: 0;
   }
 
   .about-heading {

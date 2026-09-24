@@ -30,7 +30,11 @@ for (const language of ["de", "en"]) {
     const list = page.locator("[data-course-list]");
     await expect(list.locator("li")).toHaveCount(3);
     const labels = courses.map((course) => language === "de" ? course.labelDe : course.labelEn);
-    await expect(list.locator("strong")).toHaveText(labels);
+    await expect(list.locator("strong")).toHaveText(language === "de" ? [
+      "5. Januar – 9. Februar 2099", "2. März – 6. April 2099", "4. Mai – 8. Juni 2099"
+    ] : [
+      "5 January – 9 February 2099", "2 March – 6 April 2099", "4 May – 8 June 2099"
+    ]);
     await expect(list).toContainText(language === "de" ? "2. März – 6. April 2099" : "2 March – 6 April 2099");
     await expect(list).toContainText("18:00–20:30");
     await expect(list.locator('[data-course-id="later"]')).toHaveAccessibleName(/18:00–20:30/);

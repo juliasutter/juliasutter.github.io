@@ -510,12 +510,10 @@
 
       const details = document.createElement("span");
       const title = document.createElement("strong");
-      title.textContent = language === "de" ? course.labelDe : course.labelEn;
-      const dates = document.createElement("span");
-      dates.textContent = formatDateRange(course);
+      title.textContent = formatDateRange(course);
       const schedule = document.createElement("span");
       schedule.textContent = [formatSchedule(course), getCourseFormat(course)].filter(Boolean).join(" · ");
-      details.append(title, dates, schedule);
+      details.append(title, schedule);
 
       const action = document.createElement("span");
       action.className = "course-option-action";

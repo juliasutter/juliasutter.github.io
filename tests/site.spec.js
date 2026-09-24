@@ -51,6 +51,8 @@ test("editorial images keep natural proportions without overlapping content", as
     };
     return {
       viewportWidth: window.innerWidth,
+      viewportHeight: window.innerHeight,
+      courseSection: rect("#starter-class"),
       courseImage: rect(".course-media img"),
       courseSeal: rect(".course-seal"),
       aboutImage: rect(".about-portrait img"),
@@ -69,6 +71,7 @@ test("editorial images keep natural proportions without overlapping content", as
   await expect(page.locator(".about-quote-block blockquote")).toContainText("Ich weiß, wie es sich anfühlt, am Limit zu sein");
 
   if (layout.viewportWidth > 920) {
+    expect(layout.courseSection.height).toBeLessThanOrEqual(layout.viewportHeight - 90);
     expect(layout.coachingPicture.right).toBeLessThanOrEqual(layout.coachingCopy.left + 1);
   } else {
     expect(layout.coachingPicture.bottom).toBeLessThanOrEqual(layout.coachingCopy.top + 1);
@@ -296,7 +299,7 @@ test("selected copy meets the desktop line-count targets", async ({ page }) => {
       toolsTitle: count(".tools-heading h2"),
       tools: count(".tools-heading > p"),
       course: count(".course-copy .lede"),
-      courseFact: count(".course-facts li:nth-child(6) span"),
+      courseFact: count(".course-facts li:nth-child(4) span"),
       contactHeading: count(".contact-story h2"),
       contactIntro: count(".contact-story p:not(.section-kicker)"),
       contactDate: count(".contact-facts li:nth-child(4) [data-course-status-detail]"),
@@ -308,7 +311,7 @@ test("selected copy meets the desktop line-count targets", async ({ page }) => {
     hero: 2,
     toolsTitle: 1,
     tools: 2,
-    course: 2,
+    course: 1,
     courseFact: 1,
     contactHeading: 3,
     contactIntro: 2,
@@ -324,7 +327,7 @@ test("a course with an invalid or duplicate date stays unavailable", async ({ pa
   }));
   await page.goto("/");
   await expect(page.locator("[data-course-list]")).toBeHidden();
-  await expect(page.locator(".course-copy a[data-course-inquiry]")).toBeVisible();
+  await expect(page.locator(".course-booking a[data-course-inquiry]")).toBeVisible();
   await expect(page.getByLabel("Kurs auswählen")).toBeHidden();
   await expect(page.getByLabel("Straße und Hausnummer")).toBeHidden();
 });
