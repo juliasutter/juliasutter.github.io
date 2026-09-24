@@ -27,7 +27,7 @@ for (const language of ["de", "en"]) {
     await expect(page.locator("#contact-message")).toHaveValue("Meine Frage / My question");
     await expect(page.locator("#contact-name")).toHaveValue("Test Person");
     await page.locator("#course-tab").click();
-    await expect(page.locator(".contact-facts")).toBeVisible();
+    await expect(page.locator(".contact-facts")).toBeVisible({ visible: page.viewportSize().width > 920 });
     await page.locator("#contact-tab").click();
     await expect(page.locator("#contact-message")).toHaveValue("Meine Frage / My question");
   });
