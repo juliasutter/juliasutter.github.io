@@ -128,6 +128,22 @@ try {
 const siteConfig = configContext.window.JULIA_SITE_CONFIG;
 if (!siteConfig || typeof siteConfig !== "object") fail("course config does not expose JULIA_SITE_CONFIG");
 
+if (!/^https:\/\/calendar\.app\.google\/[A-Za-z0-9]+$/.test(siteConfig?.introCallUrl || "")) {
+  fail("introCallUrl must be a public Google Calendar booking link");
+}
+if (!/^https:\/\/calendar\.google\.com\/calendar\/appointments\/schedules\/[A-Za-z0-9_-]+\?gv=true$/.test(siteConfig?.introCallEmbedUrl || "")) {
+  fail("introCallEmbedUrl must be a Google Calendar schedule embed URL with gv=true");
+}
+for (const file of ["index.html", "en/index.html"]) {
+  const links = [...read(file).matchAll(/<a\b[^>]*\bdata-booking-(?:trigger|direct)\b[^>]*>/gi)];
+  if (!links.length) fail(`${file}: missing static booking links`);
+  for (const [tag] of links) {
+    if (attribute(tag, /<a\b[^>]*>/i, "href") !== siteConfig?.introCallUrl) {
+      fail(`${file}: static booking link differs from introCallUrl`);
+    }
+  }
+}
+
 const isValidCourseDate = (value) => {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value || "");
   if (!match) return false;

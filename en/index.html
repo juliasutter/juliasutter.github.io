@@ -95,7 +95,7 @@
         <p class="hero-intro">With the five tools, you can find your way back to closeness and connection in difficult moments.</p>
         <div class="hero-actions">
           <a class="button" href="#starter-class">Explore the course<img src="/assets/icons/arrow-right.svg" alt=""></a>
-          <a class="button secondary" href="#contact" data-open-form="contact">Ask a question</a>
+          <a class="button secondary" href="#coaching">Explore coaching</a>
         </div>
       </div>
     </div>
@@ -120,7 +120,7 @@
             <li><img src="/assets/icons/check-circle.svg" alt=""><span>Materials &amp; theory to catch up on</span></li>
             <li><img src="/assets/icons/check-circle.svg" alt=""><span>Find a Listening Partner</span></li>
           </ul>
-          <p class="course-reassurance">Cannot make a session? You will receive a recording of the theory part to catch up.</p>
+          <p class="course-reassurance">If you miss a session, you can catch up on the theory with a recording.</p>
           <div class="course-dates">
             <div class="course-dates-heading">
               <h3>Course dates</h3>
@@ -131,6 +131,12 @@
           </div>
           <a class="button" href="#contact" data-open-form="course" data-course-inquiry><span data-course-cta-label>Request a course place</span><img src="/assets/icons/arrow-right.svg" alt=""></a>
           <p class="fine-print">Friends’ price: <span data-friend-price>€349</span> per person when registering together.</p>
+          <div class="course-call">
+            <h3>Is the Starter Class right for you?</h3>
+            <p>In a free 20-minute call, we will explore whether the course fits your family's situation.</p>
+            <a class="button secondary" href="https://calendar.app.google/B3vTLDTfrUF47nM58" target="_blank" rel="noopener noreferrer" data-booking-trigger>Book a 20-minute call</a>
+            <a href="#contact" data-open-form="contact" data-contact-topic="starter-class">Prefer to write? Send me your question.</a>
+          </div>
         </div>
       </div>
     </section>
@@ -204,7 +210,7 @@
       </div>
     </section>
 
-    <section class="coaching" aria-labelledby="coaching-heading">
+    <section id="coaching" class="coaching" aria-labelledby="coaching-heading">
       <div class="coaching-card reveal">
         <picture><source srcset="/assets/images/coaching.webp" type="image/webp"><img src="/assets/images/coaching.jpg" width="1200" height="720" loading="lazy" alt="Julia sharing a playful moment with a child"></picture>
         <div class="coaching-copy"><p class="section-kicker">Continue personally</p><h2 id="coaching-heading">One-on-One Coaching</h2><p>Sometimes you need a protected space just for you. In one-on-one coaching, I accompany you individually on your way.</p><a class="button" href="#contact" data-open-form="contact" data-contact-topic="one-on-one">Ask about coaching<img src="/assets/icons/arrow-right.svg" alt=""></a></div>
@@ -284,16 +290,16 @@
     <section id="contact" class="section contact" aria-labelledby="contact-heading">
       <div class="contact-shell reveal">
         <div class="contact-story">
-          <div><p class="section-kicker">Begin together</p><h2 id="contact-heading">Ready for the Starter Class?</h2><p>Curiosity and a wish for more connection – that is all you need.</p>
+          <div><p class="section-kicker">Begin together</p><h2 id="contact-heading" data-contact-heading="How can I support you?">Ready for the Starter Class?</h2><p data-contact-intro="Have a question or interested in individual coaching? Send me a message and I will get back to you personally.">Curiosity and a wish for more connection – that is all you need.</p>
             <ul class="contact-facts"><li><img src="/assets/icons/check-circle.svg" alt=""> Small, personal group</li><li><img src="/assets/icons/check-circle.svg" alt=""> Six weeks with a clear structure</li><li><img src="/assets/icons/check-circle.svg" alt=""> <span data-course-price>€399</span> · friends’ price <span data-friend-price>€349</span></li><li><img src="/assets/icons/check-circle.svg" alt=""> <span data-course-status-detail data-course-status-detail-format="compact">New dates on request</span></li><li data-course-format-wrap hidden><img src="/assets/icons/check-circle.svg" alt=""> <span data-course-format></span></li></ul>
           </div>
-          <p class="contact-note"><img src="/assets/icons/heart.svg" alt=""> Not sure whether the course is right for you? Ask me a question first.</p>
+          <p class="contact-note"><img src="/assets/icons/heart.svg" alt=""> <span>Not sure whether the course is right for you? <a href="https://calendar.app.google/B3vTLDTfrUF47nM58" target="_blank" rel="noopener noreferrer" data-booking-trigger>Book a 20-minute call</a><span class="contact-booking-details">Free · via Google Meet. Choose your time with Google Calendar.</span></span></p>
         </div>
         <div class="contact-form-wrap">
           <p class="no-js-form-fallback">These forms require JavaScript. Alternatively, email me directly at <a href="mailto:julia@juliasutter.de">julia@juliasutter.de</a>.</p>
           <div class="form-tabs" role="tablist" aria-label="Choose a form">
             <button id="course-tab" class="form-tab" type="button" role="tab" aria-selected="true" aria-controls="course-panel" data-form-tab="course"><span data-course-form-title>Request a course place</span></button>
-            <button id="contact-tab" class="form-tab" type="button" role="tab" aria-selected="false" aria-controls="contact-panel" tabindex="-1" data-form-tab="contact">Ask a question</button>
+            <button id="contact-tab" class="form-tab" type="button" role="tab" aria-selected="false" aria-controls="contact-panel" tabindex="-1" data-form-tab="contact">Contact</button>
           </div>
           <div id="course-panel" class="form-panel" role="tabpanel" aria-labelledby="course-tab" data-form-panel="course">
             <h3 data-course-form-title>Request a course place</h3><p class="form-intro" data-course-form-summary>Tell me when a course would work well for you. Your request is non-binding.</p>
@@ -342,7 +348,7 @@
             </form>
           </div>
           <div id="contact-panel" class="form-panel" role="tabpanel" aria-labelledby="contact-tab" data-form-panel="contact" hidden>
-            <h3>What is on your mind?</h3><p class="form-intro">Send me your question. I will get back to you personally.</p>
+            <h3>What is on your mind?</h3><p class="form-intro">Send me your question or tell me what you need. I will get back to you personally.</p>
             <form action="/en/#contact" method="post" data-async-form>
               <input type="hidden" name="form_type" value="contact">
               <div class="form-grid">
@@ -368,5 +374,19 @@
     </div>
     <div class="container footer-bottom"><span>© 2026 Julia Sutter · Certified Hand in Hand Parenting Instructor</span><img src="/assets/images/certified-instructor.png" width="500" height="500" loading="lazy" alt="Certified Hand in Hand Parenting Instructor"></div>
   </footer>
+
+  <dialog id="booking-dialog" class="booking-dialog" aria-labelledby="booking-heading">
+    <div class="booking-header">
+      <div><h2 id="booking-heading">Book a 20-minute call</h2><p>Free · via Google Meet</p></div>
+      <button type="button" class="booking-close" data-booking-close aria-label="Close booking window"><img src="/assets/icons/close.svg" alt=""></button>
+    </div>
+    <div class="booking-content" data-booking-content data-frame-title="Choose your time with Google Calendar">
+      <p class="booking-loading" role="status" data-booking-loading>Loading available times …</p>
+    </div>
+    <div class="booking-footer">
+      <a href="https://calendar.app.google/B3vTLDTfrUF47nM58" target="_blank" rel="noopener noreferrer" data-booking-direct>Open booking page directly</a>
+      <a href="#contact" data-open-form="contact" data-contact-topic="starter-class">No suitable time? Send me a message.</a>
+    </div>
+  </dialog>
 </body>
 </html>

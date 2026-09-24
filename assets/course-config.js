@@ -15,6 +15,8 @@
   //   dates: ["2026-09-07", "2026-09-14", "2026-09-21", "2026-09-28", "2026-10-05", "2026-10-12"]
   // }
   window.JULIA_SITE_CONFIG = {
+    introCallUrl: "https://calendar.app.google/B3vTLDTfrUF47nM58",
+    introCallEmbedUrl: "https://calendar.google.com/calendar/appointments/schedules/AcZssZ0BujbeeHh7PjShTgs1trg18VaDbZoE7h26y8n-Cj27nWhG7GxY6TcpBGLL2ZfS7Ta0hlERijcc?gv=true",
     formEndpoint: "https://formcarry.com/s/RzTPxooFeBz",
     timeZone: "Europe/Berlin",
     priceEur: 399,

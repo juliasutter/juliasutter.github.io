@@ -324,6 +324,12 @@
 
   const formTabs = Array.from(document.querySelectorAll("[data-form-tab]"));
   const formPanels = Array.from(document.querySelectorAll("[data-form-panel]"));
+  const contactHeading = document.querySelector("[data-contact-heading]");
+  const contactIntro = document.querySelector("[data-contact-intro]");
+  const courseHeadingText = contactHeading?.textContent;
+  const courseIntroText = contactIntro?.textContent;
+  const contactFacts = document.querySelector(".contact-facts");
+  const contactNote = document.querySelector(".contact-note");
   const activateFormPanel = (name, moveFocus = false) => {
     formTabs.forEach((tab) => {
       const selected = tab.dataset.formTab === name;
@@ -332,6 +338,12 @@
       if (selected && moveFocus) tab.focus();
     });
     formPanels.forEach((panel) => { panel.hidden = panel.dataset.formPanel !== name; });
+    const isContact = name === "contact";
+    if (contactHeading) contactHeading.textContent = isContact ? contactHeading.dataset.contactHeading : courseHeadingText;
+    if (contactIntro) contactIntro.textContent = isContact ? contactIntro.dataset.contactIntro : courseIntroText;
+    if (contactFacts) contactFacts.hidden = isContact;
+    if (contactNote) contactNote.hidden = isContact;
+    document.querySelector(".contact-shell")?.classList.toggle("is-contact", isContact);
   };
   formTabs.forEach((tab) => {
     tab.addEventListener("click", () => activateFormPanel(tab.dataset.formTab));
@@ -514,6 +526,52 @@
     });
   }
 
+  const bookingDialog = document.querySelector("#booking-dialog");
+  const bookingLinks = document.querySelectorAll("[data-booking-trigger], [data-booking-direct]");
+  bookingLinks.forEach((link) => {
+    if (config.introCallUrl) link.href = config.introCallUrl;
+  });
+  if (bookingDialog && typeof bookingDialog.showModal === "function" && config.introCallEmbedUrl) {
+    const content = bookingDialog.querySelector("[data-booking-content]");
+    const closeButton = bookingDialog.querySelector("[data-booking-close]");
+    let bookingTrigger;
+    let bookingFrame;
+    let restoreBookingFocus = true;
+
+    bookingDialog.addEventListener("close", () => {
+      document.body.classList.remove("booking-open");
+      if (restoreBookingFocus) bookingTrigger?.focus({ preventScroll: true });
+    });
+    closeButton.addEventListener("click", () => bookingDialog.close());
+    bookingDialog.querySelector("[data-open-form]").addEventListener("click", () => {
+      // The contact handler below supplies its own scroll and focus destination.
+      restoreBookingFocus = false;
+      bookingDialog.close();
+    });
+    document.querySelectorAll("[data-booking-trigger]").forEach((trigger) => {
+      trigger.addEventListener("click", (event) => {
+        if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+        event.preventDefault();
+        bookingTrigger = trigger;
+        restoreBookingFocus = true;
+        if (!bookingFrame) {
+          bookingFrame = document.createElement("iframe");
+          bookingFrame.title = content.dataset.frameTitle;
+          bookingFrame.referrerPolicy = "no-referrer";
+          bookingFrame.addEventListener("load", () => {
+            // This only signals a loaded frame, never a successful booking.
+            bookingDialog.querySelector("[data-booking-loading]").hidden = true;
+          });
+          bookingFrame.src = config.introCallEmbedUrl;
+          content.append(bookingFrame);
+        }
+        bookingDialog.showModal();
+        document.body.classList.add("booking-open");
+        closeButton.focus({ preventScroll: true });
+      });
+    });
+  }
+
   document.querySelectorAll("[data-open-form]").forEach((trigger) => {
     trigger.addEventListener("click", (event) => {
       const targetName = trigger.dataset.openForm;
@@ -527,7 +585,7 @@
       activateFormPanel(targetName);
       const contactTopic = trigger.dataset.contactTopic;
       if (contactTopic) {
-        const topic = document.querySelector("[data-contact-topic]");
+        const topic = panel.querySelector("select[data-contact-topic]");
         if (topic) topic.value = contactTopic;
       }
       const heading = panel.querySelector("h3");
