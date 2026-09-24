@@ -121,7 +121,7 @@ test("tool descriptions stay readable at narrow tablet widths", async ({ page })
   }
 });
 
-test("navigation and FAQ are keyboard friendly", async ({ page }, testInfo) => {
+test("navigation is keyboard friendly", async ({ page }, testInfo) => {
   await page.goto("/");
   if (testInfo.project.name === "chromium-mobile") {
     const menuButton = page.locator("[data-menu-button]");
@@ -134,13 +134,33 @@ test("navigation and FAQ are keyboard friendly", async ({ page }, testInfo) => {
   } else {
     await expect(page.getByRole("navigation", { name: "Hauptnavigation" })).toBeVisible();
   }
-
-  const firstQuestion = page.getByText("Für welches Alter ist Hand in Hand geeignet?", { exact: true });
-  await firstQuestion.click();
-  await expect(page.locator(".faq details[open]")).toHaveCount(1);
-  await page.getByText("Wer kann an der Starter Class teilnehmen?", { exact: true }).click();
-  await expect(page.locator(".faq details[open]")).toHaveCount(1);
 });
+
+for (const route of ["/", "/en/"]) {
+  test(`${route} FAQ supports keyboard and pointer interaction`, async ({ page }) => {
+    await page.goto(route);
+    const items = page.locator(".faq details");
+    await expect(items).toHaveCount(5);
+    const first = items.nth(0);
+    const second = items.nth(1);
+
+    await first.locator("summary").focus();
+    await page.keyboard.press("Enter");
+    await expect(first).toHaveAttribute("open", "");
+    await expect(first.locator(".details-answer")).toBeVisible();
+
+    await second.locator("summary").click();
+    await expect(first).not.toHaveAttribute("open", "");
+    await expect(second).toHaveAttribute("open", "");
+    await expect(second.locator(".details-answer")).toBeVisible();
+    await expect(page.locator(".faq details[open]")).toHaveCount(1);
+
+    await second.locator("summary").focus();
+    await page.keyboard.press("Space");
+    await expect(page.locator(".faq details[open]")).toHaveCount(0);
+    await expect(second.locator(".details-answer")).toBeHidden();
+  });
+}
 
 test("mobile navigation remains reachable in a short viewport", async ({ page }) => {
   await page.setViewportSize({ width: 568, height: 320 });
