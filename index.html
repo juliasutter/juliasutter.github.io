@@ -356,6 +356,10 @@
               <input type="hidden" name="registration_mode" value="inquiry">
               <input type="hidden" name="course_label" value="Neue Termine auf Anfrage">
               <div class="form-grid">
+                <div class="form-field full" data-course-select-wrap hidden>
+                  <label for="course-selection">Kurs auswählen</label>
+                  <select id="course-selection" name="course_id" data-course-select></select>
+                </div>
                 <div class="form-field">
                   <label for="course-first-name">Vorname</label>
                   <input id="course-first-name" name="first_name" type="text" autocomplete="given-name" required>
@@ -367,10 +371,6 @@
                 <div class="form-field full">
                   <label for="course-email">E-Mail-Adresse</label>
                   <input id="course-email" name="email" type="email" autocomplete="email" required>
-                </div>
-                <div class="form-field full" data-course-select-wrap hidden>
-                  <label for="course-selection">Kurs auswählen</label>
-                  <select id="course-selection" name="course_id" data-course-select></select>
                 </div>
                 <div class="form-field full">
                   <label for="course-children">Alter deiner Kinder</label>
