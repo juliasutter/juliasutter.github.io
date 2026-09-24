@@ -152,6 +152,7 @@
 
   const faqItems = Array.from(document.querySelectorAll(".faq details"));
   const faqAnimations = new WeakMap();
+  let activeFaqItem = faqItems.find((item) => item.open) || null;
   const animateDetails = (item, opening) => {
     const summary = item.querySelector("summary");
     const answer = item.querySelector(".details-answer");
@@ -159,9 +160,12 @@
       item.open = opening;
       return;
     }
-    const currentAnimation = faqAnimations.get(item);
-    if (currentAnimation) currentAnimation.cancel();
     const startHeight = item.offsetHeight;
+    const currentAnimation = faqAnimations.get(item);
+    if (currentAnimation) {
+      currentAnimation.oncancel = null;
+      currentAnimation.cancel();
+    }
     if (opening) item.open = true;
     const endHeight = opening ? summary.offsetHeight + answer.offsetHeight : summary.offsetHeight;
     item.style.overflow = "hidden";
@@ -186,7 +190,9 @@
     if (!summary) return;
     summary.addEventListener("click", (event) => {
       event.preventDefault();
-      const opening = !item.open;
+      const opening = activeFaqItem !== item;
+      if (opening && activeFaqItem) animateDetails(activeFaqItem, false);
+      activeFaqItem = opening ? item : null;
       animateDetails(item, opening);
     });
   });

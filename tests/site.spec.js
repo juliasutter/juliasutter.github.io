@@ -142,6 +142,25 @@ test("navigation is keyboard friendly", async ({ page }, testInfo) => {
 });
 
 for (const route of ["/", "/en/"]) {
+  for (const reducedMotion of ["no-preference", "reduce"]) {
+    test(`${route} FAQ keeps the latest choice during rapid switches (${reducedMotion})`, async ({ page }) => {
+      await page.emulateMedia({ reducedMotion });
+      await page.goto(route);
+      const items = page.locator(".faq details");
+      await items.first().locator("summary").focus();
+      await page.keyboard.press("Enter");
+      await page.keyboard.press("Tab");
+      await page.keyboard.press("Enter");
+      await page.keyboard.press("Shift+Tab");
+      await page.keyboard.press("Enter");
+
+      await expect(items.nth(1)).not.toHaveAttribute("open", "");
+      await expect(items.first()).toHaveAttribute("open", "");
+      await expect(page.locator(".faq details[open]")).toHaveCount(1);
+      await expect(items.first().locator(".details-answer")).toBeVisible();
+    });
+  }
+
   test(`${route} FAQ supports keyboard and pointer interaction`, async ({ page }) => {
     await page.goto(route);
     const items = page.locator(".faq details");
@@ -156,17 +175,19 @@ for (const route of ["/", "/en/"]) {
     await expect(first.locator(".details-answer")).toBeVisible();
 
     await second.locator("summary").click();
-    await expect(first).toHaveAttribute("open", "");
+    await expect(first).not.toHaveAttribute("open", "");
     await expect(second).toHaveAttribute("open", "");
     await expect(second.locator(".details-answer")).toBeVisible();
-    await expect(page.locator(".faq details[open]")).toHaveCount(2);
+    await expect(page.locator(".faq details[open]")).toHaveCount(1);
 
     await second.locator("summary").focus();
     await page.keyboard.press("Space");
-    await expect(page.locator(".faq details[open]")).toHaveCount(1);
+    await expect(page.locator(".faq details[open]")).toHaveCount(0);
     await expect(second.locator(".details-answer")).toBeHidden();
-    await expect(first.locator(".details-answer")).toBeVisible();
+    await expect(first.locator(".details-answer")).toBeHidden();
 
+    await first.locator("summary").click();
+    await expect(first).toHaveAttribute("open", "");
     await first.locator("summary").click();
     await expect(page.locator(".faq details[open]")).toHaveCount(0);
   });
