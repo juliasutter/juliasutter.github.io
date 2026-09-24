@@ -14,7 +14,6 @@
       bindingCta: "Anmelden",
       bindingSubmitCta: "Zahlungspflichtig anmelden",
       bindingFormTitle: "Anmelden",
-      bindingSummary: "Wähle deinen Kurs und sende deine verbindliche Anmeldung ab.",
       waitlistCta: "Auf die Warteliste",
       waitlistStatus: "Warteliste geöffnet",
       waitlistFormTitle: "Auf die Warteliste",
@@ -43,7 +42,6 @@
       bindingCta: "Register",
       bindingSubmitCta: "Register with payment obligation",
       bindingFormTitle: "Register",
-      bindingSummary: "Choose your course and send your binding registration.",
       waitlistCta: "Join the waitlist",
       waitlistStatus: "Waitlist open",
       waitlistFormTitle: "Join the waitlist",
@@ -306,7 +304,7 @@
 
   const modeCopy = {
     inquiry: { cta: copy.inquiryCta, submitCta: copy.inquiryCta, title: copy.inquiryFormTitle, summary: copy.inquirySummary },
-    open: { cta: copy.bindingCta, submitCta: copy.bindingSubmitCta, title: copy.bindingFormTitle, summary: copy.bindingSummary },
+    open: { cta: copy.bindingCta, submitCta: copy.bindingSubmitCta, title: copy.bindingFormTitle, summary: "" },
     waitlist: { cta: copy.waitlistCta, submitCta: copy.waitlistCta, status: copy.waitlistStatus, title: copy.waitlistFormTitle, summary: copy.waitlistSummary }
   };
 
@@ -363,7 +361,6 @@
   const courseSelectWrap = courseForm ? courseForm.querySelector("[data-course-select-wrap]") : null;
   const bindingFields = courseForm ? courseForm.querySelector("[data-binding-fields]") : null;
   const bindingCheckout = courseForm ? courseForm.querySelector("[data-binding-checkout]") : null;
-  const bindingCourseLabel = courseForm ? courseForm.querySelector("[data-binding-course-label]") : null;
   const bindingCourseSchedule = courseForm ? courseForm.querySelector("[data-binding-course-schedule]") : null;
   const bindingCourseFormat = courseForm ? courseForm.querySelector("[data-binding-course-format]") : null;
   const bindingCourseFormatRow = bindingCourseFormat ? bindingCourseFormat.closest("[data-binding-course-format-row]") : null;
@@ -441,7 +438,10 @@
     document.querySelectorAll("[data-course-cta-label]").forEach((element) => { element.textContent = selectedCopy.cta; });
     document.querySelectorAll("[data-course-submit-label]").forEach((element) => { element.textContent = selectedCopy.submitCta; });
     document.querySelectorAll("[data-course-form-title]").forEach((element) => { element.textContent = selectedCopy.title; });
-    document.querySelectorAll("[data-course-form-summary]").forEach((element) => { element.textContent = selectedCopy.summary; });
+    document.querySelectorAll("[data-course-form-summary]").forEach((element) => {
+      element.textContent = selectedCopy.summary;
+      element.hidden = !selectedCopy.summary;
+    });
     document.querySelectorAll("[data-course-status-detail]").forEach((element) => {
       if (!selectedCourse) {
         element.textContent = copy.courseFallback;
@@ -455,11 +455,8 @@
     });
     if (modeField) modeField.value = courseMode;
     if (courseLabelField) courseLabelField.value = selectedCourse ? formatDateRange(selectedCourse) : copy.courseFallback;
-    if (bindingCourseLabel && selectedCourse) {
-      bindingCourseLabel.textContent = language === "de" ? selectedCourse.labelDe : selectedCourse.labelEn;
-    }
     if (bindingCourseSchedule && selectedCourse) {
-      bindingCourseSchedule.textContent = `${copy.sixDates} · ${formatDateRange(selectedCourse)} · ${formatSchedule(selectedCourse)}`;
+      bindingCourseSchedule.textContent = `${copy.sixDates} · ${formatCompactDateRange(selectedCourse)} · ${formatCompactSchedule(selectedCourse)}`;
     }
     setCourseFormatFields(selectedCourse);
     setFieldGroupEnabled(bindingFields, courseMode === "open");

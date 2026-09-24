@@ -668,11 +668,6 @@ body.booking-open {
   text-underline-offset: 3px;
 }
 
-.contact-booking-details {
-  display: block;
-  margin-top: 8px;
-}
-
 .contact-shell.is-contact .contact-story {
   min-height: 0;
 }
@@ -1501,14 +1496,18 @@ body.booking-open {
 }
 
 .friend-pricing {
-  padding: 18px;
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  background: var(--cream);
+  margin: 14px 0;
+}
+
+.friend-pricing > .checkbox {
+  min-height: 32px;
+  align-items: center;
+  cursor: pointer;
+  font-size: 12px;
 }
 
 .friend-pricing .form-field {
-  margin-top: 16px;
+  margin-top: 12px;
 }
 
 .no-js-form-fallback {
@@ -1596,6 +1595,22 @@ html:not(.forms-ready) .form-panel {
   transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
 }
 
+#course-selection {
+  appearance: none;
+  padding-right: 44px;
+  background-image: url("./icons/caret-down.svg");
+  background-repeat: no-repeat;
+  background-position: right 15px center;
+  background-size: 16px;
+}
+
+@media (forced-colors: active) {
+  #course-selection {
+    appearance: auto;
+    background-image: none;
+  }
+}
+
 .form-field textarea {
   min-height: 126px;
   resize: vertical;
@@ -1605,7 +1620,7 @@ html:not(.forms-ready) .form-panel {
 .form-field select:focus,
 .form-field textarea:focus {
   border-color: var(--forest);
-  background: var(--white);
+  background-color: var(--white);
   box-shadow: 0 0 0 3px rgb(76 91 63 / 12%);
 }
 
@@ -1618,11 +1633,6 @@ html:not(.forms-ready) .form-panel {
 
 .binding-fields .full {
   grid-column: 1 / -1;
-}
-
-.checkboxes {
-  display: grid;
-  gap: 14px;
 }
 
 .binding-checkout {
@@ -1641,40 +1651,28 @@ html:not(.forms-ready) .form-panel {
   line-height: 1.5;
 }
 
-.binding-order-heading {
-  margin-bottom: 12px;
-  color: var(--ink);
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.binding-order-summary dl {
-  display: grid;
-  gap: 8px;
-  margin: 0 0 10px;
-}
-
-.binding-order-summary dl > div {
-  display: grid;
-  grid-template-columns: 72px minmax(0, 1fr);
-  gap: 10px;
-}
-
-.binding-order-summary dt {
-  color: var(--ink);
-  font-weight: 750;
-}
-
-.binding-order-summary dd {
+.binding-order-summary p {
   margin: 0;
 }
 
-.binding-order-summary > p:last-child,
-.binding-legal-notice {
-  margin: 0;
+.binding-course-title {
+  color: var(--ink);
+  font-size: 13px;
+}
+
+.binding-order-summary .binding-total {
+  margin: 12px 0 4px;
+  color: var(--ink);
+  font-size: 14px;
+}
+
+.binding-total strong {
+  white-space: nowrap;
+  font-size: inherit;
 }
 
 .binding-legal-notice {
+  margin: 0;
   color: var(--ink-soft);
   font-size: 11px;
   line-height: 1.55;

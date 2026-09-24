@@ -29,7 +29,6 @@ for (const language of ["de", "en"]) {
     await page.goto(language === "de" ? "/" : "/en/");
     const list = page.locator("[data-course-list]");
     await expect(list.locator("li")).toHaveCount(3);
-    const labels = courses.map((course) => language === "de" ? course.labelDe : course.labelEn);
     await expect(list.locator("strong")).toHaveText(language === "de" ? [
       "5. Januar – 9. Februar 2099", "2. März – 6. April 2099", "4. Mai – 8. Juni 2099"
     ] : [
@@ -42,7 +41,7 @@ for (const language of ["de", "en"]) {
     await list.locator('[data-course-id="later"]').click();
     await expect(page.locator("[data-course-select]")).toHaveValue("later");
     await expect(page.locator("[name=registration_mode]")).toHaveValue("open");
-    await expect(page.locator("[data-binding-course-label]")).toHaveText(labels[1]);
+    await expect(page.locator("[data-binding-course-schedule]")).toContainText(language === "de" ? "2. März–6. Apr. 2099" : "2 Mar–6 Apr 2099");
     await expect(page.locator("[data-binding-course-schedule]")).toContainText("18:00–20:30");
     await expect(page.locator("[data-binding-course-format]")).toHaveText(language === "de" ? "Vor Ort" : "In person");
     await expect(page.locator("#course-panel > h3")).toBeFocused();
@@ -54,7 +53,7 @@ for (const language of ["de", "en"]) {
     await expect(page.locator("[data-course-form] button[type=submit]")).toHaveText(language === "de" ? "Auf die Warteliste" : "Join the waitlist");
 
     await page.locator("[data-course-select]").selectOption("early");
-    await expect(page.locator("[data-binding-course-label]")).toHaveText(labels[0]);
+    await expect(page.locator("[data-binding-course-schedule]")).toContainText(language === "de" ? "5. Jan.–9. Feb. 2099" : "5 Jan–9 Feb 2099");
     await expect(page.locator("[data-binding-course-schedule]")).toContainText("09:00–11:00");
     await expect(page.locator("[data-binding-checkout]")).toBeVisible();
   });

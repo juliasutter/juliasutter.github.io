@@ -33,6 +33,8 @@ for (const language of ["de", "en"]) {
     const price = form.locator("[data-binding-price]");
     await expect(price).toHaveText(regularPrice);
     await expect(friendName).toBeHidden();
+    await expect(form.locator("#friend-price-hint")).toBeHidden();
+    await expect(form.locator("[name=children_ages]")).not.toHaveAttribute("required", "");
     await form.locator("[name=first_name]").fill("Test");
     await form.locator("[name=last_name]").fill("Person");
     await form.locator("[name=email]").fill("test@example.com");
@@ -41,6 +43,7 @@ for (const language of ["de", "en"]) {
     await form.locator("[name=city]").fill("Berlin");
     await friend.check();
     await expect(price).toHaveText(friendPrice);
+    await expect(form.locator("#friend-price-hint")).toBeVisible();
     await expect(friendName).toHaveAttribute("required", "");
     await form.locator("button[type=submit]").click();
     await expect(friendName).toBeFocused();
@@ -48,12 +51,13 @@ for (const language of ["de", "en"]) {
     await friendName.fill("Alex Beispiel");
     await friend.uncheck();
     await expect(price).toHaveText(regularPrice);
+    await expect(form.locator("#friend-price-hint")).toBeHidden();
     await expect(friendName).toBeDisabled();
     await friend.check();
     await form.locator("button[type=submit]").click();
     await expect(form.locator("[data-form-status]")).toHaveClass(/is-success/);
     expect(submissions).toHaveLength(1);
-    expect(submissions[0]).toMatchObject({ friend_registration: "yes", friend_name: "Alex Beispiel", price_eur: "375", registration_mode: "open" });
+    expect(submissions[0]).toMatchObject({ friend_registration: "yes", friend_name: "Alex Beispiel", price_eur: "375", registration_mode: "open", children_ages: "" });
     await expect(price).toHaveText(regularPrice);
     await expect(friend).not.toBeChecked();
     await expect(friendName).toBeHidden();

@@ -275,7 +275,7 @@
               <figcaption><cite>Stephi</cite><span>Mum of a girl (4)</span></figcaption>
             </figure>
           </div>
-          <p class="contact-note"><img src="/assets/icons/heart.svg" alt=""> <span>Not sure whether the course is right for you? <a href="https://calendar.app.google/B3vTLDTfrUF47nM58" target="_blank" rel="noopener noreferrer" data-booking-trigger>Book a 20-minute call</a><span class="contact-booking-details">Free · via Google Meet. Choose your time with Google Calendar.</span></span></p>
+          <p class="contact-note"><img src="/assets/icons/heart.svg" alt=""> <span>If you’re unsure whether the course is right for you, <a href="https://calendar.app.google/B3vTLDTfrUF47nM58" target="_blank" rel="noopener noreferrer" data-booking-trigger>book a free 20-minute call</a>.</span></p>
         </div>
         <div class="contact-form-wrap">
           <p class="no-js-form-fallback">These forms require JavaScript. Alternatively, email me directly at <a href="mailto:julia@juliasutter.de">julia@juliasutter.de</a>.</p>
@@ -288,41 +288,36 @@
             <form action="/en/#contact" method="post" data-course-form data-async-form>
               <input type="hidden" name="form_type" value="starter_class"><input type="hidden" name="registration_mode" value="inquiry"><input type="hidden" name="course_label" value="New dates on request">
               <div class="form-grid">
+                <div class="form-field full" data-course-select-wrap hidden><label for="course-selection">Choose a course</label><select id="course-selection" name="course_id" data-course-select></select></div>
                 <div class="form-field"><label for="course-first-name">First name</label><input id="course-first-name" name="first_name" type="text" autocomplete="given-name" required></div>
                 <div class="form-field"><label for="course-last-name">Last name</label><input id="course-last-name" name="last_name" type="text" autocomplete="family-name" required></div>
                 <div class="form-field full"><label for="course-email">Email address</label><input id="course-email" name="email" type="email" autocomplete="email" required></div>
-                <div class="form-field full" data-course-select-wrap hidden><label for="course-selection">Choose a course</label><select id="course-selection" name="course_id" data-course-select></select></div>
-                <div class="form-field full"><label for="course-children">Age of your child / children <span aria-hidden="true">(optional)</span></label><input id="course-children" name="children_ages" type="text" autocomplete="off"></div>
-                <div class="form-field full friend-pricing" data-friend-pricing hidden>
-                  <label class="checkbox"><input type="checkbox" name="friend_registration" value="yes" aria-describedby="friend-price-hint"><span>Register with a friend: <span data-friend-price>€349</span> per person</span></label>
-                  <p class="fine-print" id="friend-price-hint">Please each register separately for the same course. Co-parenting partners choose separate courses.</p>
-                  <div class="form-field" data-friend-name hidden>
-                    <label for="course-friend-name">I am attending with (first and last name)</label>
-                    <input id="course-friend-name" name="friend_name" type="text" autocomplete="off">
-                  </div>
-                </div>
+                <div class="form-field full"><label for="course-children">Age of your children</label><input id="course-children" name="children_ages" type="text" autocomplete="off"></div>
                 <div class="binding-fields" data-binding-fields hidden>
                   <div class="form-field full"><label for="course-street">Street and house number</label><input id="course-street" name="street" type="text" autocomplete="address-line1" data-required-when-binding="true"></div>
                   <div class="form-field"><label for="course-city">City</label><input id="course-city" name="city" type="text" autocomplete="address-level2" data-required-when-binding="true"></div>
                   <div class="form-field"><label for="course-postcode">Postcode</label><input id="course-postcode" name="postal_code" type="text" autocomplete="postal-code" inputmode="numeric" data-required-when-binding="true"></div>
                 </div>
-                <div class="form-field full"><label for="course-message">Anything you would like me to know? <span aria-hidden="true">(optional)</span></label><textarea id="course-message" name="message" rows="4"></textarea></div>
                 <div class="binding-checkout" data-binding-checkout hidden>
                   <input type="hidden" name="price_eur" value="399">
                   <div class="binding-order-summary" role="group" aria-label="Registration summary" data-binding-order-summary>
-                    <p class="binding-order-heading">Your course at a glance</p>
-                    <dl>
-                      <div><dt>Course</dt><dd>Hand in Hand Parenting Starter Class · <span data-binding-course-label></span></dd></div>
-                      <div><dt>Dates</dt><dd data-binding-course-schedule></dd></div>
-                      <div data-binding-course-format-row hidden><dt>Format</dt><dd data-binding-course-format></dd></div>
-                      <div><dt>Total price</dt><dd><strong data-binding-price aria-live="polite" aria-atomic="true">€399</strong> · no VAT charged under § 19 UStG</dd></div>
-                    </dl>
-                    <p>You will receive the invoice with your registration confirmation and pay it before the course begins.</p>
+                    <p class="binding-course-title"><strong>Hand in Hand Parenting Starter Class</strong><span data-binding-course-format-row hidden> · <span data-binding-course-format></span></span></p>
+                    <p data-binding-course-schedule></p>
+                    <div class="friend-pricing" data-friend-pricing hidden>
+                      <label class="checkbox"><input type="checkbox" name="friend_registration" value="yes"><span>Attend with a friend – <span data-friend-price>€349</span> per person</span></label>
+                      <div data-friend-name hidden>
+                        <p class="fine-print" id="friend-price-hint">Please each register separately for the same course. Co-parenting partners choose separate courses.</p>
+                        <div class="form-field">
+                          <label for="course-friend-name">I am attending with (first and last name)</label>
+                          <input id="course-friend-name" name="friend_name" type="text" aria-describedby="friend-price-hint" autocomplete="off">
+                        </div>
+                      </div>
+                    </div>
+                    <p class="binding-total">Total: <strong data-binding-price aria-live="polite" aria-atomic="true">€399</strong></p>
+                    <p class="binding-payment">VAT-exempt (§ 19 UStG). Pay by invoice before the course begins.</p>
                   </div>
-                  <div class="checkboxes">
-                    <label class="checkbox" data-early-start-consent hidden><input type="checkbox" name="early_start_requested" value="yes"><span>I expressly request that Julia begins the course before the 14-day withdrawal period ends. I understand that my right of withdrawal expires once the service has been fully performed and that I may owe a proportionate amount for services already provided if I withdraw after the course has begun.</span></label>
-                  </div>
-                  <p class="binding-legal-notice">By clicking “Register with payment obligation”, you submit a binding offer and agree to the <a href="/en/terms/" target="_blank">terms</a>. Please also note the <a href="/en/withdrawal/" target="_blank">withdrawal information</a>.</p>
+                  <label class="checkbox" data-early-start-consent hidden><input type="checkbox" name="early_start_requested" value="yes"><span>I expressly request that Julia begins the course before the 14-day withdrawal period ends. I understand that my right of withdrawal expires once the service has been fully performed and that I may owe a proportionate amount for services already provided if I withdraw after the course has begun.</span></label>
+                  <p class="binding-legal-notice">By registering, you accept the <a href="/en/terms/" target="_blank">terms</a>. <a href="/en/withdrawal/" target="_blank">Withdrawal information</a>.</p>
                 </div>
               </div>
               <div class="form-submit-row"><p class="privacy-hint"><img src="/assets/icons/lock-simple.svg" alt=""><span>Your details are used only for your request. <a href="/en/privacy/">Privacy</a></span></p><button class="button dark" type="submit"><span data-submit-label data-course-submit-label>Request a course place</span></button></div>
