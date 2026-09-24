@@ -493,6 +493,15 @@ html.js .reveal.is-visible {
   padding: 72px 0 62px;
 }
 
+.hero-certification {
+  position: absolute;
+  right: 0;
+  bottom: 62px;
+  width: clamp(100px, 10vw, 135px);
+  height: auto;
+  filter: drop-shadow(0 4px 12px rgb(0 0 0 / 20%));
+}
+
 .hero-copy {
   max-width: 710px;
 }
@@ -1815,6 +1824,12 @@ html:not(.forms-ready) .form-panel {
 }
 
 @media (max-width: 1080px) {
+  .hero-certification {
+    top: 24px;
+    bottom: auto;
+    width: 100px;
+  }
+
   .desktop-nav {
     gap: 19px;
   }
@@ -2002,6 +2017,10 @@ html:not(.forms-ready) .form-panel {
   .hero-content {
     min-height: 742px;
     padding: 52px 0 34px;
+  }
+
+  .hero-certification {
+    width: 82px;
   }
 
   .hero h1 {
