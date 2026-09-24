@@ -246,11 +246,11 @@ test("configured prices update both localized pages", async ({ page }) => {
 
   await page.goto("/");
   expect(normalizeSpaces(await page.locator("[data-course-price]").allTextContents())).toEqual(["425 €", "425 €"]);
-  expect(normalizeSpaces(await page.locator("[data-friend-price]").allTextContents())).toEqual(["375 €", "375 €"]);
+  expect(normalizeSpaces(await page.locator("[data-friend-price]").allTextContents())).toEqual(["375 €", "375 €", "375 €"]);
 
   await page.goto("/en/");
   expect(normalizeSpaces(await page.locator("[data-course-price]").allTextContents())).toEqual(["€425", "€425"]);
-  expect(normalizeSpaces(await page.locator("[data-friend-price]").allTextContents())).toEqual(["€375", "€375"]);
+  expect(normalizeSpaces(await page.locator("[data-friend-price]").allTextContents())).toEqual(["€375", "€375", "€375"]);
 });
 
 test("an upcoming course switches the site to binding registration", async ({ page }) => {
@@ -262,7 +262,7 @@ test("an upcoming course switches the site to binding registration", async ({ pa
   await expect(page.locator("[data-course-status]").first()).toHaveText("Nächster Kurs");
   await expect(page.locator(".course-status-card [data-course-status-detail]")).toContainText("6. September");
   await expect(page.locator("[data-early-start-consent]")).toBeHidden();
-  await page.locator(".hero-actions [data-open-form=course]").click();
+  await page.locator(".course-copy [data-open-form=course]").click();
   await expect(page.getByLabel("Straße und Hausnummer")).toBeVisible();
   await expect(page.getByLabel("Straße und Hausnummer")).toHaveAttribute("required", "");
   await expect(page.locator("[data-binding-order-summary]")).toContainText("6 Termine");
@@ -353,7 +353,7 @@ test("unconfigured forms give an honest fallback and keep entries", async ({ pag
   }));
   await page.goto("/");
   await page.getByLabel("Vorname").fill("Test");
-  await page.getByLabel("Nachname").fill("Person");
+  await page.getByLabel("Nachname", { exact: true }).fill("Person");
   await page.getByLabel("E-Mail-Adresse").first().fill("test@example.com");
   await page.getByRole("button", { name: "Kursplatz anfragen" }).last().click();
   await expect(page.locator("[data-course-form] [data-form-status]")).toContainText("wird gerade eingerichtet");
@@ -376,7 +376,7 @@ test("configured forms send one sanitized request", async ({ page }) => {
   });
   await page.goto("/?utm_source=ci#anmeldung");
   await page.getByLabel("Vorname").fill("Test");
-  await page.getByLabel("Nachname").fill("Person");
+  await page.getByLabel("Nachname", { exact: true }).fill("Person");
   await page.getByLabel("E-Mail-Adresse").first().fill("test@example.com");
   const submit = page.getByRole("button", { name: "Kursplatz anfragen" }).last();
   await submit.click();
@@ -403,7 +403,7 @@ test("binding registration keeps its payment-obligation label after success", as
 
   await page.goto("/#anmeldung");
   await page.getByLabel("Vorname").fill("Test");
-  await page.getByLabel("Nachname").fill("Person");
+  await page.getByLabel("Nachname", { exact: true }).fill("Person");
   await page.getByLabel("E-Mail-Adresse").first().fill("test@example.com");
   await page.getByLabel("Straße und Hausnummer").fill("Testweg 1");
   await page.getByLabel("Ort", { exact: true }).fill("Berlin");
@@ -428,12 +428,12 @@ test("a non-success Formcarry payload keeps the entered values", async ({ page }
   }));
   await page.goto("/");
   await page.getByLabel("Vorname").fill("Test");
-  await page.getByLabel("Nachname").fill("Person");
+  await page.getByLabel("Nachname", { exact: true }).fill("Person");
   await page.getByLabel("E-Mail-Adresse").first().fill("test@example.com");
   await page.getByRole("button", { name: "Kursplatz anfragen" }).last().click();
   await expect(page.locator("[data-course-form] [data-form-status]")).toHaveClass(/is-error/);
   await expect(page.getByLabel("Vorname")).toHaveValue("Test");
-  await expect(page.getByLabel("Nachname")).toHaveValue("Person");
+  await expect(page.getByLabel("Nachname", { exact: true })).toHaveValue("Person");
 });
 
 test("legal pages expose their language counterpart", async ({ page }) => {

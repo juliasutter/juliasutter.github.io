@@ -325,7 +325,6 @@
     document.querySelectorAll(selector).forEach((element) => { element.textContent = priceFormatter.format(price); });
   };
   renderPrice("[data-course-price]", config.priceEur);
-  renderPrice("[data-binding-price]", config.priceEur);
   renderPrice("[data-friend-price]", config.friendPriceEur);
 
   const formTabs = Array.from(document.querySelectorAll("[data-form-tab]"));
@@ -364,6 +363,11 @@
   const earlyStartConsent = courseForm ? courseForm.querySelector("[data-early-start-consent]") : null;
   const modeField = courseForm ? courseForm.querySelector("[name=registration_mode]") : null;
   const courseLabelField = courseForm ? courseForm.querySelector("[name=course_label]") : null;
+  const friendPricing = courseForm ? courseForm.querySelector("[data-friend-pricing]") : null;
+  const friendRegistration = courseForm ? courseForm.querySelector("[name=friend_registration]") : null;
+  const friendNameGroup = courseForm ? courseForm.querySelector("[data-friend-name]") : null;
+  const friendName = courseForm ? courseForm.querySelector("[name=friend_name]") : null;
+  const bindingPriceField = courseForm ? courseForm.querySelector("[name=price_eur]") : null;
 
   const setFieldGroupEnabled = (group, enabled) => {
     if (!group) return;
@@ -373,6 +377,19 @@
       if (field.dataset.requiredWhenBinding === "true") field.required = enabled;
     });
   };
+
+  const updateRegistrationPrice = () => {
+    const friendPriceAvailable = Number.isFinite(config.friendPriceEur) && config.friendPriceEur >= 0 && config.friendPriceEur < config.priceEur;
+    const friendOptionEnabled = courseMode === "open" && friendPriceAvailable;
+    setFieldGroupEnabled(friendPricing, friendOptionEnabled);
+    const withFriend = friendOptionEnabled && friendRegistration?.checked;
+    setFieldGroupEnabled(friendNameGroup, withFriend);
+    if (friendName) friendName.required = Boolean(withFriend);
+    const price = withFriend ? config.friendPriceEur : config.priceEur;
+    renderPrice("[data-binding-price]", price);
+    if (bindingPriceField) bindingPriceField.value = Number.isFinite(price) ? String(price) : "";
+  };
+  if (friendRegistration) friendRegistration.addEventListener("change", updateRegistrationPrice);
 
   const getCourseFormat = (course) => {
     if (!course || typeof course.format !== "string") return "";
@@ -444,6 +461,7 @@
     setCourseFormatFields(selectedCourse);
     setFieldGroupEnabled(bindingFields, courseMode === "open");
     setFieldGroupEnabled(bindingCheckout, courseMode === "open");
+    updateRegistrationPrice();
     setEarlyStartConsentEnabled(courseMode === "open" && courseStartsWithinWithdrawalPeriod(selectedCourse));
   };
 
@@ -479,8 +497,8 @@
   document.querySelectorAll("[data-open-form]").forEach((trigger) => {
     trigger.addEventListener("click", (event) => {
       const targetName = trigger.dataset.openForm;
-      const formSection = document.querySelector("#anmeldung, #contact");
-      if (!targetName || !formSection) return;
+      const panel = formPanels.find((element) => element.dataset.formPanel === targetName);
+      if (!panel) return;
       event.preventDefault();
       activateFormPanel(targetName);
       const contactTopic = trigger.dataset.contactTopic;
@@ -488,15 +506,11 @@
         const topic = document.querySelector("[data-contact-topic]");
         if (topic) topic.value = contactTopic;
       }
-      formSection.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
-      window.setTimeout(() => {
-        const heading = formSection.querySelector("h2");
-        if (heading) {
-          heading.setAttribute("tabindex", "-1");
-          heading.focus({ preventScroll: true });
-          heading.addEventListener("blur", () => heading.removeAttribute("tabindex"), { once: true });
-        }
-      }, reducedMotion ? 0 : 450);
+      const heading = panel.querySelector("h3");
+      heading.setAttribute("tabindex", "-1");
+      heading.focus({ preventScroll: true });
+      heading.addEventListener("blur", () => heading.removeAttribute("tabindex"), { once: true });
+      panel.closest(".contact-form-wrap").scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
     });
   });
 
@@ -557,7 +571,7 @@
         }
         setStatus(copy.success, "success");
       } catch (_) {
-        finalLabel = copy.retry;
+        finalLabel = courseForm === form && courseMode === "open" ? copy.bindingSubmitCta : copy.retry;
         setStatus(didTimeout ? copy.timeout : copy.error, "error");
       } finally {
         window.clearTimeout(timeoutId);

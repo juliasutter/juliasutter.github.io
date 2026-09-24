@@ -490,9 +490,13 @@ html.js .reveal.is-visible {
 
 .hero-eyebrow {
   display: flex;
+  width: fit-content;
   align-items: center;
   gap: 10px;
   margin-bottom: 24px;
+  padding: 8px 12px;
+  border-radius: 18px;
+  background: rgb(18 22 21 / 70%);
   color: #fff;
   font-size: 12px;
   font-weight: 750;
@@ -917,6 +921,14 @@ html.js .reveal.is-visible {
   opacity: 0.7;
 }
 
+.course-reassurance {
+  margin: 0 0 26px;
+  padding-left: 14px;
+  border-left: 3px solid var(--clay-dark);
+  color: var(--forest-dark);
+  font-size: 14px;
+}
+
 .course-status-card {
   display: flex;
   align-items: center;
@@ -1286,7 +1298,7 @@ html.js .reveal.is-visible {
   background: var(--cream);
 }
 
-.contact h2[tabindex="-1"]:focus {
+.form-panel > h3[tabindex="-1"]:focus {
   outline: 0;
 }
 
@@ -1306,12 +1318,12 @@ html.js .reveal.is-visible {
   flex-direction: column;
   justify-content: space-between;
   padding: 68px;
-  background: var(--clay);
+  background: var(--clay-dark);
   color: #fff;
 }
 
 .contact-story .section-kicker {
-  color: rgb(255 255 255 / 78%);
+  color: #fff;
 }
 
 .contact-story h2 {
@@ -1320,7 +1332,7 @@ html.js .reveal.is-visible {
 }
 
 .contact-story p:not(.section-kicker) {
-  color: rgb(255 255 255 / 81%);
+  color: #fff;
 }
 
 .contact-facts {
@@ -1360,6 +1372,18 @@ html.js .reveal.is-visible {
 .contact-form-wrap {
   padding: 68px;
   background: var(--white);
+  scroll-margin-top: 24px;
+}
+
+.friend-pricing {
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--cream);
+}
+
+.friend-pricing .form-field {
+  margin-top: 16px;
 }
 
 .no-js-form-fallback {
@@ -1544,7 +1568,9 @@ html:not(.forms-ready) .form-panel {
 .checkbox input {
   width: 18px;
   height: 18px;
+  min-height: 18px;
   margin: 1px 0 0;
+  padding: 0;
   accent-color: var(--forest);
 }
 
@@ -1696,6 +1722,10 @@ html:not(.forms-ready) .form-panel {
 }
 
 @media (max-width: 920px) {
+  .course-copy {
+    order: -1;
+  }
+
   .section {
     padding: 88px 0;
   }
