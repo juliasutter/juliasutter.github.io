@@ -9,13 +9,11 @@
       menuOpen: "Menü öffnen",
       menuClose: "Menü schließen",
       inquiryCta: "Kursplatz anfragen",
-      inquiryStatus: "Nächster Kurs auf Anfrage",
       inquiryFormTitle: "Kursplatz anfragen",
       inquirySummary: "Schreib mir, wann ein Kurs für dich gut passen würde. Die Anfrage ist unverbindlich.",
-      bindingCta: "Verbindlich anmelden",
+      bindingCta: "Anmelden",
       bindingSubmitCta: "Zahlungspflichtig anmelden",
-      bindingStatus: "Nächster Kurs",
-      bindingFormTitle: "Verbindlich anmelden",
+      bindingFormTitle: "Anmelden",
       bindingSummary: "Wähle deinen Kurs und sende deine verbindliche Anmeldung ab.",
       waitlistCta: "Auf die Warteliste",
       waitlistStatus: "Warteliste geöffnet",
@@ -40,13 +38,11 @@
       menuOpen: "Open menu",
       menuClose: "Close menu",
       inquiryCta: "Request a course place",
-      inquiryStatus: "Next course on request",
       inquiryFormTitle: "Request a course place",
       inquirySummary: "Tell me when a course would work well for you. Your request is non-binding.",
-      bindingCta: "Register now",
+      bindingCta: "Register",
       bindingSubmitCta: "Register with payment obligation",
-      bindingStatus: "Next course",
-      bindingFormTitle: "Binding registration",
+      bindingFormTitle: "Register",
       bindingSummary: "Choose your course and send your binding registration.",
       waitlistCta: "Join the waitlist",
       waitlistStatus: "Waitlist open",
@@ -299,18 +295,17 @@
     return language === "de" ? `${weekday} ${start}–${end} Uhr` : `${weekday}, ${start}–${end}`;
   };
 
-  const formatCompactSchedule = (course, fullWeekday = false) => {
+  const formatCompactSchedule = (course) => {
     if (!course) return language === "de" ? "Mo · 20:00–22:30 Uhr" : "Mon · 20:00–22:30";
-    const weekday = fullWeekday ? copy.weekdays[course.dates[0].getUTCDay()] : copy.shortWeekdays[course.dates[0].getUTCDay()];
+    const weekday = copy.shortWeekdays[course.dates[0].getUTCDay()];
     const start = course.startTime || config.defaultStartTime || "20:00";
     const end = course.endTime || config.defaultEndTime || "22:30";
-    const separator = fullWeekday ? " · " : " ";
-    return language === "de" ? `${weekday}${separator}${start}–${end} Uhr` : `${weekday}${separator}${start}–${end}`;
+    return language === "de" ? `${weekday} ${start}–${end} Uhr` : `${weekday} ${start}–${end}`;
   };
 
   const modeCopy = {
-    inquiry: { cta: copy.inquiryCta, submitCta: copy.inquiryCta, status: copy.inquiryStatus, title: copy.inquiryFormTitle, summary: copy.inquirySummary },
-    open: { cta: copy.bindingCta, submitCta: copy.bindingSubmitCta, status: copy.bindingStatus, title: copy.bindingFormTitle, summary: copy.bindingSummary },
+    inquiry: { cta: copy.inquiryCta, submitCta: copy.inquiryCta, title: copy.inquiryFormTitle, summary: copy.inquirySummary },
+    open: { cta: copy.bindingCta, submitCta: copy.bindingSubmitCta, title: copy.bindingFormTitle, summary: copy.bindingSummary },
     waitlist: { cta: copy.waitlistCta, submitCta: copy.waitlistCta, status: copy.waitlistStatus, title: copy.waitlistFormTitle, summary: copy.waitlistSummary }
   };
 
@@ -432,16 +427,11 @@
     const selectedCopy = modeCopy[courseMode];
     document.querySelectorAll("[data-course-cta-label]").forEach((element) => { element.textContent = selectedCopy.cta; });
     document.querySelectorAll("[data-course-submit-label]").forEach((element) => { element.textContent = selectedCopy.submitCta; });
-    document.querySelectorAll("[data-course-status]").forEach((element) => { element.textContent = selectedCopy.status; });
     document.querySelectorAll("[data-course-form-title]").forEach((element) => { element.textContent = selectedCopy.title; });
     document.querySelectorAll("[data-course-form-summary]").forEach((element) => { element.textContent = selectedCopy.summary; });
     document.querySelectorAll("[data-course-status-detail]").forEach((element) => {
       if (!selectedCourse) {
         element.textContent = copy.courseFallback;
-        return;
-      }
-      if (element.dataset.courseStatusDetailFormat === "hero") {
-        element.textContent = `${formatCompactDateRange(selectedCourse)}\n${formatCompactSchedule(selectedCourse, true)}`;
         return;
       }
       if (element.dataset.courseStatusDetailFormat === "compact") {
@@ -494,12 +484,46 @@
   applyCourseSelection(featuredCourse);
   if (courseSelect) courseSelect.addEventListener("change", syncCourseSelection);
 
+  const courseList = document.querySelector("[data-course-list]");
+  if (courseList) {
+    courseList.hidden = !courses.length;
+    document.querySelectorAll("[data-course-inquiry]").forEach((element) => { element.hidden = courses.length > 0; });
+    courses.forEach((course) => {
+      const item = document.createElement("li");
+      const link = document.createElement("a");
+      link.className = "course-option";
+      link.href = language === "de" ? "#anmeldung" : "#contact";
+      link.dataset.openForm = "course";
+      link.dataset.courseId = course.id;
+
+      const details = document.createElement("span");
+      const title = document.createElement("strong");
+      title.textContent = language === "de" ? course.labelDe : course.labelEn;
+      const dates = document.createElement("span");
+      dates.textContent = formatDateRange(course);
+      const schedule = document.createElement("span");
+      schedule.textContent = [formatSchedule(course), getCourseFormat(course)].filter(Boolean).join(" · ");
+      details.append(title, dates, schedule);
+
+      const action = document.createElement("span");
+      action.className = "course-option-action";
+      action.textContent = modeCopy[course.status].cta;
+      link.append(details, action);
+      item.append(link);
+      courseList.append(item);
+    });
+  }
+
   document.querySelectorAll("[data-open-form]").forEach((trigger) => {
     trigger.addEventListener("click", (event) => {
       const targetName = trigger.dataset.openForm;
       const panel = formPanels.find((element) => element.dataset.formPanel === targetName);
       if (!panel) return;
       event.preventDefault();
+      if (targetName === "course" && trigger.dataset.courseId) {
+        courseSelect.value = trigger.dataset.courseId;
+        syncCourseSelection();
+      }
       activateFormPanel(targetName);
       const contactTopic = trigger.dataset.contactTopic;
       if (contactTopic) {

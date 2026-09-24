@@ -42,24 +42,6 @@ test("/starterclass/ redirects to the Starter Class section", async ({ page }) =
   await expect(page.locator("#starter-class h2")).toContainText("Starter Class");
 });
 
-test("hero course logo stays centered in its circular badge", async ({ page }) => {
-  await page.goto("/");
-  const alignment = await page.locator(".hero-meta-icon").evaluate((badge) => {
-    const logo = badge.querySelector("img");
-    const badgeBounds = badge.getBoundingClientRect();
-    const logoBounds = logo.getBoundingClientRect();
-    return {
-      display: window.getComputedStyle(badge).display,
-      horizontalOffset: (logoBounds.left + logoBounds.width / 2) - (badgeBounds.left + badgeBounds.width / 2),
-      verticalOffset: (logoBounds.top + logoBounds.height / 2) - (badgeBounds.top + badgeBounds.height / 2)
-    };
-  });
-
-  expect(alignment.display).toBe("grid");
-  expect(Math.abs(alignment.horizontalOffset)).toBeLessThanOrEqual(1);
-  expect(Math.abs(alignment.verticalOffset)).toBeLessThanOrEqual(1);
-});
-
 test("editorial images keep natural proportions without overlapping content", async ({ page }) => {
   await page.goto("/");
   const layout = await page.evaluate(() => {
@@ -208,8 +190,8 @@ test("course dates stay stable outside the configured time zone", async ({ brows
     body: `window.JULIA_SITE_CONFIG={formEndpoint:"",timeZone:"Europe/Berlin",courses:[{id:"timezone-test",labelDe:"Zeitzonentest",labelEn:"Time zone test",status:"open",dates:["2099-09-07","2099-09-14","2099-09-21","2099-09-28","2099-10-05","2099-10-12"]}]};`
   }));
   await page.goto("/");
-  await expect(page.locator(".course-status-card [data-course-status-detail]")).toContainText("7. September");
-  await expect(page.locator(".course-status-card [data-course-status-detail]")).not.toContainText("8. September");
+  await expect(page.locator("[data-course-list]")).toContainText("7. September");
+  await expect(page.locator("[data-course-list]")).not.toContainText("8. September");
   await context.close();
 });
 
@@ -259,10 +241,10 @@ test("an upcoming course switches the site to binding registration", async ({ pa
     body: `window.JULIA_SITE_CONFIG={formEndpoint:"",timeZone:"Europe/Berlin",priceEur:399,friendPriceEur:349,defaultStartTime:"20:00",defaultEndTime:"22:30",courses:[{id:"starter-test",labelDe:"Testkurs",labelEn:"Test course",status:"open",dates:["2027-09-06","2027-09-13","2027-09-20","2027-09-27","2027-10-04","2027-10-11"]}]};`
   }));
   await page.goto("/");
-  await expect(page.locator("[data-course-status]").first()).toHaveText("Nächster Kurs");
-  await expect(page.locator(".course-status-card [data-course-status-detail]")).toContainText("6. September");
+  await expect(page.locator("[data-course-list] a")).toHaveCount(1);
+  await expect(page.locator("[data-course-list]")).toContainText("6. September");
   await expect(page.locator("[data-early-start-consent]")).toBeHidden();
-  await page.locator(".course-copy [data-open-form=course]").click();
+  await page.locator("[data-course-list] [data-open-form=course]").click();
   await expect(page.getByLabel("Straße und Hausnummer")).toBeVisible();
   await expect(page.getByLabel("Straße und Hausnummer")).toHaveAttribute("required", "");
   await expect(page.locator("[data-binding-order-summary]")).toContainText("6 Termine");
@@ -341,7 +323,8 @@ test("a course with an invalid or duplicate date stays unavailable", async ({ pa
     body: `window.JULIA_SITE_CONFIG={formEndpoint:"",timeZone:"Europe/Berlin",courses:[{id:"invalid-course",labelDe:"Ungültiger Kurs",labelEn:"Invalid course",status:"open",dates:["2099-01-05","2099-01-12","2099-01-19","2099-01-26","2099-02-02","2099-02-29"]},{id:"duplicate-course",labelDe:"Doppelter Kurs",labelEn:"Duplicate course",status:"open",dates:["2099-03-02","2099-03-09","2099-03-16","2099-03-23","2099-03-30","2099-03-30"]}]};`
   }));
   await page.goto("/");
-  await expect(page.locator("[data-course-status]").first()).toHaveText("Nächster Kurs auf Anfrage");
+  await expect(page.locator("[data-course-list]")).toBeHidden();
+  await expect(page.locator(".course-copy a[data-course-inquiry]")).toBeVisible();
   await expect(page.getByLabel("Kurs auswählen")).toBeHidden();
   await expect(page.getByLabel("Straße und Hausnummer")).toBeHidden();
 });
