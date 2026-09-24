@@ -31,6 +31,26 @@
         startTime: "09:00",
         endTime: "11:00",
         dates: ["2026-10-17", "2026-10-24", "2026-10-31", "2026-11-07", "2026-11-14", "2026-11-21"]
+      },
+      {
+        id: "starter-2027-winter",
+        labelDe: "Winter 2027",
+        labelEn: "Winter 2027",
+        status: "open",
+        format: "online",
+        startTime: "09:00",
+        endTime: "11:30",
+        dates: ["2027-01-16", "2027-01-23", "2027-01-30", "2027-02-06", "2027-02-13", "2027-02-20"]
+      },
+      {
+        id: "starter-2027-february",
+        labelDe: "Februar 2027",
+        labelEn: "February 2027",
+        status: "open",
+        format: "online",
+        startTime: "20:00",
+        endTime: "22:30",
+        dates: ["2027-02-12", "2027-02-19", "2027-02-26", "2027-03-05", "2027-03-12", "2027-03-19"]
       }
     ]
   };
