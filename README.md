@@ -6,7 +6,7 @@ Statische, zweisprachige Website für Julia Sutter. Die deutsche Version unter `
 
 Alle Kursdaten stehen ausschließlich in [`assets/course-config.js`](assets/course-config.js). Für einen neuen Kurs den dort auskommentierten Beispielblock kopieren, die sechs Termine im Format `YYYY-MM-DD` eintragen und den Status setzen:
 
-- `open`: zeigt Termine und eine verbindliche Anmeldung; Rechnungsadresse, Bestellübersicht sowie der Hinweis auf AGB und Widerruf werden automatisch eingeblendet. Der abschließende Button heißt „Zahlungspflichtig anmelden“; für AGB und Widerrufsbelehrung sind keine separaten Checkboxen vorgesehen.
+- `open`: zeigt Termine und das Anmeldeformular; Rechnungsadresse, Bestellübersicht sowie der Hinweis auf AGB und Widerruf werden automatisch eingeblendet. Der abschließende Button heißt „Anmelden“; für AGB und Widerrufsbelehrung sind keine separaten Checkboxen vorgesehen.
 - `waitlist`: zeigt Termine und „Auf die Warteliste“; die Anmeldung bleibt unverbindlich.
 - `closed`: blendet den Kurs aus.
 - `format`: optional `online` oder `vor_ort`; ohne Wert wird kein Format angezeigt.

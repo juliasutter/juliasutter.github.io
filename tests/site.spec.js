@@ -265,7 +265,7 @@ test("open and waitlist courses remain selectable together", async ({ page }) =>
   await expect(page.locator("[name=registration_mode]")).toHaveValue("open");
   await expect(page.getByLabel("Straße und Hausnummer")).toBeVisible();
   await expect(page.getByLabel("Straße und Hausnummer")).toHaveAttribute("required", "");
-  await expect(page.getByRole("button", { name: "Zahlungspflichtig anmelden" }).last()).toBeVisible();
+  await expect(page.getByRole("button", { name: "Anmelden" }).last()).toBeVisible();
 
   await courseSelect.selectOption("waitlist-first");
   await expect(page.locator("[name=registration_mode]")).toHaveValue("waitlist");
@@ -307,7 +307,7 @@ test("an upcoming course switches the site to binding registration", async ({ pa
   await expect(page.locator("[data-binding-checkout] input[type=checkbox]:visible")).toHaveCount(1);
   await expect(page.locator("[data-binding-checkout] [name=friend_registration]")).toBeVisible();
   await expect(page.locator("[data-binding-checkout] input[type=checkbox][required]:visible")).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Zahlungspflichtig anmelden" }).last()).toBeVisible();
+  await expect(page.getByRole("button", { name: "Anmelden" }).last()).toBeVisible();
 });
 
 test("early-start consent appears only inside the withdrawal period", async ({ page }) => {
@@ -451,7 +451,7 @@ test("configured forms send one sanitized request", async ({ page, baseURL }) =>
   expect(submittedBody).not.toContain("utm_source");
 });
 
-test("binding registration keeps its payment-obligation label after success", async ({ page }) => {
+test("binding registration keeps its registration label after success", async ({ page }) => {
   const endpoint = "https://formcarry.com/s/test-endpoint";
   await page.route("**/assets/course-config.js", (route) => route.fulfill({
     contentType: "application/javascript",
@@ -470,11 +470,11 @@ test("binding registration keeps its payment-obligation label after success", as
   await page.getByLabel("Straße und Hausnummer").fill("Testweg 1");
   await page.getByLabel("Ort", { exact: true }).fill("Berlin");
   await page.getByLabel("Postleitzahl").fill("10115");
-  const submit = page.getByRole("button", { name: "Zahlungspflichtig anmelden" }).last();
+  const submit = page.getByRole("button", { name: "Anmelden" }).last();
   await submit.click();
 
   await expect(page.locator("[data-course-form] [data-form-status]")).toHaveClass(/is-success/);
-  await expect(submit).toHaveText("Zahlungspflichtig anmelden");
+  await expect(submit).toHaveText("Anmelden");
 });
 
 test("a non-success Formcarry payload keeps the entered values", async ({ page }) => {
