@@ -187,11 +187,6 @@
     summary.addEventListener("click", (event) => {
       event.preventDefault();
       const opening = !item.open;
-      if (opening) {
-        faqItems.forEach((other) => {
-          if (other !== item && other.open) animateDetails(other, false);
-        });
-      }
       animateDetails(item, opening);
     });
   });

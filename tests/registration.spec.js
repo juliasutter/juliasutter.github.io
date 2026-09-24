@@ -61,7 +61,7 @@ for (const language of ["de", "en"]) {
 
   test(`${language}: inquiry links bring the active form and its heading into view`, async ({ page }) => {
     await page.goto(path);
-    await page.locator(".faq-intro [data-open-form=contact]").click();
+    await page.locator(".faq-contact [data-open-form=contact]").click();
     const heading = page.locator("#contact-panel > h3");
     await expect(heading).toBeFocused();
     await expect.poll(async () => {

@@ -1342,19 +1342,20 @@ body.booking-open {
   display: grid;
   grid-template-columns: minmax(280px, 0.68fr) minmax(0, 1.32fr);
   align-items: start;
-  gap: 100px;
-}
-
-.faq-intro {
-  position: sticky;
-  top: 120px;
+  gap: 28px 100px;
 }
 
 .faq-intro h2 {
-  font-size: clamp(3.3rem, 6vw, 5.4rem);
+  margin-bottom: 0;
+  font-size: clamp(2.6rem, 5vw, 4.5rem);
 }
 
-.faq-intro p:not(.section-kicker) {
+.faq-contact {
+  grid-column: 2;
+}
+
+.faq-contact p {
+  margin: 0;
   color: var(--ink-soft);
 }
 
@@ -1369,15 +1370,15 @@ body.booking-open {
 .faq summary {
   position: relative;
   display: flex;
-  min-height: 94px;
+  min-height: 88px;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  padding: 24px 52px 24px 0;
+  padding: 20px 52px 20px 0;
   cursor: pointer;
   font-family: var(--serif);
-  font-size: clamp(1.55rem, 3vw, 2rem);
-  line-height: 1.15;
+  font-size: clamp(1.375rem, 2.4vw, 1.875rem);
+  line-height: 1.25;
   list-style: none;
 }
 
@@ -1407,7 +1408,8 @@ body.booking-open {
 .details-answer p {
   margin-bottom: 12px;
   color: var(--ink-soft);
-  font-size: 14px;
+  font-size: 16px;
+  line-height: 1.65;
 }
 
 /* Contact */
@@ -1911,11 +1913,11 @@ html:not(.forms-ready) .form-panel {
   }
 
   .faq-grid {
-    gap: 54px;
+    gap: 28px;
   }
 
-  .faq-intro {
-    position: static;
+  .faq-contact {
+    grid-column: 1;
   }
 
   .contact-story {
@@ -2181,7 +2183,7 @@ html:not(.forms-ready) .form-panel {
   }
 
   .faq summary {
-    min-height: 84px;
+    min-height: 80px;
     padding-right: 45px;
   }
 

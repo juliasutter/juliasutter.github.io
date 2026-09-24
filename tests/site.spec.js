@@ -141,6 +141,7 @@ for (const route of ["/", "/en/"]) {
     await page.goto(route);
     const items = page.locator(".faq details");
     await expect(items).toHaveCount(5);
+    await expect(page.locator(".faq details[open]")).toHaveCount(0);
     const first = items.nth(0);
     const second = items.nth(1);
 
@@ -150,15 +151,19 @@ for (const route of ["/", "/en/"]) {
     await expect(first.locator(".details-answer")).toBeVisible();
 
     await second.locator("summary").click();
-    await expect(first).not.toHaveAttribute("open", "");
+    await expect(first).toHaveAttribute("open", "");
     await expect(second).toHaveAttribute("open", "");
     await expect(second.locator(".details-answer")).toBeVisible();
-    await expect(page.locator(".faq details[open]")).toHaveCount(1);
+    await expect(page.locator(".faq details[open]")).toHaveCount(2);
 
     await second.locator("summary").focus();
     await page.keyboard.press("Space");
-    await expect(page.locator(".faq details[open]")).toHaveCount(0);
+    await expect(page.locator(".faq details[open]")).toHaveCount(1);
     await expect(second.locator(".details-answer")).toBeHidden();
+    await expect(first.locator(".details-answer")).toBeVisible();
+
+    await first.locator("summary").click();
+    await expect(page.locator(".faq details[open]")).toHaveCount(0);
   });
 }
 
