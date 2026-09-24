@@ -7,6 +7,7 @@ for (const language of ["de", "en"]) {
   const path = language === "de" ? "/" : "/en/";
 
   test(`${language}: coaching and course questions preserve inputs and select the right topic`, async ({ page }) => {
+    await page.route("https://calendar.google.com/**", (route) => route.abort());
     await page.goto(path);
     await page.locator('.hero-actions a[href="#coaching"]').click();
     await expect(page).toHaveURL(/#coaching$/);
@@ -18,7 +19,8 @@ for (const language of ["de", "en"]) {
     await expect(page.locator("#contact-heading")).toHaveText(language === "de" ? "Wie kann ich dich unterstützen?" : "How can I support you?");
     await page.locator("#contact-name").fill("Test Person");
     await page.locator("#contact-message").fill("Meine Frage / My question");
-    await page.locator(".course-call [data-open-form=contact]").click();
+    await page.locator(".course-call [data-booking-trigger]").click();
+    await page.locator("#booking-dialog [data-open-form=contact]").click();
     await expect(page.locator("#contact-topic")).toHaveValue("starter-class");
     await page.locator("footer [data-open-form=contact]").click();
     await expect(page.locator("#contact-topic")).toHaveValue("starter-class");
