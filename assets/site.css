@@ -1277,7 +1277,7 @@ body.booking-open {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center;
+  object-position: center 15%;
 }
 
 .coaching-copy {
@@ -2170,10 +2170,6 @@ html:not(.forms-ready) .form-panel {
 
   .coaching {
     padding: 12px;
-  }
-
-  .coaching-card picture img {
-    object-position: center;
   }
 
   .coaching-copy {
