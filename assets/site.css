@@ -497,7 +497,7 @@ html.js .reveal.is-visible {
   position: absolute;
   right: 0;
   bottom: 62px;
-  width: clamp(130px, 13vw, 180px);
+  width: clamp(100px, 10vw, 135px);
   height: auto;
   filter: drop-shadow(0 4px 12px rgb(0 0 0 / 20%));
 }
@@ -1827,7 +1827,7 @@ html:not(.forms-ready) .form-panel {
   .hero-certification {
     top: 24px;
     bottom: auto;
-    width: 130px;
+    width: 100px;
   }
 
   .desktop-nav {
@@ -2020,7 +2020,7 @@ html:not(.forms-ready) .form-panel {
   }
 
   .hero-certification {
-    width: 110px;
+    width: 82px;
   }
 
   .hero h1 {
