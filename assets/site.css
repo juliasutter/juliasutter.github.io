@@ -811,6 +811,7 @@ body.booking-open {
 }
 
 .featured-testimonial figcaption {
+  margin-inline-start: 4%;
   flex-wrap: nowrap;
   align-items: center;
   gap: 14px;
