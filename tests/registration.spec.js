@@ -34,15 +34,7 @@ for (const language of ["de", "en"]) {
     await expect(price).toHaveText(regularPrice);
     await expect(friendName).toBeHidden();
     await expect(form.locator("#friend-price-hint")).toBeHidden();
-    const message = form.locator("[name=message]");
-    const messageToggle = form.locator(".form-message summary");
-    await expect(message).toBeHidden();
-    await messageToggle.focus();
-    await page.keyboard.press("Enter");
-    await expect(message).toBeVisible();
-    await message.fill("Eine persönliche Nachricht");
-    await messageToggle.click();
-    await expect(message).toBeHidden();
+    await expect(form.locator("[name=children_ages]")).not.toHaveAttribute("required", "");
     await form.locator("[name=first_name]").fill("Test");
     await form.locator("[name=last_name]").fill("Person");
     await form.locator("[name=email]").fill("test@example.com");
@@ -65,7 +57,7 @@ for (const language of ["de", "en"]) {
     await form.locator("button[type=submit]").click();
     await expect(form.locator("[data-form-status]")).toHaveClass(/is-success/);
     expect(submissions).toHaveLength(1);
-    expect(submissions[0]).toMatchObject({ friend_registration: "yes", friend_name: "Alex Beispiel", price_eur: "375", registration_mode: "open", message: "Eine persönliche Nachricht" });
+    expect(submissions[0]).toMatchObject({ friend_registration: "yes", friend_name: "Alex Beispiel", price_eur: "375", registration_mode: "open", children_ages: "" });
     await expect(price).toHaveText(regularPrice);
     await expect(friend).not.toBeChecked();
     await expect(friendName).toBeHidden();

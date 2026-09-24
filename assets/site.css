@@ -668,11 +668,6 @@ body.booking-open {
   text-underline-offset: 3px;
 }
 
-.contact-booking-details {
-  display: block;
-  margin-top: 8px;
-}
-
 .contact-shell.is-contact .contact-story {
   min-height: 0;
 }
@@ -1515,23 +1510,6 @@ body.booking-open {
   margin-top: 12px;
 }
 
-.form-message {
-  grid-column: 1 / -1;
-}
-
-.form-message summary {
-  min-height: 44px;
-  align-content: center;
-  color: var(--ink-soft);
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 750;
-}
-
-.form-message .form-field {
-  margin-top: 8px;
-}
-
 .no-js-form-fallback {
   margin: 0;
   color: #a94032;
@@ -1617,6 +1595,22 @@ html:not(.forms-ready) .form-panel {
   transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
 }
 
+#course-selection {
+  appearance: none;
+  padding-right: 44px;
+  background-image: url("./icons/caret-down.svg");
+  background-repeat: no-repeat;
+  background-position: right 15px center;
+  background-size: 16px;
+}
+
+@media (forced-colors: active) {
+  #course-selection {
+    appearance: auto;
+    background-image: none;
+  }
+}
+
 .form-field textarea {
   min-height: 126px;
   resize: vertical;
@@ -1626,7 +1620,7 @@ html:not(.forms-ready) .form-panel {
 .form-field select:focus,
 .form-field textarea:focus {
   border-color: var(--forest);
-  background: var(--white);
+  background-color: var(--white);
   box-shadow: 0 0 0 3px rgb(76 91 63 / 12%);
 }
 
@@ -1666,10 +1660,6 @@ html:not(.forms-ready) .form-panel {
   font-size: 13px;
 }
 
-.binding-order-summary .binding-course-label {
-  margin-top: 4px;
-}
-
 .binding-order-summary .binding-total {
   margin: 12px 0 4px;
   color: var(--ink);
@@ -1678,7 +1668,7 @@ html:not(.forms-ready) .form-panel {
 
 .binding-total strong {
   white-space: nowrap;
-  font-size: 18px;
+  font-size: inherit;
 }
 
 .binding-legal-notice {

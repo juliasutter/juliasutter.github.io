@@ -282,7 +282,7 @@ test("an upcoming course switches the site to binding registration", async ({ pa
   await expect(page.getByLabel("Straße und Hausnummer")).toHaveAttribute("required", "");
   await expect(page.locator("[data-binding-order-summary]")).toContainText("6 Termine");
   await expect(page.locator("[data-binding-order-summary]")).toContainText("399 €");
-  await expect(page.getByText("Mit Klick auf „Zahlungspflichtig anmelden“", { exact: false })).toBeVisible();
+  await expect(page.locator(".binding-legal-notice a[href='/agb/']")).toBeVisible();
   await expect(page.locator("[data-binding-checkout] input[type=checkbox]:visible")).toHaveCount(1);
   await expect(page.locator("[data-binding-checkout] [name=friend_registration]")).toBeVisible();
   await expect(page.locator("[data-binding-checkout] input[type=checkbox][required]:visible")).toHaveCount(0);

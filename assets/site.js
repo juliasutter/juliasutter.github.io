@@ -355,7 +355,6 @@
   const courseSelectWrap = courseForm ? courseForm.querySelector("[data-course-select-wrap]") : null;
   const bindingFields = courseForm ? courseForm.querySelector("[data-binding-fields]") : null;
   const bindingCheckout = courseForm ? courseForm.querySelector("[data-binding-checkout]") : null;
-  const bindingCourseLabel = courseForm ? courseForm.querySelector("[data-binding-course-label]") : null;
   const bindingCourseSchedule = courseForm ? courseForm.querySelector("[data-binding-course-schedule]") : null;
   const bindingCourseFormat = courseForm ? courseForm.querySelector("[data-binding-course-format]") : null;
   const bindingCourseFormatRow = bindingCourseFormat ? bindingCourseFormat.closest("[data-binding-course-format-row]") : null;
@@ -450,9 +449,6 @@
     });
     if (modeField) modeField.value = courseMode;
     if (courseLabelField) courseLabelField.value = selectedCourse ? formatDateRange(selectedCourse) : copy.courseFallback;
-    if (bindingCourseLabel && selectedCourse) {
-      bindingCourseLabel.textContent = language === "de" ? selectedCourse.labelDe : selectedCourse.labelEn;
-    }
     if (bindingCourseSchedule && selectedCourse) {
       bindingCourseSchedule.textContent = `${copy.sixDates} · ${formatCompactDateRange(selectedCourse)} · ${formatCompactSchedule(selectedCourse)}`;
     }
