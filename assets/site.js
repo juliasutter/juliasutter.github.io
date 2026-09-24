@@ -461,7 +461,8 @@
         const option = document.createElement("option");
         option.value = course.id;
         const label = language === "de" ? course.labelDe : course.labelEn;
-        option.textContent = [label, formatDateRange(course), modeCopy[course.status].status].filter(Boolean).join(" · ");
+        const statusLabel = course.status === "waitlist" ? modeCopy.waitlist.status : "";
+        option.textContent = [label, formatDateRange(course), statusLabel].filter(Boolean).join(" · ");
         courseSelect.append(option);
       });
       if (courseSelectWrap) courseSelectWrap.hidden = visibleCourseOptions.length === 1;
