@@ -11,7 +11,7 @@
   //   labelEn: "Autumn 2026",
   //   status: "open",
   //   startTime: "20:00",
-  //   endTime: "22:30",
+  //   endTime: "22:00",
   //   dates: ["2026-09-07", "2026-09-14", "2026-09-21", "2026-09-28", "2026-10-05", "2026-10-12"]
   // }
   window.JULIA_SITE_CONFIG = {
@@ -22,7 +22,7 @@
     priceEur: 399,
     friendPriceEur: 349,
     defaultStartTime: "20:00",
-    defaultEndTime: "22:30",
+    defaultEndTime: "22:00",
     courses: [
       {
         id: "starter-2026-autumn",
@@ -41,7 +41,7 @@
         status: "open",
         format: "online",
         startTime: "09:00",
-        endTime: "11:30",
+        endTime: "11:00",
         dates: ["2027-01-16", "2027-01-23", "2027-01-30", "2027-02-06", "2027-02-13", "2027-02-20"]
       },
       {
@@ -51,7 +51,7 @@
         status: "open",
         format: "online",
         startTime: "20:00",
-        endTime: "22:30",
+        endTime: "22:00",
         dates: ["2027-02-12", "2027-02-19", "2027-02-26", "2027-03-05", "2027-03-12", "2027-03-19"]
       }
     ]
