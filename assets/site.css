@@ -807,6 +807,7 @@ body.booking-open {
 
 .featured-testimonial blockquote {
   font-size: 1.875rem;
+  text-align: center;
 }
 
 .featured-testimonial figcaption {
