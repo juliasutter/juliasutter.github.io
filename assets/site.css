@@ -948,9 +948,7 @@ body.booking-open {
   display: grid;
   width: 100%;
   max-width: 460px;
-  gap: 10px;
   justify-self: center;
-  justify-items: end;
 }
 
 .course-media picture {
@@ -990,7 +988,7 @@ body.booking-open {
   width: 100%;
   grid-template-columns: 1fr;
   gap: 6px;
-  margin: 8px 0 0;
+  margin: 0 0 28px;
   padding: 0;
   list-style: none;
 }
