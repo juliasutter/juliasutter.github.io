@@ -292,7 +292,7 @@ test("configured prices update both localized pages", async ({ page }) => {
 test("an upcoming course switches the site to binding registration", async ({ page }) => {
   await page.route("**/assets/course-config.js", (route) => route.fulfill({
     contentType: "application/javascript",
-    body: `window.JULIA_SITE_CONFIG={formEndpoint:"",timeZone:"Europe/Berlin",priceEur:399,friendPriceEur:349,defaultStartTime:"20:00",defaultEndTime:"22:30",courses:[{id:"starter-test",labelDe:"Testkurs",labelEn:"Test course",status:"open",dates:["2027-09-06","2027-09-13","2027-09-20","2027-09-27","2027-10-04","2027-10-11"]}]};`
+    body: `window.JULIA_SITE_CONFIG={formEndpoint:"",timeZone:"Europe/Berlin",priceEur:399,friendPriceEur:349,defaultStartTime:"20:00",defaultEndTime:"22:00",courses:[{id:"starter-test",labelDe:"Testkurs",labelEn:"Test course",status:"open",dates:["2027-09-06","2027-09-13","2027-09-20","2027-09-27","2027-10-04","2027-10-11"]}]};`
   }));
   await page.goto("/");
   await expect(page.locator("[data-course-list] a")).toHaveCount(1);

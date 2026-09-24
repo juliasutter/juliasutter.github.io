@@ -287,18 +287,18 @@
   };
 
   const formatSchedule = (course) => {
-    if (!course) return language === "de" ? "montags 20:00–22:30 Uhr" : "Mondays, 20:00–22:30";
+    if (!course) return language === "de" ? "montags 20:00–22:00 Uhr" : "Mondays, 20:00–22:00";
     const weekday = copy.weekdays[course.dates[0].getUTCDay()];
     const start = course.startTime || config.defaultStartTime || "20:00";
-    const end = course.endTime || config.defaultEndTime || "22:30";
+    const end = course.endTime || config.defaultEndTime || "22:00";
     return language === "de" ? `${weekday} ${start}–${end} Uhr` : `${weekday}, ${start}–${end}`;
   };
 
   const formatCompactSchedule = (course) => {
-    if (!course) return language === "de" ? "Mo · 20:00–22:30 Uhr" : "Mon · 20:00–22:30";
+    if (!course) return language === "de" ? "Mo · 20:00–22:00 Uhr" : "Mon · 20:00–22:00";
     const weekday = copy.shortWeekdays[course.dates[0].getUTCDay()];
     const start = course.startTime || config.defaultStartTime || "20:00";
-    const end = course.endTime || config.defaultEndTime || "22:30";
+    const end = course.endTime || config.defaultEndTime || "22:00";
     return language === "de" ? `${weekday} ${start}–${end} Uhr` : `${weekday} ${start}–${end}`;
   };
 
