@@ -1012,14 +1012,23 @@ body.booking-open {
   opacity: 0.7;
 }
 
-.course-testimonial {
+.course-story {
   width: 100%;
-  margin-top: 10px;
-  padding-top: 14px;
+}
+
+.course-testimonial {
+  position: relative;
+  width: calc(100% - 32px);
+  margin: -36px 16px 0;
+  padding: 18px 22px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--cream);
+  box-shadow: 0 8px 24px rgb(49 55 42 / 6%);
 }
 
 .course-testimonial blockquote {
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   font-size: 1.375rem;
 }
 
@@ -1434,13 +1443,34 @@ body.booking-open {
 }
 
 .registration-testimonial {
-  margin-top: 24px;
-  border-color: rgb(255 255 255 / 22%);
-  color: inherit;
+  margin: 32px 0 24px;
+  padding: 24px;
+  border: 0;
+  border-radius: 18px;
+  background: var(--cream);
+  color: var(--forest-dark);
+}
+
+.testimonial-label {
+  display: block;
+  margin-bottom: 12px;
+  color: var(--clay-dark);
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 0.12em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.registration-testimonial blockquote {
+  font-size: 1.375rem;
 }
 
 .registration-testimonial figcaption {
-  color: inherit;
+  display: block;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
 }
 
 .contact-shell.is-contact .registration-testimonial {
