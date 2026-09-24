@@ -1501,14 +1501,35 @@ body.booking-open {
 }
 
 .friend-pricing {
-  padding: 18px;
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  background: var(--cream);
+  margin: 14px 0;
+}
+
+.friend-pricing > .checkbox {
+  min-height: 32px;
+  align-items: center;
+  cursor: pointer;
+  font-size: 12px;
 }
 
 .friend-pricing .form-field {
-  margin-top: 16px;
+  margin-top: 12px;
+}
+
+.form-message {
+  grid-column: 1 / -1;
+}
+
+.form-message summary {
+  min-height: 44px;
+  align-content: center;
+  color: var(--ink-soft);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.form-message .form-field {
+  margin-top: 8px;
 }
 
 .no-js-form-fallback {
@@ -1620,11 +1641,6 @@ html:not(.forms-ready) .form-panel {
   grid-column: 1 / -1;
 }
 
-.checkboxes {
-  display: grid;
-  gap: 14px;
-}
-
 .binding-checkout {
   display: grid;
   grid-column: 1 / -1;
@@ -1641,40 +1657,32 @@ html:not(.forms-ready) .form-panel {
   line-height: 1.5;
 }
 
-.binding-order-heading {
-  margin-bottom: 12px;
-  color: var(--ink);
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.binding-order-summary dl {
-  display: grid;
-  gap: 8px;
-  margin: 0 0 10px;
-}
-
-.binding-order-summary dl > div {
-  display: grid;
-  grid-template-columns: 72px minmax(0, 1fr);
-  gap: 10px;
-}
-
-.binding-order-summary dt {
-  color: var(--ink);
-  font-weight: 750;
-}
-
-.binding-order-summary dd {
+.binding-order-summary p {
   margin: 0;
 }
 
-.binding-order-summary > p:last-child,
-.binding-legal-notice {
-  margin: 0;
+.binding-course-title {
+  color: var(--ink);
+  font-size: 13px;
+}
+
+.binding-order-summary .binding-course-label {
+  margin-top: 4px;
+}
+
+.binding-order-summary .binding-total {
+  margin: 12px 0 4px;
+  color: var(--ink);
+  font-size: 14px;
+}
+
+.binding-total strong {
+  white-space: nowrap;
+  font-size: 18px;
 }
 
 .binding-legal-notice {
+  margin: 0;
   color: var(--ink-soft);
   font-size: 11px;
   line-height: 1.55;

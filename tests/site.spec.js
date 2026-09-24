@@ -283,7 +283,9 @@ test("an upcoming course switches the site to binding registration", async ({ pa
   await expect(page.locator("[data-binding-order-summary]")).toContainText("6 Termine");
   await expect(page.locator("[data-binding-order-summary]")).toContainText("399 €");
   await expect(page.getByText("Mit Klick auf „Zahlungspflichtig anmelden“", { exact: false })).toBeVisible();
-  await expect(page.locator("[data-binding-checkout] input[type=checkbox]:visible")).toHaveCount(0);
+  await expect(page.locator("[data-binding-checkout] input[type=checkbox]:visible")).toHaveCount(1);
+  await expect(page.locator("[data-binding-checkout] [name=friend_registration]")).toBeVisible();
+  await expect(page.locator("[data-binding-checkout] input[type=checkbox][required]:visible")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Zahlungspflichtig anmelden" }).last()).toBeVisible();
 });
 
@@ -376,7 +378,7 @@ test("unconfigured forms give an honest fallback and keep entries", async ({ pag
   await expect(page.getByLabel("Vorname")).toHaveValue("Test");
 });
 
-test("configured forms send one sanitized request", async ({ page }) => {
+test("configured forms send one sanitized request", async ({ page, baseURL }) => {
   const endpoint = "https://formcarry.com/s/test-endpoint";
   let requestCount = 0;
   let submittedBody = "";
@@ -401,7 +403,7 @@ test("configured forms send one sanitized request", async ({ page }) => {
   expect(requestCount).toBe(1);
   expect(submittedBody).toContain("name=\"registration_mode\"");
   expect(submittedBody).toContain("inquiry");
-  expect(submittedBody).toContain("http://127.0.0.1:4173/");
+  expect(submittedBody).toContain(`${new URL(baseURL).origin}/`);
   expect(submittedBody).not.toContain("utm_source");
 });
 
