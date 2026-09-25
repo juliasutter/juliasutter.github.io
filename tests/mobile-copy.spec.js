@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 const targets = {
   ".hero h1": 2,
   ".hero-intro": 2,
-  ".hero-eyebrow": 1,
+  ".faq-contact p": 1,
   ".course-copy .lede": 2,
   ".course-facts li:nth-child(3) > span": 1,
   ".course-facts li:nth-child(4) > span": 1,
@@ -42,6 +42,7 @@ test("mobile copy fits its line targets across phone widths and course selection
     }
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     await expect(page.locator(".binding-legal-notice")).toHaveCSS("font-size", "11px");
+    await expect(page.locator(".hero-eyebrow")).toBeHidden();
     await expect(page.getByRole("heading", { name: "Verbindung verändert alles.", exact: true })).toBeVisible();
 
     for (const option of await page.locator("[data-course-select] option").all()) {
@@ -60,6 +61,7 @@ test("mobile copy fits its line targets across phone widths and course selection
   await page.locator("#course-tab").click();
   await expect(page.getByRole("heading", { name: "Begleitung für euren Alltag", exact: true })).toBeVisible();
   await page.setViewportSize({ width: 1440, height: 900 });
+  await expect(page.locator(".hero-eyebrow")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Mit Begleitung in euren Alltag", exact: true })).toBeVisible();
   await expect(page.locator(".hero-intro")).toHaveText(/Nähe und Verbindung/, { useInnerText: true });
   await expect(page.locator(".course-copy .lede")).toHaveText("Fünf Werkzeuge für euren Alltag – mit Zeit zum Üben, Zuhören und für deine Fragen.", { useInnerText: true });

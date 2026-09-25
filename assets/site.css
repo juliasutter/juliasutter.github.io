@@ -2008,7 +2008,7 @@ html:not(.forms-ready) .form-panel {
   }
 
   html[lang="de"] .hero-eyebrow {
-    letter-spacing: 0.5px;
+    display: none;
   }
 
   html[lang="de"] .hero h1 {
@@ -2315,8 +2315,7 @@ html:not(.forms-ready) .form-panel {
 }
 
 @media (max-width: 390px) {
-  .hero-intro .mobile-copy-primary,
-  .eyebrow-verb {
+  .hero-intro .mobile-copy-primary {
     display: none;
   }
 
@@ -2341,11 +2340,6 @@ html:not(.forms-ready) .form-panel {
 }
 
 @media (max-width: 359px) {
-  html[lang="de"] .hero-eyebrow {
-    font-size: 11px;
-    letter-spacing: 0.2px;
-  }
-
   html[lang="de"] .course-copy .lede {
     font-size: 16px;
   }
