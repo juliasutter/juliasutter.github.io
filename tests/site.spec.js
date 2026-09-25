@@ -6,7 +6,7 @@ const routes = [
 ];
 
 for (const route of routes) {
-  test(`${route} loads without errors, broken images or overflow`, async ({ page }) => {
+  test(`${route} loads without errors, broken images or overflow`, async ({ page, baseURL }) => {
     const consoleErrors = [];
     const pageErrors = [];
     const failedLocalResponses = [];
@@ -16,7 +16,7 @@ for (const route of routes) {
     page.on("pageerror", (error) => pageErrors.push(error.message));
     page.on("response", (response) => {
       const url = new URL(response.url());
-      if (url.origin === "http://127.0.0.1:4173" && response.status() >= 400) failedLocalResponses.push(`${response.status()} ${url.pathname}`);
+      if (url.origin === new URL(baseURL).origin && response.status() >= 400) failedLocalResponses.push(`${response.status()} ${url.pathname}`);
     });
 
     const response = await page.goto(route, { waitUntil: "networkidle" });
@@ -70,7 +70,7 @@ test("editorial images keep natural proportions without overlapping content", as
   expect(layout.courseDates.top).toBeGreaterThanOrEqual(layout.courseFacts.bottom + 20);
   expect(layout.aboutImage.right).toBeLessThanOrEqual(layout.aboutQuote.left + 1);
   expect(layout.aboutStory.top).toBeGreaterThanOrEqual(layout.aboutQuote.bottom - 1);
-  await expect(page.locator(".about-quote-block blockquote")).toContainText("Ich weiß, wie es sich anfühlt, am Limit zu sein");
+  await expect(page.locator(".about-quote-block blockquote")).toContainText("Als Kursleiterin zeige ich dir, was gerade dann helfen kann.");
 
   if (layout.viewportWidth > 920) {
     expect(layout.courseSection.height).toBeLessThanOrEqual(layout.viewportHeight - 90);

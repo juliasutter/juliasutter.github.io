@@ -47,6 +47,12 @@ Vollständiger Qualitätslauf:
 npm run test:ci
 ```
 
+Die Prüfungen benötigen Node.js ab 24.8.0. Die Browsertests starten immer einen eigenen Server aus dem aktuellen Arbeitsverzeichnis. Falls Port 4173 bereits belegt ist (etwa durch eine Vorschau oder einen anderen Worktree), einen freien Testport wählen:
+
+```bash
+PLAYWRIGHT_PORT=4183 npm run test:ci
+```
+
 ## Veröffentlichung
 
 Die Produktionsdomain ist in `CNAME` als `juliasutter.de` hinterlegt. Vor dem DNS-/Framer-Cutover die Schritte in [`docs/cutover-checklist.md`](docs/cutover-checklist.md) abarbeiten.
