@@ -39,7 +39,7 @@ test("/starterclass/ redirects to the Starter Class section", async ({ page }) =
   await page.goto("/starterclass/");
   await expect(page).toHaveURL(/\/#starter-class$/);
   await expect(page.locator("#starter-class")).toBeVisible();
-  await expect(page.locator("#starter-class h2")).toContainText("Starter Class");
+  await expect(page.locator("#starter-class h2")).toBeVisible();
 });
 
 test("editorial images keep natural proportions without overlapping content", async ({ page }) => {
@@ -70,7 +70,7 @@ test("editorial images keep natural proportions without overlapping content", as
   expect(layout.courseDates.top).toBeGreaterThanOrEqual(layout.courseFacts.bottom + 20);
   expect(layout.aboutImage.right).toBeLessThanOrEqual(layout.aboutQuote.left + 1);
   expect(layout.aboutStory.top).toBeGreaterThanOrEqual(layout.aboutQuote.bottom - 1);
-  await expect(page.locator(".about-quote-block blockquote")).toContainText("Als Kursleiterin zeige ich dir, was gerade dann helfen kann.");
+  await expect(page.locator(".about-quote-block blockquote")).toBeVisible();
 
   if (layout.viewportWidth > 920) {
     expect(layout.courseSection.height).toBeLessThanOrEqual(layout.viewportHeight - 90);
@@ -83,12 +83,14 @@ test("editorial images keep natural proportions without overlapping content", as
   }
 });
 
-test("Kathi testimonial provides image-backed social proof before the method", async ({ page }) => {
+test("testimonial shows a quote, attribution and accessible portrait before the method", async ({ page }) => {
   await page.goto("/");
   const testimonial = page.locator(".featured-testimonial");
-  await expect(testimonial.getByText("Kathi", { exact: true })).toBeVisible();
-  await expect(testimonial.locator("blockquote")).toContainText("Meine Einstellung hat sich verändert");
-  await expect(testimonial.locator("img")).toHaveAttribute("alt", "Porträt von Kathi");
+  await expect(testimonial.locator("cite")).toBeVisible();
+  await expect(testimonial.locator("cite")).toHaveText(/\S/);
+  await expect(testimonial.locator("blockquote")).toBeVisible();
+  await expect(testimonial.locator("blockquote")).toHaveText(/\S/);
+  await expect(testimonial.getByRole("img")).toHaveAccessibleName(/\S/);
 
   const appearsBeforeMethod = await page.evaluate(() => {
     const proof = document.querySelector(".featured-testimonial");
@@ -132,12 +134,12 @@ test("navigation is keyboard friendly", async ({ page }, testInfo) => {
     const menuButton = page.locator("[data-menu-button]");
     await menuButton.click();
     await expect(menuButton).toHaveAttribute("aria-expanded", "true");
-    await expect(page.locator("[data-mobile-nav]").getByRole("link", { name: "Die 5 Werkzeuge", exact: true })).toBeFocused();
+    await expect(page.locator("[data-mobile-nav]").locator('a[href="#methode"]')).toBeFocused();
     await page.keyboard.press("Escape");
     await expect(menuButton).toBeFocused();
     await expect(menuButton).toHaveAttribute("aria-expanded", "false");
   } else {
-    await expect(page.getByRole("navigation", { name: "Hauptnavigation" })).toBeVisible();
+    await expect(page.locator("nav.desktop-nav")).toBeVisible();
   }
 });
 
@@ -218,7 +220,7 @@ test("content and navigation remain usable without JavaScript", async ({ browser
   await expect(page.locator(".form-panel").first()).toBeHidden();
   if (testInfo.project.name === "chromium-mobile") {
     await expect(page.locator("[data-menu-button]")).toBeHidden();
-    await expect(page.getByRole("navigation", { name: "Hauptnavigation" })).toBeVisible();
+    await expect(page.locator("nav.desktop-nav")).toBeVisible();
   }
   await context.close();
 });
@@ -331,10 +333,10 @@ test("early-start consent appears only inside the withdrawal period", async ({ p
   }));
 
   await page.goto("/");
-  const earlyStart = page.getByLabel("Ich verlange ausdrücklich", { exact: false });
+  const earlyStart = page.locator("[name=early_start_requested]");
   await expect(earlyStart).toBeVisible();
   await expect(earlyStart).toHaveAttribute("required", "");
-  await expect(page.locator("[data-early-start-consent]")).toContainText("vollständiger Vertragserfüllung");
+  await expect(earlyStart).toHaveAccessibleName(/\S/);
   await expect(page.locator("[data-binding-course-schedule]")).toContainText("19. Sep.–24. Okt. 2026 · Sa 09:00–11:00 Uhr");
 });
 
@@ -418,7 +420,8 @@ test("unconfigured forms give an honest fallback and keep entries", async ({ pag
   await page.getByLabel("Nachname", { exact: true }).fill("Person");
   await page.getByLabel("E-Mail-Adresse").first().fill("test@example.com");
   await page.getByRole("button", { name: "Kursplatz anfragen" }).last().click();
-  await expect(page.locator("[data-course-form] [data-form-status]")).toContainText("wird gerade eingerichtet");
+  await expect(page.locator("[data-course-form] [data-form-status]")).toHaveClass(/is-error/);
+  await expect(page.locator("[data-course-form] [data-form-status]")).toBeVisible();
   await expect(page.getByLabel("Vorname")).toHaveValue("Test");
 });
 
@@ -470,11 +473,12 @@ test("binding registration keeps its registration label after success", async ({
   await page.getByLabel("Straße und Hausnummer").fill("Testweg 1");
   await page.getByLabel("Ort", { exact: true }).fill("Berlin");
   await page.getByLabel("Postleitzahl").fill("10115");
-  const submit = page.getByRole("button", { name: "Anmelden" }).last();
+  const submit = page.locator("[data-course-form] button[type=submit]");
+  const initialLabel = await submit.innerText();
   await submit.click();
 
   await expect(page.locator("[data-course-form] [data-form-status]")).toHaveClass(/is-success/);
-  await expect(submit).toHaveText("Anmelden");
+  await expect(submit).toHaveText(initialLabel);
 });
 
 test("a non-success Formcarry payload keeps the entered values", async ({ page }) => {

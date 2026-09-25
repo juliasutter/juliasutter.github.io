@@ -107,9 +107,11 @@ test("a failed friend registration retains its price and registration button", a
   }
   await form.locator("[name=friend_registration]").check();
   await form.locator("[name=friend_name]").fill("Alex Beispiel");
-  await form.locator("button[type=submit]").click();
+  const submit = form.locator("button[type=submit]");
+  const initialLabel = await submit.innerText();
+  await submit.click();
   await expect(form.locator("[data-form-status]")).toHaveClass(/is-error/);
   await expect(form.locator("[data-binding-price]")).toHaveText("375 €");
   await expect(form.locator("[name=friend_name]")).toHaveValue("Alex Beispiel");
-  await expect(form.locator("button[type=submit]")).toHaveText("Anmelden");
+  await expect(submit).toHaveText(initialLabel);
 });

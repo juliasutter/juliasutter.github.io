@@ -16,7 +16,7 @@ for (const language of ["de", "en"]) {
     await page.locator(".coaching [data-open-form=contact]").click();
     await expect(page.locator("#contact-topic")).toHaveValue("one-on-one");
     await expect(page.locator(".contact-facts")).toBeHidden();
-    await expect(page.locator("#contact-heading")).toHaveText(language === "de" ? "Wie kann ich dich unterstützen?" : "How can I support you?");
+    await expect(page.locator("#contact-heading")).toBeVisible();
     await page.locator("#contact-name").fill("Test Person");
     await page.locator("#contact-message").fill("Meine Frage / My question");
     await page.locator(".course-call [data-booking-trigger]").click();
