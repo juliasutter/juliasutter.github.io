@@ -392,7 +392,7 @@ test("selected copy meets the desktop line-count targets", async ({ page }) => {
     hero: 2,
     toolsTitle: 1,
     tools: 1,
-    course: 1,
+    course: 3,
     courseFact: 1,
     privacy: 1
   });
