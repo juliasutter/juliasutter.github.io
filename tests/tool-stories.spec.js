@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-const storyIds = ["special-time", "staylistening", "playlistening", "listening-partnership"];
+const storyIds = ["special-time", "setting-limits", "staylistening", "playlistening", "listening-partnership"];
 
 for (const language of ["de", "en"]) {
   const path = language === "de" ? "/" : "/en/";
@@ -10,9 +10,8 @@ for (const language of ["de", "en"]) {
     const dialog = page.locator("#story-dialog");
     const cards = page.locator(".tool-item");
     await expect(cards).toHaveCount(5);
-    await expect(cards.locator(".tool-story")).toHaveCount(4);
-    await expect(cards.locator(".tool-story-placeholder")).toHaveCount(1);
-    await expect(cards.nth(1).locator(".tool-story-trigger, a, button")).toHaveCount(0);
+    await expect(cards.locator(".tool-story")).toHaveCount(5);
+    await expect(cards.locator(".tool-story-placeholder")).toHaveCount(0);
     await expect(dialog).toBeHidden();
 
     for (const id of storyIds) {
@@ -138,7 +137,7 @@ for (const language of ["de", "en"]) {
         return {
           noOverflow: document.documentElement.scrollWidth <= window.innerWidth,
           cards: items.map(rect),
-          entries: items.map((item) => rect(item.querySelector(".tool-story, .tool-story-placeholder"))),
+          entries: items.map((item) => rect(item.querySelector(".tool-story"))),
           arts: items.map((item) => rect(item.querySelector(".tool-art"))),
           headings: items.map((item) => rect(item.querySelector("h3")))
         };
