@@ -520,6 +520,70 @@
     });
   }
 
+  const storyDialog = document.querySelector("#story-dialog");
+  if (storyDialog && typeof storyDialog.showModal === "function") {
+    const storyContent = storyDialog.querySelector("[data-story-content]");
+    const storyArt = storyDialog.querySelector("[data-story-art]");
+    const storyTool = storyDialog.querySelector("[data-story-tool]");
+    const closeButton = storyDialog.querySelector("[data-story-close]");
+    const returnButton = storyDialog.querySelector("[data-story-return]");
+
+    let activeStory;
+    let backdropPointerDown = false;
+
+    const outsideDialog = (event) => {
+      const bounds = storyDialog.getBoundingClientRect();
+      return event.clientX < bounds.left || event.clientX > bounds.right ||
+        event.clientY < bounds.top || event.clientY > bounds.bottom;
+    };
+
+    storyDialog.addEventListener("pointerdown", (event) => {
+      backdropPointerDown = event.target === storyDialog && outsideDialog(event);
+    });
+    storyDialog.addEventListener("click", (event) => {
+      if (event.target === storyDialog && backdropPointerDown && outsideDialog(event)) storyDialog.close();
+      backdropPointerDown = false;
+    });
+    closeButton.addEventListener("click", () => storyDialog.close());
+    returnButton.addEventListener("click", () => storyDialog.close());
+    storyDialog.addEventListener("close", () => {
+      document.body.classList.remove("story-open");
+      if (!activeStory) return;
+      activeStory.details.append(activeStory.article);
+      activeStory.details.open = false;
+      activeStory.summary.focus({ preventScroll: true });
+      window.scrollTo({ left: activeStory.scrollX, top: activeStory.scrollY, behavior: "instant" });
+      activeStory = undefined;
+    });
+
+    document.querySelectorAll(".tool-item .tool-story").forEach((details) => {
+      const summary = details.querySelector(".tool-story-trigger");
+      const article = details.querySelector(".tool-story-article");
+      const title = article.querySelector(".story-title[id]");
+      const item = details.closest(".tool-item");
+      const art = item.querySelector(".tool-art");
+      const tool = item.querySelector("h3");
+
+      summary.setAttribute("aria-haspopup", "dialog");
+      summary.setAttribute("aria-controls", storyDialog.id);
+      summary.addEventListener("click", (event) => {
+        event.preventDefault();
+        if (storyDialog.open) return;
+        activeStory = { details, summary, article, scrollX: window.scrollX, scrollY: window.scrollY };
+        details.open = false;
+        storyArt.src = art.src;
+        storyTool.textContent = tool.textContent;
+        storyDialog.setAttribute("aria-labelledby", title.id);
+        storyContent.insertBefore(article, returnButton);
+        storyDialog.showModal();
+        storyContent.scrollTop = 0;
+        document.body.classList.add("story-open");
+        title.focus({ preventScroll: true });
+        window.scrollTo({ left: activeStory.scrollX, top: activeStory.scrollY, behavior: "instant" });
+      });
+    });
+  }
+
   const bookingDialog = document.querySelector("#booking-dialog");
   const bookingLinks = document.querySelectorAll("[data-booking-trigger]");
   bookingLinks.forEach((link) => {

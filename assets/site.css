@@ -862,7 +862,7 @@ body.booking-open {
 .tool-list {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 40px 36px;
+  gap: 0 36px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -871,15 +871,20 @@ body.booking-open {
 .tool-item {
   display: grid;
   grid-column: span 2;
+  grid-row: span 3;
   grid-template-columns: 76px minmax(0, 1fr);
-  grid-template-rows: auto 1fr;
-  grid-template-areas: "art title" "copy copy";
+  grid-template-rows: subgrid;
+  grid-template-areas: "art title" "copy copy" "story story";
   align-content: start;
   column-gap: 18px;
   min-width: 0;
   padding-top: 24px;
   border-top: 1px solid rgb(255 255 255 / 28%);
   text-align: left;
+}
+
+.tool-item:nth-child(n+4) {
+  margin-top: 40px;
 }
 
 .tool-item:nth-child(4) {
@@ -909,7 +914,7 @@ body.booking-open {
   line-height: 1.35;
 }
 
-.tool-item p {
+.tool-item > p:not(.tool-story-placeholder) {
   grid-area: copy;
   margin: 20px 0 0;
   color: rgb(255 255 255 / 92%);
@@ -917,6 +922,199 @@ body.booking-open {
   font-size: 16px;
   font-weight: 400;
   line-height: 1.75;
+}
+
+.tool-story,
+.tool-story-placeholder {
+  grid-area: story;
+  align-self: start;
+  width: 100%;
+  margin: 0;
+}
+
+.tool-story-trigger {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  list-style: none;
+  cursor: pointer;
+}
+
+.tool-story-trigger::-webkit-details-marker {
+  display: none;
+}
+
+.tool-story-action {
+  font-size: 14px;
+  font-weight: 650;
+  text-decoration: underline;
+  text-underline-offset: 5px;
+  text-decoration-thickness: 1px;
+}
+
+.tool-story-trigger:hover .tool-story-action {
+  text-decoration-thickness: 2px;
+}
+
+.tool-story-trigger:focus-visible {
+  outline-color: var(--cream);
+  outline-offset: 6px;
+}
+
+.tool-story-placeholder {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  color: rgb(255 255 255 / 80%);
+  font-size: 14px;
+}
+
+/* The same article remains readable inline when the dialog is unavailable. */
+.tool-story[open] > .tool-story-article {
+  margin-top: 24px;
+}
+
+.tool-story-article .story-title {
+  margin: 0 0 16px;
+  font-family: var(--serif);
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  font-weight: 500;
+  line-height: 1.08;
+  overflow-wrap: break-word;
+}
+
+.tool-story-article .story-byline {
+  margin: 0 0 32px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.story-prose {
+  font-family: "Inter", var(--sans);
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.75;
+}
+
+.story-prose p {
+  margin: 0 0 1.35em;
+}
+
+.story-prose p:last-child {
+  margin-bottom: 0;
+}
+
+body.story-open {
+  overflow: hidden;
+}
+
+.story-dialog {
+  width: min(800px, calc(100% - 64px));
+  max-width: none;
+  max-height: calc(100dvh - 64px);
+  margin: auto;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--radius-medium);
+  background: var(--cream);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+}
+
+.story-dialog:not([open]) {
+  display: none;
+}
+
+.story-dialog[open] {
+  display: flex;
+  flex-direction: column;
+  animation: story-appear 180ms ease-out;
+}
+
+.story-dialog::backdrop {
+  background: rgb(25 32 25 / 55%);
+  backdrop-filter: blur(4px);
+}
+
+.story-header {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--line);
+}
+
+.story-tool {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.story-tool img {
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.story-close {
+  display: grid;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--white);
+  cursor: pointer;
+}
+
+.story-close:hover {
+  background: var(--cream-dark);
+}
+
+.story-content {
+  min-height: 0;
+  padding: 48px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.story-content > .tool-story-article {
+  max-width: 64ch;
+  margin-inline: auto;
+}
+
+.story-dialog .story-byline {
+  color: var(--ink-soft);
+}
+
+.story-return {
+  min-height: 44px;
+  margin-top: 32px;
+  padding: 10px 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 650;
+  text-decoration: underline;
+  text-underline-offset: 5px;
+  cursor: pointer;
+}
+
+@keyframes story-appear {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* Course */
@@ -1833,6 +2031,10 @@ html:not(.forms-ready) .form-panel {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
+  .tool-item:nth-child(n+3) {
+    margin-top: 40px;
+  }
+
   .tool-item:nth-child(4) {
     grid-column: span 2;
   }
@@ -2146,11 +2348,15 @@ html:not(.forms-ready) .form-panel {
   }
 
   .tool-item,
+  .tool-item:nth-child(n+3),
   .tool-item:nth-child(4),
   .tool-item:nth-child(5) {
     grid-column: auto;
+    grid-row: auto;
     grid-template-columns: 64px minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
     column-gap: 16px;
+    margin-top: 0;
   }
 
   .tool-art {
@@ -2163,8 +2369,29 @@ html:not(.forms-ready) .form-panel {
     overflow-wrap: anywhere;
   }
 
-  .tool-item p {
+  .tool-item > p:not(.tool-story-placeholder) {
     margin-top: 16px;
+  }
+
+  .story-dialog {
+    width: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    margin: 0;
+    border-radius: 0;
+  }
+
+  .story-header {
+    padding: max(12px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 12px max(16px, env(safe-area-inset-left));
+  }
+
+  .story-content {
+    flex: 1 1 auto;
+    padding: 32px max(24px, env(safe-area-inset-right)) max(32px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left));
+  }
+
+  .story-prose {
+    font-size: 17px;
   }
 
   .course-grid {
@@ -2323,6 +2550,10 @@ html:not(.forms-ready) .form-panel {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .story-dialog[open] {
+    animation: none;
+  }
+
   *,
   *::before,
   *::after {
