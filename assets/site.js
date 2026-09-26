@@ -302,6 +302,17 @@
     return language === "de" ? `${weekday} ${start}–${end} Uhr` : `${weekday} ${start}–${end}`;
   };
 
+  const formatMobileCourseSchedule = (course) => {
+    const first = course.dates[0];
+    const last = course.dates[course.dates.length - 1];
+    const date = (value, includeYear) => `${value.getUTCDate()}.${String(value.getUTCMonth() + 1).padStart(2, "0")}.${includeYear ? value.getUTCFullYear() : ""}`;
+    const range = `${date(first, first.getUTCFullYear() !== last.getUTCFullYear())}–${date(last, true)}`;
+    const time = (value) => value.replace(/^0/, "").replace(/:00$/, "");
+    const start = time(course.startTime || config.defaultStartTime || "20:00");
+    const end = time(course.endTime || config.defaultEndTime || "22:00");
+    return `${range} · ${course.dates.length}× ${copy.weekdays[first.getUTCDay()]} ${start}–${end} Uhr`;
+  };
+
   const modeCopy = {
     inquiry: { cta: copy.inquiryCta, submitCta: copy.inquiryCta, title: copy.inquiryFormTitle, summary: copy.inquirySummary },
     open: { cta: copy.bindingCta, submitCta: copy.bindingSubmitCta, title: copy.bindingFormTitle, summary: "" },
@@ -325,7 +336,7 @@
   const formPanels = Array.from(document.querySelectorAll("[data-form-panel]"));
   const contactHeading = document.querySelector("[data-contact-heading]");
   const contactIntro = document.querySelector("[data-contact-intro]");
-  const courseHeadingText = contactHeading?.textContent;
+  const courseHeadingContent = contactHeading ? Array.from(contactHeading.childNodes) : [];
   const courseIntroText = contactIntro?.textContent;
   const contactFacts = document.querySelector(".contact-facts");
   const contactNote = document.querySelector(".contact-note");
@@ -338,7 +349,7 @@
     });
     formPanels.forEach((panel) => { panel.hidden = panel.dataset.formPanel !== name; });
     const isContact = name === "contact";
-    if (contactHeading) contactHeading.textContent = isContact ? contactHeading.dataset.contactHeading : courseHeadingText;
+    if (contactHeading) contactHeading.replaceChildren(...(isContact ? [contactHeading.dataset.contactHeading] : courseHeadingContent));
     if (contactIntro) contactIntro.textContent = isContact ? contactIntro.dataset.contactIntro : courseIntroText;
     if (contactFacts) contactFacts.hidden = isContact;
     if (contactNote) contactNote.hidden = isContact;
@@ -362,6 +373,7 @@
   const bindingFields = courseForm ? courseForm.querySelector("[data-binding-fields]") : null;
   const bindingCheckout = courseForm ? courseForm.querySelector("[data-binding-checkout]") : null;
   const bindingCourseSchedule = courseForm ? courseForm.querySelector("[data-binding-course-schedule]") : null;
+  const bindingMobileCourseSchedule = courseForm ? courseForm.querySelector("[data-binding-course-schedule-mobile]") : null;
   const bindingCourseFormat = courseForm ? courseForm.querySelector("[data-binding-course-format]") : null;
   const bindingCourseFormatRow = bindingCourseFormat ? bindingCourseFormat.closest("[data-binding-course-format-row]") : null;
   const earlyStartConsent = courseForm ? courseForm.querySelector("[data-early-start-consent]") : null;
@@ -441,6 +453,9 @@
     if (bindingCourseSchedule && selectedCourse) {
       bindingCourseSchedule.textContent = `${copy.sixDates} · ${formatCompactDateRange(selectedCourse)} · ${formatCompactSchedule(selectedCourse)}`;
     }
+    if (bindingMobileCourseSchedule && selectedCourse) {
+      bindingMobileCourseSchedule.textContent = formatMobileCourseSchedule(selectedCourse);
+    }
     setCourseFormatFields(selectedCourse);
     setFieldGroupEnabled(bindingFields, courseMode === "open");
     setFieldGroupEnabled(bindingCheckout, courseMode === "open");
@@ -506,7 +521,7 @@
   }
 
   const bookingDialog = document.querySelector("#booking-dialog");
-  const bookingLinks = document.querySelectorAll("[data-booking-trigger], [data-booking-direct]");
+  const bookingLinks = document.querySelectorAll("[data-booking-trigger]");
   bookingLinks.forEach((link) => {
     if (config.introCallUrl) link.href = config.introCallUrl;
   });
@@ -515,24 +530,17 @@
     const closeButton = bookingDialog.querySelector("[data-booking-close]");
     let bookingTrigger;
     let bookingFrame;
-    let restoreBookingFocus = true;
 
     bookingDialog.addEventListener("close", () => {
       document.body.classList.remove("booking-open");
-      if (restoreBookingFocus) bookingTrigger?.focus({ preventScroll: true });
+      bookingTrigger?.focus({ preventScroll: true });
     });
     closeButton.addEventListener("click", () => bookingDialog.close());
-    bookingDialog.querySelector("[data-open-form]").addEventListener("click", () => {
-      // The contact handler below supplies its own scroll and focus destination.
-      restoreBookingFocus = false;
-      bookingDialog.close();
-    });
     document.querySelectorAll("[data-booking-trigger]").forEach((trigger) => {
       trigger.addEventListener("click", (event) => {
         if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
         event.preventDefault();
         bookingTrigger = trigger;
-        restoreBookingFocus = true;
         if (!bookingFrame) {
           bookingFrame = document.createElement("iframe");
           bookingFrame.title = content.dataset.frameTitle;

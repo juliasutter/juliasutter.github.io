@@ -43,6 +43,10 @@ for (const language of ["de", "en"]) {
     await expect(page.locator("[name=registration_mode]")).toHaveValue("open");
     await expect(page.locator("[data-binding-course-schedule]")).toContainText(language === "de" ? "2. März–6. Apr. 2099" : "2 Mar–6 Apr 2099");
     await expect(page.locator("[data-binding-course-schedule]")).toContainText("18:00–20:30");
+    if (language === "de") {
+      await expect(page.locator("[data-binding-course-schedule-mobile]")).toContainText("2.03.–6.04.2099 · 6×");
+      await expect(page.locator("[data-binding-course-schedule-mobile]")).toContainText("18–20:30 Uhr");
+    }
     await expect(page.locator("[data-binding-course-format]")).toHaveText(language === "de" ? "Vor Ort" : "In person");
     await expect(page.locator("#course-panel > h3")).toBeFocused();
 
@@ -55,6 +59,10 @@ for (const language of ["de", "en"]) {
     await page.locator("[data-course-select]").selectOption("early");
     await expect(page.locator("[data-binding-course-schedule]")).toContainText(language === "de" ? "5. Jan.–9. Feb. 2099" : "5 Jan–9 Feb 2099");
     await expect(page.locator("[data-binding-course-schedule]")).toContainText("09:00–11:00");
+    if (language === "de") {
+      await expect(page.locator("[data-binding-course-schedule-mobile]")).toContainText("5.01.–9.02.2099 · 6×");
+      await expect(page.locator("[data-binding-course-schedule-mobile]")).toContainText("9–11 Uhr");
+    }
     await expect(page.locator("[data-binding-checkout]")).toBeVisible();
   });
 }

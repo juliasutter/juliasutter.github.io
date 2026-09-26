@@ -135,7 +135,7 @@ if (!/^https:\/\/calendar\.google\.com\/calendar\/appointments\/schedules\/[A-Za
   fail("introCallEmbedUrl must be a Google Calendar schedule embed URL with gv=true");
 }
 for (const file of ["index.html", "en/index.html"]) {
-  const links = [...read(file).matchAll(/<a\b[^>]*\bdata-booking-(?:trigger|direct)\b[^>]*>/gi)];
+  const links = [...read(file).matchAll(/<a\b[^>]*\bdata-booking-trigger\b[^>]*>/gi)];
   if (!links.length) fail(`${file}: missing static booking links`);
   for (const [tag] of links) {
     if (attribute(tag, /<a\b[^>]*>/i, "href") !== siteConfig?.introCallUrl) {

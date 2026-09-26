@@ -6,7 +6,7 @@ const embedUrl = "https://calendar.google.com/calendar/appointments/schedules/Ac
 for (const language of ["de", "en"]) {
   const path = language === "de" ? "/" : "/en/";
 
-  test(`${language}: coaching and course questions preserve inputs and select the right topic`, async ({ page }) => {
+  test(`${language}: coaching inquiries preserve inputs across booking and contact navigation`, async ({ page }) => {
     await page.route("https://calendar.google.com/**", (route) => route.abort());
     await page.goto(path);
     await page.locator('.hero-actions a[href="#coaching"]').click();
@@ -20,10 +20,9 @@ for (const language of ["de", "en"]) {
     await page.locator("#contact-name").fill("Test Person");
     await page.locator("#contact-message").fill("Meine Frage / My question");
     await page.locator(".course-call [data-booking-trigger]").click();
-    await page.locator("#booking-dialog [data-open-form=contact]").click();
-    await expect(page.locator("#contact-topic")).toHaveValue("starter-class");
+    await page.locator("#booking-dialog [data-booking-close]").click();
     await page.locator("footer [data-open-form=contact]").click();
-    await expect(page.locator("#contact-topic")).toHaveValue("starter-class");
+    await expect(page.locator("#contact-topic")).toHaveValue("one-on-one");
     await expect(page.locator("#contact-message")).toHaveValue("Meine Frage / My question");
     await expect(page.locator("#contact-name")).toHaveValue("Test Person");
     await page.locator("#course-tab").click();
@@ -79,21 +78,17 @@ for (const language of ["de", "en"]) {
     await expect(page.locator("body")).not.toHaveClass(/booking-open/);
   });
 
-  test(`${language}: unavailable Google content keeps direct booking and written contact reachable`, async ({ page }) => {
+  test(`${language}: booking has no footer and remains dismissible when Google is unavailable`, async ({ page }) => {
     await page.route("https://calendar.google.com/**", (route) => route.abort());
     await page.goto(path);
-    await page.locator(".course-call [data-booking-trigger]").click();
+    const trigger = page.locator(".course-call [data-booking-trigger]");
+    await trigger.click();
     const dialog = page.locator("#booking-dialog");
-    const direct = dialog.locator("[data-booking-direct]");
-    await expect(direct).toBeVisible();
-    await expect(direct).toHaveAttribute("href", bookingUrl);
-    await expect(direct).toHaveAttribute("target", "_blank");
-    await expect(direct).toHaveAttribute("rel", /noopener/);
-    await expect(page).toHaveURL(new RegExp(`${path}$`));
-    await dialog.locator("[data-open-form=contact]").click();
+    await expect(dialog).toBeVisible();
+    await expect(dialog.locator(".booking-footer, a")).toHaveCount(0);
+    await dialog.locator("[data-booking-close]").click();
     await expect(dialog).toBeHidden();
-    await expect(page.locator("#contact-panel > h3")).toBeFocused();
-    await expect(page.locator("#contact-topic")).toHaveValue("starter-class");
+    await expect(trigger).toBeFocused();
     await expect(page.locator("body")).not.toHaveClass(/booking-open/);
   });
 
@@ -133,10 +128,11 @@ for (const viewport of [{ width: 320, height: 568 }, { width: 568, height: 320 }
     await page.locator(".course-call [data-booking-trigger]").click();
     const dialog = page.locator("#booking-dialog");
     await expect(dialog.locator("[data-booking-close]")).toBeInViewport();
-    await expect(dialog.locator("[data-booking-direct]")).toBeInViewport();
-    await expect(dialog.locator("[data-open-form=contact]")).toBeInViewport();
+    await expect(dialog.locator(".booking-footer")).toHaveCount(0);
     const frame = await dialog.locator("iframe").boundingBox();
     expect(frame.height).toBeGreaterThan(100);
+    const dialogBounds = await dialog.boundingBox();
+    expect(frame.y + frame.height).toBeCloseTo(dialogBounds.y + dialogBounds.height, 0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   });
 }

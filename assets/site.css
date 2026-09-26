@@ -88,6 +88,11 @@ body.menu-open {
   overflow: hidden;
 }
 
+.mobile-copy,
+.mobile-copy-short {
+  display: none;
+}
+
 img {
   display: block;
   max-width: 100%;
@@ -658,23 +663,6 @@ body.booking-open {
   background: #fff;
   font-size: 14px;
   pointer-events: none;
-}
-
-.booking-footer {
-  display: flex;
-  flex: 0 0 auto;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 8px 24px;
-  padding: 14px 24px;
-  border-top: 1px solid var(--line);
-  background: var(--cream);
-  font-size: 13px;
-}
-
-.booking-footer a {
-  padding-block: 6px;
-  text-underline-offset: 3px;
 }
 
 .contact-note[hidden] {
@@ -1994,6 +1982,26 @@ html:not(.forms-ready) .form-panel {
 }
 
 @media (max-width: 720px) {
+  .desktop-copy {
+    display: none;
+  }
+
+  .mobile-copy {
+    display: inline;
+  }
+
+  html[lang="de"] .hero-eyebrow {
+    display: none;
+  }
+
+  html[lang="de"] .hero h1 {
+    font-size: clamp(3rem, 15.25vw, 3.75rem);
+  }
+
+  html[lang="de"] .contact-shell:not(.is-contact) .contact-story h2 {
+    font-size: clamp(1.5rem, 7.6vw, 1.875rem);
+  }
+
   .hero-actions {
     flex-direction: column;
     align-items: stretch;
@@ -2013,12 +2021,6 @@ html:not(.forms-ready) .form-panel {
 
   .booking-header {
     padding: max(12px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 12px max(16px, env(safe-area-inset-left));
-  }
-
-  .booking-footer {
-    gap: 0 16px;
-    padding: 8px max(16px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
-    font-size: 12px;
   }
 
   :root {
@@ -2286,6 +2288,41 @@ html:not(.forms-ready) .form-panel {
   .footer-bottom {
     align-items: flex-start;
     flex-direction: column;
+  }
+}
+
+@media (max-width: 390px) {
+  .hero-intro .mobile-copy-primary {
+    display: none;
+  }
+
+  .hero-intro .mobile-copy-short {
+    display: inline;
+  }
+
+  html[lang="de"] .course-facts li:nth-child(3) {
+    font-size: 13px;
+    letter-spacing: -0.01em;
+  }
+}
+
+@media (max-width: 374px) {
+  .course-copy .mobile-copy-primary {
+    display: none;
+  }
+
+  .course-copy .mobile-copy-short {
+    display: inline;
+  }
+}
+
+@media (max-width: 359px) {
+  html[lang="de"] .course-copy .lede {
+    font-size: 16px;
+  }
+
+  html[lang="de"] .course-call > p {
+    font-size: 12px;
   }
 }
 
