@@ -966,7 +966,7 @@ body.booking-open {
 }
 
 .course-copy .lede {
-  max-width: 900px;
+  max-width: none;
   margin-bottom: 0;
   font-size: 18px;
 }
