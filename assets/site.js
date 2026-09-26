@@ -521,7 +521,7 @@
   }
 
   const bookingDialog = document.querySelector("#booking-dialog");
-  const bookingLinks = document.querySelectorAll("[data-booking-trigger], [data-booking-direct]");
+  const bookingLinks = document.querySelectorAll("[data-booking-trigger]");
   bookingLinks.forEach((link) => {
     if (config.introCallUrl) link.href = config.introCallUrl;
   });
@@ -530,24 +530,17 @@
     const closeButton = bookingDialog.querySelector("[data-booking-close]");
     let bookingTrigger;
     let bookingFrame;
-    let restoreBookingFocus = true;
 
     bookingDialog.addEventListener("close", () => {
       document.body.classList.remove("booking-open");
-      if (restoreBookingFocus) bookingTrigger?.focus({ preventScroll: true });
+      bookingTrigger?.focus({ preventScroll: true });
     });
     closeButton.addEventListener("click", () => bookingDialog.close());
-    bookingDialog.querySelector("[data-open-form]").addEventListener("click", () => {
-      // The contact handler below supplies its own scroll and focus destination.
-      restoreBookingFocus = false;
-      bookingDialog.close();
-    });
     document.querySelectorAll("[data-booking-trigger]").forEach((trigger) => {
       trigger.addEventListener("click", (event) => {
         if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
         event.preventDefault();
         bookingTrigger = trigger;
-        restoreBookingFocus = true;
         if (!bookingFrame) {
           bookingFrame = document.createElement("iframe");
           bookingFrame.title = content.dataset.frameTitle;

@@ -665,23 +665,6 @@ body.booking-open {
   pointer-events: none;
 }
 
-.booking-footer {
-  display: flex;
-  flex: 0 0 auto;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 8px 24px;
-  padding: 14px 24px;
-  border-top: 1px solid var(--line);
-  background: var(--cream);
-  font-size: 13px;
-}
-
-.booking-footer a {
-  padding-block: 6px;
-  text-underline-offset: 3px;
-}
-
 .contact-note[hidden] {
   display: none;
 }
@@ -2038,12 +2021,6 @@ html:not(.forms-ready) .form-panel {
 
   .booking-header {
     padding: max(12px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 12px max(16px, env(safe-area-inset-left));
-  }
-
-  .booking-footer {
-    gap: 0 16px;
-    padding: 8px max(16px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
-    font-size: 12px;
   }
 
   :root {
