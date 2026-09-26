@@ -46,7 +46,7 @@ for (const language of ["de", "en"]) {
     await expect(dialog).toBeHidden();
     await expect(dialog.locator("iframe")).toHaveCount(0);
     const triggers = page.locator("[data-booking-trigger]");
-    await expect(triggers).toHaveCount(2);
+    await expect(triggers).toHaveCount(3);
     let openedBefore = false;
     for (const trigger of await triggers.all()) {
       await expect(trigger).toHaveAttribute("href", bookingUrl);

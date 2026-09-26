@@ -57,20 +57,13 @@ test("editorial images keep natural proportions without overlapping content", as
       courseFacts: rect(".course-facts"),
       courseDates: rect(".course-dates"),
       courseStory: rect(".course-story"),
-      aboutImage: rect(".about-portrait img"),
-      aboutQuote: rect(".about-quote-block"),
-      aboutStory: rect(".about-story"),
       coachingPicture: rect(".coaching-card picture"),
       coachingCopy: rect(".coaching-copy")
     };
   });
 
   expect(layout.courseImage.width / layout.courseImage.height).toBeCloseTo(16 / 11, 1);
-  expect(layout.aboutImage.width / layout.aboutImage.height).toBeCloseTo(2 / 3, 1);
   expect(layout.courseDates.top).toBeGreaterThanOrEqual(layout.courseFacts.bottom + 20);
-  expect(layout.aboutImage.right).toBeLessThanOrEqual(layout.aboutQuote.left + 1);
-  expect(layout.aboutStory.top).toBeGreaterThanOrEqual(layout.aboutQuote.bottom - 1);
-  await expect(page.locator(".about-quote-block blockquote")).toBeVisible();
 
   if (layout.viewportWidth > 920) {
     expect(layout.courseSection.height).toBeLessThanOrEqual(layout.viewportHeight - 90);

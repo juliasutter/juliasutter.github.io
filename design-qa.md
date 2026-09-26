@@ -113,3 +113,41 @@ No actionable P0, P1 or P2 differences remain.
 - None required for this integration.
 
 final result: passed
+
+---
+
+# Design QA — Über Julia editorial layout and shared biography (2026-09-26)
+
+This review supersedes the earlier oval-portrait About review above.
+
+## Reference and evidence
+
+- Approved reference: `/Users/maxsutter/.codex/generated_images/01a0dd7e-f035-7290-8380-b2a1060abad9/exec-a8fcc7eb-b47b-44d8-9297-8ddcaba2d698.png`.
+- Side-by-side comparison: `/Users/maxsutter/.codex/visualizations/2026/09/26/01a0dd7e-f035-7290-8380-b2a1060abad9/about-comparison.png`.
+- Desktop, mobile and mobile-dialog screenshots in the same folder: `about-desktop.png`, `about-mobile.png`, `about-dialog-mobile.png`.
+- Local routes: `http://127.0.0.1:4173/#ueber-julia` and `http://127.0.0.1:4173/en/#about-julia`.
+
+## Visual result
+
+The reference and rendered desktop were compared together at equal image scale. The rectangular portrait, cream field, serif introduction, understated qualification and links, and handwritten quote follow the approved composition. The original portrait asset is unchanged. Its original face and framing take precedence over any image-generation differences in the mockup.
+
+The final approved text is longer than the initial mockup and adds a reading link. Its additional vertical space is intentional; the text is not compressed to reproduce the earlier draft's height. Initial desktop sizing was refined to align the portrait and right column more closely with the reference.
+
+Inspected responsive states at 360, 390, 720, 1024 and 1440 pixels; automated geometry checks cover all five widths in both languages. Mobile order is heading/qualification, portrait, copy, story link, quote and booking link. No horizontal overflow was found. The portrait retains natural proportions via object-fit; its mobile crop is intentional. Both languages retain all three introduction paragraphs and all thirteen biography paragraphs.
+
+The existing anecdote dialog also hosts the biography: cream surface, 800px desktop limit, fullscreen through 720px, no tool illustration or booking action for the biography. Desktop and mobile dialog states were visually inspected. Native details remain the no-JavaScript/no-dialog fallback.
+
+No actionable P0, P1 or P2 visual findings remain.
+
+final result: passed
+
+## Verification boundary
+
+Dependency commit `65b5b7d` was merged into this detached worktree without conflicts; no integration into main. The shared dialog's controller was extended rather than duplicated. Checks and remaining baseline failures are recorded below; the visual result above is not a claim that every repository check passes.
+
+- ESLint, HTML validation, site checks (12 routes) and both unit tests passed.
+- About suite: 22 passed, 2 intentional duplicate-project skips. Includes both languages, five responsive widths, complete article transfer, fallback, keyboard, focus/page restoration, reopening, booking and switching back to anecdotes.
+- Full browser run: 164 passed, 4 skipped, 6 failed initially. Four failures were the old two-booking-entry expectation; the new About entry makes three. One anecdote test allowed Playwright's second click to auto-scroll by one pixel; it now verifies focus/position after each close and reopens using Enter. These five failures were addressed and affected checks rerun: booking/anecdote run 45 passed with only the scroll test remaining, followed by all four scroll cases passing. The anecdote longest-story selection is scoped to tool cards; biography coverage is separate.
+- Remaining failure: `tests/site.spec.js` course-height assertion at desktop expects <=810px but measures 834.5625px. Reproduced identically in a clean archive of pre-change HEAD `4fd3999`, so the unrelated assertion and course layout were left unchanged. Consequently the complete CI gate is not green.
+- Lighthouse: all assertions passed across six runs; performance 94–95, accessibility/best-practices/SEO 100 on both routes.
+- Local preview reloaded successfully after checks and remains running for acceptance.

@@ -99,7 +99,7 @@ for (const language of ["de", "en"]) {
 
   test(`${language}: story scroll resets on reopen while close remains reachable`, async ({ page }) => {
     await page.goto(path);
-    const longestId = await page.locator(".tool-story-article").evaluateAll((articles) =>
+    const longestId = await page.locator(".tool-item .tool-story-article").evaluateAll((articles) =>
       articles.reduce((longest, article) => article.textContent.length > longest.textContent.length ? article : longest).querySelector(".story-title").id
     );
     const summary = page.locator(`.tool-story:has(#${longestId}) .tool-story-trigger`);
@@ -117,9 +117,14 @@ for (const language of ["de", "en"]) {
     await page.mouse.wheel(0, 800);
     expect(await page.evaluate(() => window.scrollY)).toBe(lockedScroll);
     await dialog.locator("[data-story-close]").click();
-    await summary.click();
+    await expect(summary).toBeFocused();
+    expect(await page.evaluate(() => window.scrollY)).toBe(initialScroll);
+    // Reopen from the restored focus without Playwright's click auto-scrolling.
+    await page.keyboard.press("Enter");
+    await expect(dialog).toBeVisible();
     expect(await content.evaluate((element) => element.scrollTop)).toBe(0);
     await dialog.locator("[data-story-close]").click();
+    await expect(summary).toBeFocused();
     expect(await page.evaluate(() => window.scrollY)).toBe(initialScroll);
   });
 

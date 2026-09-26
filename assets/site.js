@@ -527,6 +527,7 @@
     const storyTool = storyDialog.querySelector("[data-story-tool]");
     const closeButton = storyDialog.querySelector("[data-story-close]");
     const returnButton = storyDialog.querySelector("[data-story-return]");
+    const defaultReturnLabel = returnButton.textContent;
 
     let activeStory;
     let backdropPointerDown = false;
@@ -556,13 +557,14 @@
       activeStory = undefined;
     });
 
-    document.querySelectorAll(".tool-item .tool-story").forEach((details) => {
+    document.querySelectorAll(".tool-story").forEach((details) => {
       const summary = details.querySelector(".tool-story-trigger");
       const article = details.querySelector(".tool-story-article");
       const title = article.querySelector(".story-title[id]");
       const item = details.closest(".tool-item");
-      const art = item.querySelector(".tool-art");
-      const tool = item.querySelector("h3");
+      const art = item?.querySelector(".tool-art");
+      const label = details.dataset.storyLabel ?? item.querySelector("h3").textContent;
+      const returnLabel = details.dataset.storyReturn ?? defaultReturnLabel;
 
       summary.setAttribute("aria-haspopup", "dialog");
       summary.setAttribute("aria-controls", storyDialog.id);
@@ -571,8 +573,10 @@
         if (storyDialog.open) return;
         activeStory = { details, summary, article, scrollX: window.scrollX, scrollY: window.scrollY };
         details.open = false;
-        storyArt.src = art.src;
-        storyTool.textContent = tool.textContent;
+        storyArt.hidden = !art;
+        if (art) storyArt.src = art.src;
+        storyTool.textContent = label;
+        returnButton.textContent = returnLabel;
         storyDialog.setAttribute("aria-labelledby", title.id);
         storyContent.insertBefore(article, returnButton);
         storyDialog.showModal();
