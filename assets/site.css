@@ -2314,6 +2314,10 @@ html:not(.forms-ready) .form-panel {
   .course-copy .mobile-copy-short {
     display: inline;
   }
+
+  html[lang="de"] .course-call > p {
+    font-size: 13px;
+  }
 }
 
 @media (max-width: 359px) {
