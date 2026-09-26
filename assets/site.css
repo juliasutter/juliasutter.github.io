@@ -929,31 +929,19 @@ body.booking-open {
   grid-area: story;
   align-self: start;
   width: 100%;
-  margin: 24px 0 0;
-  padding-top: 18px;
-  border-top: 1px solid rgb(255 255 255 / 20%);
+  margin: 0;
 }
 
 .tool-story-trigger {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 10px;
+  align-items: center;
   min-height: 44px;
-  padding-bottom: 4px;
   list-style: none;
   cursor: pointer;
 }
 
 .tool-story-trigger::-webkit-details-marker {
   display: none;
-}
-
-.tool-story-title {
-  font-family: var(--serif);
-  font-size: 20px;
-  font-weight: 600;
-  line-height: 1.3;
 }
 
 .tool-story-action {
@@ -974,6 +962,9 @@ body.booking-open {
 }
 
 .tool-story-placeholder {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
   color: rgb(255 255 255 / 80%);
   font-size: 14px;
 }
@@ -2380,10 +2371,6 @@ html:not(.forms-ready) .form-panel {
 
   .tool-item > p:not(.tool-story-placeholder) {
     margin-top: 16px;
-  }
-
-  .tool-story-title {
-    font-size: 19px;
   }
 
   .story-dialog {
