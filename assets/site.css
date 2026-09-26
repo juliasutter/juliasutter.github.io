@@ -966,7 +966,7 @@ body.booking-open {
 }
 
 .course-copy .lede {
-  max-width: 900px;
+  max-width: none;
   margin-bottom: 0;
   font-size: 18px;
 }
@@ -2307,14 +2307,6 @@ html:not(.forms-ready) .form-panel {
 }
 
 @media (max-width: 374px) {
-  .course-copy .mobile-copy-primary {
-    display: none;
-  }
-
-  .course-copy .mobile-copy-short {
-    display: inline;
-  }
-
   html[lang="de"] .course-call > p {
     font-size: 13px;
   }

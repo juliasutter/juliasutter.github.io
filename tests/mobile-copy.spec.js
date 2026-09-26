@@ -4,7 +4,7 @@ const targets = {
   ".hero h1": 2,
   ".hero-intro": 2,
   ".faq-contact p": 1,
-  ".course-copy .lede": 2,
+  ".course-copy .lede": 8,
   ".course-facts li:nth-child(3) > span": 1,
   ".course-facts li:nth-child(4) > span": 1,
   ".course-dates .fine-print": 1,
@@ -64,6 +64,6 @@ test("mobile copy fits its line targets across phone widths and course selection
   await expect(page.locator(".hero-eyebrow")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Mit Begleitung in euren Alltag", exact: true })).toBeVisible();
   await expect(page.locator(".hero-intro")).toHaveText(/Nähe und Verbindung/, { useInnerText: true });
-  await expect(page.locator(".course-copy .lede")).toHaveText("Fünf Werkzeuge für euren Alltag – mit Zeit zum Üben, Zuhören und für deine Fragen.", { useInnerText: true });
+  await expect(page.locator(".course-copy .lede")).toHaveText("In sechs Wochen übst du, Wut und Ängste zu begleiten, liebevoll Grenzen zu setzen und selbst Halt zu finden. Wir arbeiten mit euren Alltagssituationen: Du lernst die fünf Werkzeuge kennen, probierst sie zu Hause aus und besprichst deine Erfahrungen in der Gruppe.", { useInnerText: true });
   await expect(page.locator(".course-call > p")).toHaveText(/20-Minuten-Gespräch/, { useInnerText: true });
 });
