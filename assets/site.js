@@ -520,6 +520,35 @@
     });
   }
 
+  // Safari can show :focus-visible after a pointer-triggered programmatic focus.
+  // Keep the focus itself, suppressing only this target's ring until blur or a key.
+  let dialogPointerInteraction = false;
+  let dialogPointerFocusTarget;
+  const clearDialogPointerFocus = () => {
+    if (!dialogPointerFocusTarget) return;
+    dialogPointerFocusTarget.classList.remove("dialog-pointer-focus");
+    dialogPointerFocusTarget.removeEventListener("blur", clearDialogPointerFocus);
+    dialogPointerFocusTarget = undefined;
+  };
+  document.addEventListener("click", (event) => {
+    // Keyboard and assistive-technology activation have no pointer click count.
+    dialogPointerInteraction = event.detail > 0;
+  }, true);
+  document.addEventListener("keydown", (event) => {
+    if (["Shift", "Control", "Alt", "Meta"].includes(event.key)) return;
+    dialogPointerInteraction = false;
+    clearDialogPointerFocus();
+  }, true);
+  const focusDialogTarget = (target) => {
+    clearDialogPointerFocus();
+    if (dialogPointerInteraction) {
+      dialogPointerFocusTarget = target;
+      target.classList.add("dialog-pointer-focus");
+      target.addEventListener("blur", clearDialogPointerFocus, { once: true });
+    }
+    target.focus({ preventScroll: true });
+  };
+
   const storyDialog = document.querySelector("#story-dialog");
   if (storyDialog && typeof storyDialog.showModal === "function") {
     const storyContent = storyDialog.querySelector("[data-story-content]");
@@ -552,7 +581,7 @@
       if (!activeStory) return;
       activeStory.details.append(activeStory.article);
       activeStory.details.open = false;
-      activeStory.summary.focus({ preventScroll: true });
+      focusDialogTarget(activeStory.summary);
       window.scrollTo({ left: activeStory.scrollX, top: activeStory.scrollY, behavior: "instant" });
       activeStory = undefined;
     });
@@ -582,7 +611,7 @@
         storyDialog.showModal();
         storyContent.scrollTop = 0;
         document.body.classList.add("story-open");
-        title.focus({ preventScroll: true });
+        focusDialogTarget(title);
         window.scrollTo({ left: activeStory.scrollX, top: activeStory.scrollY, behavior: "instant" });
       });
     });
@@ -601,7 +630,7 @@
 
     bookingDialog.addEventListener("close", () => {
       document.body.classList.remove("booking-open");
-      bookingTrigger?.focus({ preventScroll: true });
+      if (bookingTrigger) focusDialogTarget(bookingTrigger);
     });
     closeButton.addEventListener("click", () => bookingDialog.close());
     document.querySelectorAll("[data-booking-trigger]").forEach((trigger) => {
@@ -622,7 +651,7 @@
         }
         bookingDialog.showModal();
         document.body.classList.add("booking-open");
-        closeButton.focus({ preventScroll: true });
+        focusDialogTarget(closeButton);
       });
     });
   }

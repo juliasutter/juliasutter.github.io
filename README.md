@@ -53,6 +53,8 @@ Die Prüfungen benötigen Node.js ab 24.8.0. Die Browsertests starten immer eine
 PLAYWRIGHT_PORT=4183 npm run test:ci
 ```
 
+Die Dialog-Fokustests laufen zusätzlich in WebKit mit iPhone-Profil und Touch-Ereignissen. Vor dem ersten Testlauf beide Browser installieren: `npx playwright install chromium webkit`. Das ersetzt keine Prüfung auf einem echten iPhone.
+
 ## Veröffentlichung
 
 Die Produktionsdomain ist in `CNAME` als `juliasutter.de` hinterlegt. Vor dem DNS-/Framer-Cutover die Schritte in [`docs/cutover-checklist.md`](docs/cutover-checklist.md) abarbeiten.

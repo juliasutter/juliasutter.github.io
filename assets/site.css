@@ -122,6 +122,11 @@ a {
   outline-offset: 4px;
 }
 
+/* Only programmatic dialog focus caused by a pointer gets this temporary class. */
+.dialog-pointer-focus:focus {
+  outline: none;
+}
+
 [hidden] {
   display: none !important;
 }

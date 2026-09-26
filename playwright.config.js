@@ -23,6 +23,7 @@ export default defineConfig({
   },
   projects: [
     { name: "chromium-mobile", use: { ...devices["Desktop Chrome"], viewport: { width: 390, height: 844 } } },
-    { name: "chromium-desktop", use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 } } }
+    { name: "chromium-desktop", use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 } } },
+    { name: "webkit-iphone", testMatch: "**/dialog-focus.spec.js", use: { ...devices["iPhone 13"] } }
   ]
 });
