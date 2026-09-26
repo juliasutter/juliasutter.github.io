@@ -44,6 +44,7 @@ test("/starterclass/ redirects to the Starter Class section", async ({ page }) =
 
 test("editorial images keep natural proportions without overlapping content", async ({ page }) => {
   await page.goto("/");
+  await page.evaluate(() => document.fonts.ready);
   const layout = await page.evaluate(() => {
     const rect = (selector) => {
       const bounds = document.querySelector(selector).getBoundingClientRect();
@@ -51,8 +52,10 @@ test("editorial images keep natural proportions without overlapping content", as
     };
     return {
       viewportWidth: window.innerWidth,
-      viewportHeight: window.innerHeight,
       courseSection: rect("#starter-class"),
+      courseBooking: rect(".course-booking"),
+      courseCall: rect(".course-call"),
+      nextSection: rect("#starter-class + section"),
       courseImage: rect(".course-media img"),
       courseFacts: rect(".course-facts"),
       courseDates: rect(".course-dates"),
@@ -64,9 +67,13 @@ test("editorial images keep natural proportions without overlapping content", as
 
   expect(layout.courseImage.width / layout.courseImage.height).toBeCloseTo(16 / 11, 1);
   expect(layout.courseDates.top).toBeGreaterThanOrEqual(layout.courseFacts.bottom + 20);
+  // The section may grow with the course list; its content must stay contained.
+  expect(layout.courseStory.bottom).toBeLessThanOrEqual(layout.courseSection.bottom);
+  expect(layout.courseBooking.bottom).toBeLessThanOrEqual(layout.courseSection.bottom);
+  expect(layout.courseCall.bottom).toBeLessThanOrEqual(layout.courseBooking.bottom);
+  expect(layout.nextSection.top).toBeGreaterThanOrEqual(layout.courseSection.bottom);
 
   if (layout.viewportWidth > 920) {
-    expect(layout.courseSection.height).toBeLessThanOrEqual(layout.viewportHeight - 90);
     expect(layout.courseFacts.left).toBeGreaterThanOrEqual(layout.courseStory.right);
     expect(Math.abs(layout.courseFacts.top - layout.courseStory.top)).toBeLessThanOrEqual(1);
     expect(layout.coachingPicture.right).toBeLessThanOrEqual(layout.coachingCopy.left + 1);
