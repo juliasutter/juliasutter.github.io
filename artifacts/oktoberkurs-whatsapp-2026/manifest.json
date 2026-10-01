@@ -1,0 +1,141 @@
+{
+  "dimensions": [
+    1080,
+    1920
+  ],
+  "language": "de",
+  "website": "https://juliasutter.de/",
+  "format": "Single standalone status image",
+  "source": "status.html",
+  "build": "node tools/build-oktober-status.mjs",
+  "safeTextBounds": {
+    "top": 180,
+    "bottom": 1780,
+    "left": 60,
+    "right": 1020
+  },
+  "sha256": "ee347b018121fb9d969cb45fe1d29247cde1675dde9be2978160a2857b5ac653",
+  "audit": {
+    "bounds": [
+      {
+        "text": "Mehr Sicherheit. Mehr Verbindung.",
+        "x": 76,
+        "y": 183,
+        "right": 726.90625,
+        "bottom": 217
+      },
+      {
+        "text": "Wenn dein Kind",
+        "x": 70,
+        "y": 231,
+        "right": 754.78125,
+        "bottom": 366
+      },
+      {
+        "text": "Angst hat.",
+        "x": 70,
+        "y": 336.265625,
+        "right": 498.390625,
+        "bottom": 471.265625
+      },
+      {
+        "text": "Lerne, es durch schwierige",
+        "x": 76,
+        "y": 494,
+        "right": 584.328125,
+        "bottom": 544
+      },
+      {
+        "text": "Momente zu begleiten.",
+        "x": 76,
+        "y": 547.296875,
+        "right": 504.703125,
+        "bottom": 597.296875
+      },
+      {
+        "text": "Online-Elternkurs mit Julia Sutter",
+        "x": 76,
+        "y": 1260,
+        "right": 652.28125,
+        "bottom": 1306
+      },
+      {
+        "text": "Hand in Hand Parenting · Starter Class",
+        "x": 76,
+        "y": 1319,
+        "right": 601.640625,
+        "bottom": 1354
+      },
+      {
+        "text": "Start: 17. Oktober 2026",
+        "x": 76,
+        "y": 1382,
+        "right": 570.890625,
+        "bottom": 1439
+      },
+      {
+        "text": "6 Samstage · 9–11 Uhr · online",
+        "x": 76,
+        "y": 1449,
+        "right": 526.390625,
+        "bottom": 1488
+      },
+      {
+        "text": "✓",
+        "x": 76,
+        "y": 1524,
+        "right": 99.703125,
+        "bottom": 1561
+      },
+      {
+        "text": "Kleine Gruppe mit 4–7 Eltern",
+        "x": 109.703125,
+        "y": 1524,
+        "right": 526.90625,
+        "bottom": 1561
+      },
+      {
+        "text": "✓",
+        "x": 76,
+        "y": 1570.5,
+        "right": 99.703125,
+        "bottom": 1607.5
+      },
+      {
+        "text": "Inklusive 60 Min. Einzelcoaching",
+        "x": 109.703125,
+        "y": 1570.5,
+        "right": 587.25,
+        "bottom": 1607.5
+      },
+      {
+        "text": "Mehr erfahren & anmelden",
+        "x": 76,
+        "y": 1676,
+        "right": 390.953125,
+        "bottom": 1706
+      },
+      {
+        "text": "juliasutter.de",
+        "x": 76,
+        "y": 1712,
+        "right": 343.40625,
+        "bottom": 1767
+      },
+      {
+        "text": "↗",
+        "x": 940,
+        "y": 1682.5,
+        "right": 1004,
+        "bottom": 1759.5
+      }
+    ],
+    "imagesLoaded": true
+  },
+  "assets": [
+    "assets/images/coaching-connection.jpg",
+    "assets/images/certified-instructor.png"
+  ],
+  "facts": "Dates and times confirmed by user. Website supplies course benefits and original assets. No availability or deadline claim.",
+  "editorial": "Fear-focused hook, price omitted for readability; certification retains its original English artwork."
+}
