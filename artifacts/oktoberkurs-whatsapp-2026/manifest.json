@@ -14,99 +14,127 @@
     "left": 60,
     "right": 1020
   },
-  "sha256": "ee347b018121fb9d969cb45fe1d29247cde1675dde9be2978160a2857b5ac653",
+  "sha256": "106c9cf427d9b482f5583c737103e3842185361e70a4ba0199053e067668063f",
   "audit": {
     "bounds": [
       {
-        "text": "Mehr Sicherheit. Mehr Verbindung.",
+        "text": "Online-Elternkurs · ab 17. Oktober",
         "x": 76,
         "y": 183,
-        "right": 726.90625,
-        "bottom": 217
+        "right": 664.546875,
+        "bottom": 216
       },
       {
-        "text": "Wenn dein Kind",
+        "text": "Wenn gutes Zureden",
         "x": 70,
-        "y": 231,
-        "right": 754.78125,
-        "bottom": 366
+        "y": 242,
+        "right": 876.03125,
+        "bottom": 368
       },
       {
-        "text": "Angst hat.",
+        "text": "nicht reicht.",
         "x": 70,
-        "y": 336.265625,
-        "right": 498.390625,
-        "bottom": 471.265625
+        "y": 344.953125,
+        "right": 539.875,
+        "bottom": 470.953125
       },
       {
-        "text": "Lerne, es durch schwierige",
+        "text": "Lerne, dein Kind bei Angst und Wut",
         "x": 76,
-        "y": 494,
-        "right": 584.328125,
-        "bottom": 544
+        "y": 521,
+        "right": 711.703125,
+        "bottom": 568
       },
       {
-        "text": "Momente zu begleiten.",
+        "text": "zu begleiten – und selbst Halt",
         "x": 76,
-        "y": 547.296875,
-        "right": 504.703125,
-        "bottom": 597.296875
+        "y": 571.6875,
+        "right": 603.90625,
+        "bottom": 618.6875
       },
       {
-        "text": "Online-Elternkurs mit Julia Sutter",
+        "text": "zu finden.",
         "x": 76,
-        "y": 1260,
-        "right": 652.28125,
-        "bottom": 1306
+        "y": 622.375,
+        "right": 254.390625,
+        "bottom": 669.375
+      },
+      {
+        "text": "Deine Kursleiterin",
+        "x": 466,
+        "y": 755,
+        "right": 699.046875,
+        "bottom": 789
+      },
+      {
+        "text": "Julia Sutter",
+        "x": 466,
+        "y": 794,
+        "right": 721.875,
+        "bottom": 863
+      },
+      {
+        "text": "Zertifizierte Hand in Hand",
+        "x": 466,
+        "y": 881,
+        "right": 806.15625,
+        "bottom": 915
+      },
+      {
+        "text": "Parenting Instructorin",
+        "x": 466,
+        "y": 918.796875,
+        "right": 751,
+        "bottom": 952.796875
       },
       {
         "text": "Hand in Hand Parenting · Starter Class",
         "x": 76,
-        "y": 1319,
-        "right": 601.640625,
-        "bottom": 1354
+        "y": 1275,
+        "right": 637.890625,
+        "bottom": 1312
       },
       {
         "text": "Start: 17. Oktober 2026",
         "x": 76,
-        "y": 1382,
+        "y": 1350,
         "right": 570.890625,
-        "bottom": 1439
+        "bottom": 1407
       },
       {
         "text": "6 Samstage · 9–11 Uhr · online",
         "x": 76,
-        "y": 1449,
+        "y": 1417,
         "right": 526.390625,
-        "bottom": 1488
+        "bottom": 1456
       },
       {
         "text": "✓",
         "x": 76,
-        "y": 1524,
+        "y": 1503,
         "right": 99.703125,
-        "bottom": 1561
+        "bottom": 1540
       },
       {
         "text": "Kleine Gruppe mit 4–7 Eltern",
         "x": 109.703125,
-        "y": 1524,
+        "y": 1503,
         "right": 526.90625,
-        "bottom": 1561
+        "bottom": 1540
       },
       {
         "text": "✓",
         "x": 76,
-        "y": 1570.5,
+        "y": 1549.5,
         "right": 99.703125,
-        "bottom": 1607.5
+        "bottom": 1586.5
       },
       {
         "text": "Inklusive 60 Min. Einzelcoaching",
         "x": 109.703125,
-        "y": 1570.5,
+        "y": 1549.5,
         "right": 587.25,
-        "bottom": 1607.5
+        "bottom": 1586.5
       },
       {
         "text": "Mehr erfahren & anmelden",
@@ -124,18 +152,18 @@
       },
       {
         "text": "↗",
-        "x": 940,
-        "y": 1682.5,
-        "right": 1004,
-        "bottom": 1759.5
+        "x": 361.40625,
+        "y": 1712,
+        "right": 405.8125,
+        "bottom": 1767
       }
     ],
     "imagesLoaded": true
   },
   "assets": [
-    "assets/images/coaching-connection.jpg",
+    "assets/images/julia-headshot.jpg",
     "assets/images/certified-instructor.png"
   ],
   "facts": "Dates and times confirmed by user. Website supplies course benefits and original assets. No availability or deadline claim.",
-  "editorial": "Fear-focused hook, price omitted for readability; certification retains its original English artwork."
+  "editorial": "CMO/CDO synthesis: recognize the moment when reassurance does not suffice; teach accompanying fear and anger while finding parental support. Authentic Julia-only portrait for trust; no child photo. CTA arrow grouped with domain. Price omitted for readability; certification retains its original English artwork."
 }

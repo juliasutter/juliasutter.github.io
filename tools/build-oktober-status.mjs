@@ -39,9 +39,9 @@ try {
     dimensions: [1080, 1920], language: "de", website: "https://juliasutter.de/", format: "Single standalone status image",
     source: "status.html", build: "node tools/build-oktober-status.mjs", safeTextBounds: { top: 180, bottom: 1780, left: 60, right: 1020 },
     sha256: createHash("sha256").update(bytes).digest("hex"), audit,
-    assets: ["assets/images/coaching-connection.jpg", "assets/images/certified-instructor.png"],
+    assets: ["assets/images/julia-headshot.jpg", "assets/images/certified-instructor.png"],
     facts: "Dates and times confirmed by user. Website supplies course benefits and original assets. No availability or deadline claim.",
-    editorial: "Fear-focused hook, price omitted for readability; certification retains its original English artwork."
+    editorial: "CMO/CDO synthesis: recognize the moment when reassurance does not suffice; teach accompanying fear and anger while finding parental support. Authentic Julia-only portrait for trust; no child photo. CTA arrow grouped with domain. Price omitted for readability; certification retains its original English artwork."
   }, null, 2) + "\n");
   console.log(`Exported PNG, JPEG and phone preview to ${directory}`);
 } finally {
