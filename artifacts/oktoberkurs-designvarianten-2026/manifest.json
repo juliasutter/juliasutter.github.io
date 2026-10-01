@@ -11,7 +11,7 @@
       "name": "Spielerische Papierwelt",
       "source": "01-papierwelt.html",
       "png": "01-papierwelt-1080x1920.png",
-      "sha256": "9622790f4dec6661e460ddc88c9b206ce93ae70096541d2c9108363226ad7ba9",
+      "sha256": "673515997781adafc9adb5c54c128223a062121446c7247c6be383d88afd50fa",
       "audit": {
         "text": [
           {
@@ -480,7 +480,7 @@
     "brand": "https://www.handinhandparenting.org/",
     "brandEvidence": "Live screenshot and computed DOM styles: Poppins700, Lato400; #4A6163, #F17A7E, #FF8700, #FEF1E4, #FFC94B. Formal brand guidelines were not found; variant2 is an interpretation of the official web appearance.",
     "fonts": "Google Fonts; OFL licenses included in fonts/",
-    "illustration": "Built-in ImageGen fictional transparent paper-collage asset; see illustration-prompt.txt"
+    "illustration": "Built-in ImageGen fictional Playlistening scene, preserving the original paper-collage style; see illustration-playlistening-prompt.txt. Child leads a palm-to-palm playful pushing game; mother lets the child win and leans into cushions. Shared laughter and connection."
   },
   "decisions": "CMO and CDO discussed and agreed: playful child-experience, method/tool-focused, and parent-support typographic poster. Real children are not used. Portrait width104px in all variants. No price, deadline, availability claim or fictional endorsement."
 }
