@@ -11,7 +11,7 @@
       "name": "Spielerische Papierwelt",
       "source": "01-papierwelt.html",
       "png": "01-papierwelt-1080x1920.png",
-      "sha256": "673515997781adafc9adb5c54c128223a062121446c7247c6be383d88afd50fa",
+      "sha256": "5a3705f60babf51d6bace86ec4514e7658acc67e3ba3517a573c4d6d30fdf973",
       "audit": {
         "text": [
           {
@@ -36,17 +36,17 @@
             "bottom": 507.46875
           },
           {
-            "text": "Dein Kind ermutigen, Wut begleiten",
+            "text": "Wut, Angst und Traurigkeit begleiten.",
             "x": 76,
             "y": 538,
-            "right": 703.203125,
+            "right": 725.046875,
             "bottom": 586
           },
           {
-            "text": "und selbst Halt finden.",
+            "text": "Mit Nähe zum Kind und Unterstützung für dich.",
             "x": 76,
             "y": 590,
-            "right": 463.96875,
+            "right": 898.328125,
             "bottom": 638
           },
           {
@@ -101,23 +101,16 @@
           {
             "text": "Infos & Anmeldung",
             "x": 105.89887237548828,
-            "y": 1701.4705810546875,
+            "y": 1694.4705810546875,
             "right": 321.8670120239258,
-            "bottom": 1734.9759521484375
+            "bottom": 1727.9759521484375
           },
           {
             "text": "juliasutter.de",
-            "x": 664.6626586914062,
-            "y": 1695.8721923828125,
-            "right": 918.1688232421875,
-            "bottom": 1748.6383056640625
-          },
-          {
-            "text": "↗",
-            "x": 930.8124389648438,
-            "y": 1697.7303466796875,
+            "x": 720.6613159179688,
+            "y": 1689.26318359375,
             "right": 974.1674194335938,
-            "bottom": 1749.029296875
+            "bottom": 1742.029296875
           }
         ],
         "imagesLoaded": true,
