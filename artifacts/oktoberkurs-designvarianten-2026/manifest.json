@@ -1,0 +1,486 @@
+{
+  "dimensions": [
+    1080,
+    1920
+  ],
+  "website": "https://juliasutter.de/",
+  "build": "node tools/build-oktober-variants.mjs",
+  "exports": [
+    {
+      "id": "01-papierwelt",
+      "name": "Spielerische Papierwelt",
+      "source": "01-papierwelt.html",
+      "png": "01-papierwelt-1080x1920.png",
+      "sha256": "9622790f4dec6661e460ddc88c9b206ce93ae70096541d2c9108363226ad7ba9",
+      "audit": {
+        "text": [
+          {
+            "text": "Online-Elternkurs · ab Oktober",
+            "x": 76,
+            "y": 188,
+            "right": 583.046875,
+            "bottom": 221
+          },
+          {
+            "text": "Kleiner Schritt.",
+            "x": 72,
+            "y": 264,
+            "right": 772.78125,
+            "bottom": 393
+          },
+          {
+            "text": "Großes Gefühl.",
+            "x": 72,
+            "y": 378.46875,
+            "right": 785.421875,
+            "bottom": 507.46875
+          },
+          {
+            "text": "Dein Kind ermutigen, Wut begleiten",
+            "x": 76,
+            "y": 538,
+            "right": 703.203125,
+            "bottom": 586
+          },
+          {
+            "text": "und selbst Halt finden.",
+            "x": 76,
+            "y": 590,
+            "right": 463.96875,
+            "bottom": 638
+          },
+          {
+            "text": "Hand in Hand Parenting · Starter Class",
+            "x": 110.63595581054688,
+            "y": 1156.8560791015625,
+            "right": 553.38427734375,
+            "bottom": 1193.4874267578125
+          },
+          {
+            "text": "Start: 17. Oktober 2026",
+            "x": 111.12812805175781,
+            "y": 1203.0330810546875,
+            "right": 632.4986724853516,
+            "bottom": 1267.4833984375
+          },
+          {
+            "text": "6 Samstage · 9–11 Uhr · online",
+            "x": 111.88209533691406,
+            "y": 1275.7900390625,
+            "right": 560.4118804931641,
+            "bottom": 1321.48046875
+          },
+          {
+            "text": "4–7 Eltern in einer kleinen Gruppe",
+            "x": 112.48946380615234,
+            "y": 1333.46435546875,
+            "right": 591.7934494018555,
+            "bottom": 1377.477294921875
+          },
+          {
+            "text": "Inklusive 60 Min. Einzelcoaching",
+            "x": 112.99211120605469,
+            "y": 1381.7498779296875,
+            "right": 564.7819671630859,
+            "bottom": 1425.4747314453125
+          },
+          {
+            "text": "Mit Julia Sutter",
+            "x": 203,
+            "y": 1545,
+            "right": 415.890625,
+            "bottom": 1583
+          },
+          {
+            "text": "Zertifizierte Hand in Hand Instructorin",
+            "x": 203,
+            "y": 1589,
+            "right": 590.625,
+            "bottom": 1617
+          },
+          {
+            "text": "Infos & Anmeldung",
+            "x": 105.89887237548828,
+            "y": 1701.4705810546875,
+            "right": 321.8670120239258,
+            "bottom": 1734.9759521484375
+          },
+          {
+            "text": "juliasutter.de",
+            "x": 664.6626586914062,
+            "y": 1695.8721923828125,
+            "right": 918.1688232421875,
+            "bottom": 1748.6383056640625
+          },
+          {
+            "text": "↗",
+            "x": 930.8124389648438,
+            "y": 1697.7303466796875,
+            "right": 974.1674194335938,
+            "bottom": 1749.029296875
+          }
+        ],
+        "imagesLoaded": true,
+        "portraitWidth": 104
+      }
+    },
+    {
+      "id": "02-hand-in-hand",
+      "name": "Hand in Hand · fünf Werkzeuge",
+      "source": "02-hand-in-hand.html",
+      "png": "02-hand-in-hand-1080x1920.png",
+      "sha256": "58663297413d56cfe820d0250882f6a43da97215d0dcc33593b7a42104550d33",
+      "audit": {
+        "text": [
+          {
+            "text": "Hand in Hand Parenting · Online-Elternkurs",
+            "x": 76,
+            "y": 189,
+            "right": 749.3125,
+            "bottom": 224
+          },
+          {
+            "text": "Fünf Werkzeuge.",
+            "x": 76,
+            "y": 252,
+            "right": 780.328125,
+            "bottom": 373
+          },
+          {
+            "text": "Für euren",
+            "x": 76,
+            "y": 347.6875,
+            "right": 476.203125,
+            "bottom": 468.6875
+          },
+          {
+            "text": "Familienalltag.",
+            "x": 76,
+            "y": 443.375,
+            "right": 713.4375,
+            "bottom": 564.375
+          },
+          {
+            "text": "Große Gefühle begleiten,",
+            "x": 76,
+            "y": 594,
+            "right": 493.78125,
+            "bottom": 640
+          },
+          {
+            "text": "liebevoll Grenzen setzen und",
+            "x": 76,
+            "y": 643.390625,
+            "right": 553.09375,
+            "bottom": 689.390625
+          },
+          {
+            "text": "in Verbindung bleiben.",
+            "x": 76,
+            "y": 692.78125,
+            "right": 446.359375,
+            "bottom": 738.78125
+          },
+          {
+            "text": "01",
+            "x": 99,
+            "y": 829.390625,
+            "right": 127.796875,
+            "bottom": 868.390625
+          },
+          {
+            "text": "Wunschzeit",
+            "x": 145.796875,
+            "y": 831.8125,
+            "right": 300.3125,
+            "bottom": 866.8125
+          },
+          {
+            "text": "02",
+            "x": 570.5,
+            "y": 829.390625,
+            "right": 604.75,
+            "bottom": 868.390625
+          },
+          {
+            "text": "Liebevoll",
+            "x": 622.75,
+            "y": 815,
+            "right": 739.859375,
+            "bottom": 850
+          },
+          {
+            "text": "Grenzen setzen",
+            "x": 622.75,
+            "y": 848.625,
+            "right": 823.75,
+            "bottom": 883.625
+          },
+          {
+            "text": "03",
+            "x": 99,
+            "y": 942.015625,
+            "right": 134.203125,
+            "bottom": 981.015625
+          },
+          {
+            "text": "Staylistening",
+            "x": 152.203125,
+            "y": 944.4375,
+            "right": 320.078125,
+            "bottom": 979.4375
+          },
+          {
+            "text": "04",
+            "x": 570.5,
+            "y": 942.015625,
+            "right": 607.71875,
+            "bottom": 981.015625
+          },
+          {
+            "text": "Playlistening",
+            "x": 625.71875,
+            "y": 944.4375,
+            "right": 792.796875,
+            "bottom": 979.4375
+          },
+          {
+            "text": "05",
+            "x": 99,
+            "y": 1049.015625,
+            "right": 135.46875,
+            "bottom": 1088.015625
+          },
+          {
+            "text": "Listening Partnership",
+            "x": 153.46875,
+            "y": 1051.4375,
+            "right": 430.0625,
+            "bottom": 1086.4375
+          },
+          {
+            "text": "Deine Starter Class",
+            "x": 111,
+            "y": 1184,
+            "right": 342.296875,
+            "bottom": 1217
+          },
+          {
+            "text": "Start: 17. Oktober 2026",
+            "x": 111,
+            "y": 1231,
+            "right": 549.171875,
+            "bottom": 1288
+          },
+          {
+            "text": "6 Samstage · 9–11 Uhr · online",
+            "x": 111,
+            "y": 1297,
+            "right": 545.953125,
+            "bottom": 1337
+          },
+          {
+            "text": "4–7 Eltern in einer kleinen Gruppe",
+            "x": 111,
+            "y": 1356,
+            "right": 559.984375,
+            "bottom": 1392
+          },
+          {
+            "text": "Inklusive 60 Min. Einzelcoaching",
+            "x": 111,
+            "y": 1401,
+            "right": 534.1875,
+            "bottom": 1437
+          },
+          {
+            "text": "Mit Julia Sutter",
+            "x": 203,
+            "y": 1538,
+            "right": 415.890625,
+            "bottom": 1576
+          },
+          {
+            "text": "Zertifizierte Hand in Hand Instructorin",
+            "x": 203,
+            "y": 1582,
+            "right": 590.625,
+            "bottom": 1610
+          },
+          {
+            "text": "Infos & Anmeldung",
+            "x": 106,
+            "y": 1703,
+            "right": 318.234375,
+            "bottom": 1733
+          },
+          {
+            "text": "juliasutter.de",
+            "x": 652.8125,
+            "y": 1691,
+            "right": 922,
+            "bottom": 1746
+          },
+          {
+            "text": "↗",
+            "x": 935,
+            "y": 1691,
+            "right": 974,
+            "bottom": 1746
+          }
+        ],
+        "imagesLoaded": true,
+        "portraitWidth": 104
+      }
+    },
+    {
+      "id": "03-eltern-halt",
+      "name": "Eltern brauchen auch Halt",
+      "source": "03-eltern-halt.html",
+      "png": "03-eltern-halt-1080x1920.png",
+      "sha256": "0a7327701d4f9b3751642153c8a3f135d1d62e3f7f80fccd2223fda1bc137165",
+      "audit": {
+        "text": [
+          {
+            "text": "Online-Elternkurs",
+            "x": 76,
+            "y": 188,
+            "right": 406.109375,
+            "bottom": 222
+          },
+          {
+            "text": "ELTERN",
+            "x": 72,
+            "y": 243,
+            "right": 461.9375,
+            "bottom": 468
+          },
+          {
+            "text": "BRAUCHEN",
+            "x": 72,
+            "y": 409.5,
+            "right": 649.53125,
+            "bottom": 634.5
+          },
+          {
+            "text": "AUCH HALT.",
+            "x": 72,
+            "y": 576,
+            "right": 703.171875,
+            "bottom": 801
+          },
+          {
+            "text": "Dein Kind bei Angst und Wut begleiten.",
+            "x": 76,
+            "y": 843,
+            "right": 743.140625,
+            "bottom": 889
+          },
+          {
+            "text": "Liebevoll Grenzen setzen.",
+            "x": 76,
+            "y": 895.640625,
+            "right": 511.28125,
+            "bottom": 941.640625
+          },
+          {
+            "text": "Und Unterstützung für dich finden.",
+            "x": 76,
+            "y": 948.28125,
+            "right": 666.265625,
+            "bottom": 994.28125
+          },
+          {
+            "text": "Hand in Hand Parenting · Starter Class",
+            "x": 76,
+            "y": 1080,
+            "right": 548.203125,
+            "bottom": 1112
+          },
+          {
+            "text": "17.10.",
+            "x": 76,
+            "y": 1171,
+            "right": 298.96875,
+            "bottom": 1326
+          },
+          {
+            "text": "Start 2026 · 6 Samstage",
+            "x": 354.96875,
+            "y": 1207.3125,
+            "right": 685.796875,
+            "bottom": 1246.3125
+          },
+          {
+            "text": "9–11 Uhr · online",
+            "x": 354.96875,
+            "y": 1250.5,
+            "right": 596.28125,
+            "bottom": 1289.5
+          },
+          {
+            "text": "4–7 Eltern in einer kleinen Gruppe",
+            "x": 76,
+            "y": 1348,
+            "right": 554.921875,
+            "bottom": 1387
+          },
+          {
+            "text": "Inklusive 60 Min. Einzelcoaching",
+            "x": 76,
+            "y": 1394.390625,
+            "right": 527.40625,
+            "bottom": 1433.390625
+          },
+          {
+            "text": "Mit Julia Sutter",
+            "x": 203,
+            "y": 1542,
+            "right": 415.890625,
+            "bottom": 1580
+          },
+          {
+            "text": "Zertifizierte Hand in Hand Instructorin",
+            "x": 203,
+            "y": 1586,
+            "right": 590.625,
+            "bottom": 1614
+          },
+          {
+            "text": "Infos & Anmeldung",
+            "x": 76,
+            "y": 1702,
+            "right": 300.046875,
+            "bottom": 1735
+          },
+          {
+            "text": "juliasutter.de",
+            "x": 671.296875,
+            "y": 1689,
+            "right": 948,
+            "bottom": 1745
+          },
+          {
+            "text": "↗",
+            "x": 961,
+            "y": 1693,
+            "right": 1004,
+            "bottom": 1744
+          }
+        ],
+        "imagesLoaded": true,
+        "portraitWidth": 104
+      }
+    }
+  ],
+  "sources": {
+    "facts": "User-confirmed October2026 course; website index.html and assets/course-config.js",
+    "portrait": "assets/images/julia-headshot.jpg",
+    "certification": "assets/images/certified-instructor.png",
+    "brand": "https://www.handinhandparenting.org/",
+    "brandEvidence": "Live screenshot and computed DOM styles: Poppins700, Lato400; #4A6163, #F17A7E, #FF8700, #FEF1E4, #FFC94B. Formal brand guidelines were not found; variant2 is an interpretation of the official web appearance.",
+    "fonts": "Google Fonts; OFL licenses included in fonts/",
+    "illustration": "Built-in ImageGen fictional transparent paper-collage asset; see illustration-prompt.txt"
+  },
+  "decisions": "CMO and CDO discussed and agreed: playful child-experience, method/tool-focused, and parent-support typographic poster. Real children are not used. Portrait width104px in all variants. No price, deadline, availability claim or fictional endorsement."
+}
