@@ -1940,12 +1940,63 @@ html:not(.forms-ready) .form-panel {
   font-size: 12px;
 }
 
-.form-status.is-success {
-  color: #47744c;
-}
-
 .form-status.is-error {
   color: #a94032;
+}
+
+.form-confirmation {
+  padding: clamp(24px, 4vw, 44px);
+  border: 1px solid #cddbc7;
+  border-radius: 24px;
+  background: #edf3e8;
+  color: var(--ink);
+  scroll-margin-block: 24px;
+}
+
+.form-confirmation:focus {
+  outline: 2px solid var(--forest);
+  outline-offset: 5px;
+}
+
+.form-confirmation-icon {
+  display: grid;
+  width: 60px;
+  height: 60px;
+  margin-bottom: 24px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--forest-dark);
+}
+
+.form-confirmation-icon img {
+  width: 34px;
+  height: 34px;
+  filter: brightness(0) invert(1);
+}
+
+.form-confirmation h3 {
+  margin: 0 0 22px;
+  font-size: clamp(2rem, 3.5vw, 2.75rem);
+  line-height: 1.1;
+  overflow-wrap: break-word;
+}
+
+.form-confirmation p {
+  margin: 0 0 20px;
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+.form-confirmation .form-confirmation-summary {
+  padding-block: 18px;
+  border-block: 1px solid #cddbc7;
+  font-weight: 750;
+}
+
+.form-confirmation .form-confirmation-signature {
+  margin-bottom: 0;
+  font-family: var(--script);
+  font-size: 30px;
 }
 
 /* Footer */

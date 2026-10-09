@@ -26,7 +26,28 @@
       shortMonths: ["Jan.", "Feb.", "März", "Apr.", "Mai", "Juni", "Juli", "Aug.", "Sep.", "Okt.", "Nov.", "Dez."],
       shortWeekdays: ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"],
       sending: "Wird gesendet…",
-      success: "Vielen Dank — deine Nachricht ist unterwegs. Ich melde mich zeitnah.",
+      confirmation: {
+        open: {
+          title: "Deine Anmeldung ist angekommen!",
+          message: "Vielen Dank! Deine Anmeldung zur Starter Class ist bei mir eingegangen.",
+          next: "Ich melde mich persönlich per E-Mail mit weiteren Informationen und der Rechnung."
+        },
+        waitlist: {
+          title: "Dein Wartelisteneintrag ist angekommen!",
+          message: "Vielen Dank für dein Interesse an der Starter Class!",
+          next: "Ich melde mich persönlich per E-Mail, sobald ein Platz frei wird."
+        },
+        inquiry: {
+          title: "Deine Anfrage ist angekommen!",
+          message: "Vielen Dank für dein Interesse an der Starter Class!",
+          next: "Ich melde mich persönlich per E-Mail bei dir."
+        },
+        contact: {
+          title: "Deine Nachricht ist angekommen!",
+          message: "Vielen Dank, dass du mir geschrieben hast!",
+          next: "Ich melde mich persönlich per E-Mail bei dir."
+        }
+      },
       error: "Das hat gerade nicht geklappt. Deine Eingaben sind noch da — bitte versuche es erneut oder schreib an julia@juliasutter.de.",
       timeout: "Das Senden hat zu lange gedauert. Deine Eingaben sind noch da — bitte versuche es erneut oder schreib an julia@juliasutter.de.",
       retry: "Erneut versuchen",
@@ -54,7 +75,28 @@
       shortMonths: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
       shortWeekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
       sending: "Sending…",
-      success: "Thank you — your message is on its way. I will get back to you soon.",
+      confirmation: {
+        open: {
+          title: "Your registration has arrived!",
+          message: "Thank you! I have received your registration for the Starter Class.",
+          next: "I will email you personally with further information and the invoice."
+        },
+        waitlist: {
+          title: "Your waitlist request has arrived!",
+          message: "Thank you for your interest in the Starter Class!",
+          next: "I will email you personally as soon as a place becomes available."
+        },
+        inquiry: {
+          title: "Your request has arrived!",
+          message: "Thank you for your interest in the Starter Class!",
+          next: "I will get back to you personally by email."
+        },
+        contact: {
+          title: "Your message has arrived!",
+          message: "Thank you for writing to me!",
+          next: "I will get back to you personally by email."
+        }
+      },
       error: "That did not work just now. Your entries are still here — please try again or email julia@juliasutter.de.",
       timeout: "The submission took too long. Your entries are still here — please try again or email julia@juliasutter.de.",
       retry: "Try again",
@@ -680,6 +722,32 @@
     });
   });
 
+  const confirmationTemplate = document.querySelector("[data-form-confirmation-template]");
+  const showFormConfirmation = (form, payload) => {
+    const panel = form.closest("[data-form-panel]");
+    const mode = form === courseForm ? payload.get("registration_mode") : "contact";
+    const content = copy.confirmation[mode];
+    const confirmation = confirmationTemplate.content.firstElementChild.cloneNode(true);
+    const title = confirmation.querySelector("h3");
+    title.id = `${panel.id}-confirmation-title`;
+    title.textContent = content.title;
+    confirmation.setAttribute("aria-labelledby", title.id);
+    confirmation.querySelector("[data-confirmation-message]").textContent = content.message;
+    confirmation.querySelector("[data-confirmation-next]").textContent = content.next;
+    if (mode === "open" || mode === "waitlist") {
+      const summary = confirmation.querySelector("[data-confirmation-summary]");
+      summary.textContent = payload.get("course_label");
+      if (mode === "open") summary.textContent += ` · ${priceFormatter.format(Number(payload.get("price_eur")))}`;
+      summary.hidden = false;
+    }
+    form.reset();
+    panel.replaceChildren(confirmation);
+    if (!panel.hidden) {
+      confirmation.focus({ preventScroll: true });
+      confirmation.scrollIntoView({ behavior: reducedMotion ? "instant" : "smooth", block: "center" });
+    }
+  };
+
   const endpoint = typeof config.formEndpoint === "string" ? config.formEndpoint.trim() : "";
   const forms = Array.from(document.querySelectorAll("[data-async-form]"));
   forms.forEach((form) => {
@@ -688,20 +756,20 @@
     const submit = form.querySelector("button[type=submit]");
     const submitLabel = submit ? submit.querySelector("[data-submit-label]") : null;
     let submitting = false;
+    let completed = false;
 
-    const setStatus = (message, type) => {
+    const setStatus = (message) => {
       if (!status) return;
       status.textContent = message;
-      status.classList.remove("is-success", "is-error");
-      if (type) status.classList.add(`is-${type}`);
+      status.classList.toggle("is-error", Boolean(message));
     };
 
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
-      if (submitting || !form.reportValidity()) return;
+      if (submitting || completed || !form.reportValidity()) return;
       const formEndpoint = endpoint;
       if (!formEndpoint) {
-        setStatus(copy.preview, "error");
+        setStatus(copy.preview);
         return;
       }
       submitting = true;
@@ -709,7 +777,7 @@
       form.setAttribute("aria-busy", "true");
       if (submit) submit.disabled = true;
       if (submitLabel) submitLabel.textContent = copy.sending;
-      setStatus("", "");
+      setStatus("");
 
       const controller = new AbortController();
       let didTimeout = false;
@@ -730,15 +798,11 @@
         });
         const result = await response.json();
         if (!response.ok || result?.code !== 200 || result?.status !== "success") throw new Error("Form submission failed");
-        form.reset();
-        if (courseForm === form) {
-          syncCourseSelection();
-          finalLabel = modeCopy[courseMode].submitCta;
-        }
-        setStatus(copy.success, "success");
+        completed = true;
+        showFormConfirmation(form, payload);
       } catch (_) {
         finalLabel = courseForm === form && courseMode === "open" ? copy.bindingSubmitCta : copy.retry;
-        setStatus(didTimeout ? copy.timeout : copy.error, "error");
+        setStatus(didTimeout ? copy.timeout : copy.error);
       } finally {
         window.clearTimeout(timeoutId);
         submitting = false;

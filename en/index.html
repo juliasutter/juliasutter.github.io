@@ -420,6 +420,16 @@
         </div>
         <div class="contact-form-wrap">
           <p class="no-js-form-fallback">These forms require JavaScript. Alternatively, email me directly at <a href="mailto:julia@juliasutter.de">julia@juliasutter.de</a>.</p>
+          <template data-form-confirmation-template>
+            <section class="form-confirmation" tabindex="-1">
+              <span class="form-confirmation-icon" aria-hidden="true"><img src="/assets/icons/check-circle.svg" alt=""></span>
+              <h3>Your message has arrived!</h3>
+              <p data-confirmation-message>Thank you for writing to me!</p>
+              <p class="form-confirmation-summary" data-confirmation-summary hidden></p>
+              <p data-confirmation-next>I will get back to you personally by email.</p>
+              <p class="form-confirmation-signature">Julia</p>
+            </section>
+          </template>
           <div class="form-tabs" role="tablist" aria-label="Choose a form">
             <button id="course-tab" class="form-tab" type="button" role="tab" aria-selected="true" aria-controls="course-panel" data-form-tab="course"><span data-course-form-title>Request a course place</span></button>
             <button id="contact-tab" class="form-tab" type="button" role="tab" aria-selected="false" aria-controls="contact-panel" tabindex="-1" data-form-tab="contact">Contact</button>

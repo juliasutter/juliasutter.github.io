@@ -22,6 +22,8 @@ Beide Formulare senden an denselben Formcarry-Endpunkt aus `assets/course-config
 
 Bei offenen Kursen können Freund:innen den gemeinsamen Tarif wählen. Jede Person meldet sich selbst an und nennt die andere Person; Elternpaare besuchen getrennte Kurse zum regulären Preis. Die Bestellübersicht und das übermittelte Feld `price_eur` verwenden denselben ausgewählten Preis aus der Kurskonfiguration. Beim Freund:innen-Tarif werden zusätzlich `friend_registration=yes` und `friend_name` übermittelt. Unverbindliche Anfragen und Wartelisteneinträge enthalten diese Preis- und Freund:innen-Felder nicht.
 
+Nach einer bestätigten erfolgreichen Formcarry-Antwort ersetzt eine große Bestätigung das jeweilige Formular. Bei Anmeldungen zeigt sie Kursdatum und Preis aus den abgeschickten Daten. Kontakt, Warteliste und unverbindliche Anfrage verwenden eigene Texte. Die Bestätigung erhält den Fokus und wird ins Blickfeld gescrollt; sie bleibt beim Wechsel zwischen den Formular-Tabs erhalten. Bei Fehlern bleiben Formular und Eingaben stehen. Die Bestätigung gilt für den aktuellen Seitenbesuch; sie ersetzt keine serverseitige Erkennung doppelter Einreichungen und versendet selbst keine E-Mail.
+
 ## Kostenfreies Kennenlerngespräch
 
 `introCallUrl` und `introCallEmbedUrl` in `assets/course-config.js` enthalten den öffentlichen Buchungslink und die kanonische Google-Kalender-Einbettung mit `gv=true`. Bei einer Änderung des Direktlinks müssen auch die statischen `data-booking-trigger`-Links in beiden Sprachseiten aktualisiert werden; `npm run check:site` prüft ihre Übereinstimmung.
@@ -35,11 +37,10 @@ Terminbeschreibung, freie Zeiten und Google Meet werden in Google Kalender gepfl
 ## Lokal ausführen und prüfen
 
 ```bash
-npm install
-npm run dev
+./dev
 ```
 
-Die Seite läuft dann unter `http://127.0.0.1:4173/`.
+Der Server benötigt Python 3 und gibt nach dem Start seine vollständige URL aus. Er nutzt Port 8000 oder den nächsten freien Port. `./dev --port 8005` verlangt einen festen Port und bricht ab, wenn dieser belegt ist. `npm run dev` startet denselben Server. Für die Prüfungen einmalig `npm ci` mit Node.js ab 24.8.0 ausführen.
 
 Vollständiger Qualitätslauf:
 
@@ -53,7 +54,7 @@ Die Prüfungen benötigen Node.js ab 24.8.0. Die Browsertests starten immer eine
 PLAYWRIGHT_PORT=4183 npm run test:ci
 ```
 
-Die Dialog-Fokustests laufen zusätzlich in WebKit mit iPhone-Profil und Touch-Ereignissen. Vor dem ersten Testlauf beide Browser installieren: `npx playwright install chromium webkit`. Das ersetzt keine Prüfung auf einem echten iPhone.
+Die Dialog-Fokustests und Formularprüfungen laufen zusätzlich in WebKit mit iPhone-Profil und Touch-Ereignissen. Vor dem ersten Testlauf beide Browser installieren: `npx playwright install chromium webkit`. Das ersetzt keine Prüfung auf einem echten iPhone.
 
 ## Veröffentlichung
 

@@ -55,12 +55,12 @@ for (const language of ["de", "en"]) {
     await expect(friendName).toBeDisabled();
     await friend.check();
     await form.locator("button[type=submit]").click();
-    await expect(form.locator("[data-form-status]")).toHaveClass(/is-success/);
+    const confirmation = page.locator("#course-panel .form-confirmation");
+    await expect(confirmation).toBeVisible();
     expect(submissions).toHaveLength(1);
     expect(submissions[0]).toMatchObject({ friend_registration: "yes", friend_name: "Alex Beispiel", price_eur: "375", registration_mode: "open", children_ages: "" });
-    await expect(price).toHaveText(regularPrice);
-    await expect(friend).not.toBeChecked();
-    await expect(friendName).toBeHidden();
+    await expect(confirmation.locator("[data-confirmation-summary]")).toHaveText(`${submissions[0].course_label} · ${friendPrice}`);
+    await expect(form).toHaveCount(0);
   });
 
   test(`${language}: inquiry links bring the active form and its heading into view`, async ({ page }) => {
@@ -114,4 +114,6 @@ test("a failed friend registration retains its price and registration button", a
   await expect(form.locator("[data-binding-price]")).toHaveText("375 €");
   await expect(form.locator("[name=friend_name]")).toHaveValue("Alex Beispiel");
   await expect(submit).toHaveText(initialLabel);
+  await expect(form).toBeVisible();
+  await expect(page.locator(".form-confirmation")).toHaveCount(0);
 });

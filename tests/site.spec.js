@@ -446,7 +446,7 @@ test("configured forms send one sanitized request", async ({ page, baseURL }) =>
   const submit = page.getByRole("button", { name: "Kursplatz anfragen" }).last();
   await submit.click();
   await page.evaluate(() => document.querySelector("[data-course-form]").dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })));
-  await expect(page.locator("[data-course-form] [data-form-status]")).toHaveClass(/is-success/);
+  await expect(page.locator("#course-panel .form-confirmation")).toBeVisible();
   expect(requestCount).toBe(1);
   expect(submittedBody).toContain("name=\"registration_mode\"");
   expect(submittedBody).toContain("inquiry");
@@ -454,7 +454,7 @@ test("configured forms send one sanitized request", async ({ page, baseURL }) =>
   expect(submittedBody).not.toContain("utm_source");
 });
 
-test("binding registration keeps its registration label after success", async ({ page }) => {
+test("binding registration replaces its form with the confirmed course and price", async ({ page }) => {
   const endpoint = "https://formcarry.com/s/test-endpoint";
   await page.route("**/assets/course-config.js", (route) => route.fulfill({
     contentType: "application/javascript",
@@ -474,11 +474,11 @@ test("binding registration keeps its registration label after success", async ({
   await page.getByLabel("Ort", { exact: true }).fill("Berlin");
   await page.getByLabel("Postleitzahl").fill("10115");
   const submit = page.locator("[data-course-form] button[type=submit]");
-  const initialLabel = await submit.innerText();
   await submit.click();
 
-  await expect(page.locator("[data-course-form] [data-form-status]")).toHaveClass(/is-success/);
-  await expect(submit).toHaveText(initialLabel);
+  await expect(page.locator("#course-panel .form-confirmation")).toBeVisible();
+  await expect(page.locator("[data-course-form]")).toHaveCount(0);
+  await expect(page.locator("[data-confirmation-summary]")).toHaveText("5. Januar – 9. Februar 2099 · 399 €");
 });
 
 test("a non-success Formcarry payload keeps the entered values", async ({ page }) => {
