@@ -674,6 +674,7 @@
   const bookingLinks = document.querySelectorAll("[data-booking-trigger]");
   bookingLinks.forEach((link) => {
     if (config.introCallUrl) link.href = config.introCallUrl;
+    link.addEventListener("click", () => window.JULIA_MEASUREMENT?.calendarOpened());
   });
   if (bookingDialog && typeof bookingDialog.showModal === "function" && config.introCallEmbedUrl) {
     const content = bookingDialog.querySelector("[data-booking-content]");
@@ -815,6 +816,11 @@
         if (!response.ok || result?.code !== 200 || result?.status !== "success") throw new Error("Form submission failed");
         completed = true;
         showFormConfirmation(form, payload);
+        // Record the confirmed submission, never a click or an unconfirmed response.
+        // Measurement failures must not turn a successful registration into an error.
+        try {
+          window.JULIA_MEASUREMENT?.formSucceeded(form === courseForm ? "course" : "contact", payload.get("registration_mode"), Number(payload.get("price_eur")));
+        } catch (_) { /* The registration already succeeded independently of measurement. */ }
       } catch (_) {
         finalLabel = courseForm === form && courseMode === "open" ? copy.bindingSubmitCta : copy.retry;
         setStatus(didTimeout ? copy.timeout : copy.error);

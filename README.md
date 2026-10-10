@@ -1,6 +1,6 @@
 # juliasutter.de
 
-Statische, zweisprachige Website für Julia Sutter. Die deutsche Version unter `/` ist primär, die englische Version liegt unter `/en/`. Die Seite wird ohne Laufzeit-Framework und ohne eigenes Analyse- oder Marketing-Tracking über GitHub Pages ausgeliefert. Google-Terminbuchung wird erst nach einem bewussten Klick geladen; dabei gelten zusätzlich Googles Datenschutz- und Cookie-Regeln.
+Statische, zweisprachige Website für Julia Sutter. Die deutsche Version unter `/` ist primär, die englische Version liegt unter `/en/`. Die Seite wird ohne Laufzeit-Framework über GitHub Pages ausgeliefert. Optionale Meta-Werbemessung lädt ausschließlich nach Einwilligung. Google-Terminbuchung wird erst nach einem bewussten Klick geladen; dabei gelten zusätzlich Googles Datenschutz- und Cookie-Regeln.
 
 ## Starter-Class-Termine aktualisieren
 
@@ -33,6 +33,20 @@ Die Gesprächslinks öffnen einen nativen Dialog, mobil bildschirmfüllend. Das 
 Der Dialog schließt über seinen sichtbaren Schließen-Button oder Escape, solange der Fokus im Website-Dialog liegt. Innerhalb des fremden Google-Frames verarbeitet Google Tastatureingaben selbst; dort kann Escape nicht durch die Website abgefangen werden. Der Schließen-Button bleibt außerhalb des Frames erreichbar. Wenn Google-Inhalte nicht laden, kann der Dialog weiterhin geschlossen werden.
 
 Terminbeschreibung, freie Zeiten und Google Meet werden in Google Kalender gepflegt. Die englische Website verwendet dieselbe Buchungsseite und deren dort gepflegten Beschreibungstext. Die Datenschutzhinweise beider Sprachen beschreiben die Einbettung.
+
+## Optionale Meta-Werbemessung
+
+`assets/measurement-config.js` enthält die öffentliche Pixel-ID des Datensatzes „Julia Sutter · Website“. Ohne konfigurierte ID ist die Messung deaktiviert. `assets/measurement.js` lädt Meta nur auf der deutschen und englischen Hauptseite unter `juliasutter.de` oder `www.juliasutter.de`, ausschließlich nach Zustimmung. Lokale Vorschauen zeigen den Banner, übertragen aber keine Ereignisse an Meta. Rechtstextseiten ermöglichen nur die Verwaltung der Einwilligung.
+
+Die Auswahl wird für 180 Tage lokal gespeichert und ist über „Cookie-Einstellungen“ im Footer änderbar. Ablehnen und Widerrufen verhindern weitere Ereignisse, verwerfen wartende Ereignisse und löschen die von dieser Implementierung erreichbaren `_fbp`-/`_fbc`-Cookies. Änderungen gelten auch in anderen offenen Tabs. Vor der Einwilligung erfolgte Handlungen werden nicht nachträglich gemeldet.
+
+- `Purchase`: bestätigte erfolgreiche Formcarry-Antwort für eine verbindliche Kursanmeldung, mit dem tatsächlich abgeschickten Preis in EUR. Das bedeutet noch keinen Zahlungseingang.
+- `Lead`: bestätigte Kontaktanfrage, unverbindliche Kursanfrage oder Wartelisteneintragung.
+- `CalendarOpened`: Öffnen der Google-Terminbuchung; kein Nachweis einer gebuchten Sprechstunde.
+
+Formularinhalte wie Namen, E-Mail-Adressen, Rechnungsadressen und Nachrichten werden nicht an Meta übergeben. Automatischer Abgleich und automatische Ereignisse sind nicht Teil der Implementierung. Im Events Manager müssen automatischer erweiterter Abgleich, automatische Ereignisse und zusätzliche automatische Seiten-/Produktinformationen ausgeschaltet bleiben; die Traffic-Zulassung ist auf `juliasutter.de` samt Subdomains begrenzt. Keine Conversions API eingerichtet.
+
+`tests/measurement.spec.js` prüft die Einwilligung und Ereignisse mit abgefangenen Meta- und Formcarry-Anfragen. Vor Anzeigenstart ist zusätzlich die tatsächliche Übermittlung nach Veröffentlichung im Meta-Testereigniswerkzeug zu kontrollieren, ohne eine erfundene Produktionsbuchung zu erzeugen.
 
 ## Lokal ausführen und prüfen
 
