@@ -36,23 +36,23 @@
       },
       {
         id: "starter-2027-winter",
+        labelDe: "Winter 2027 · Mittwochabend",
+        labelEn: "Winter 2027 · Wednesday evenings",
+        status: "open",
+        format: "online",
+        startTime: "20:00",
+        endTime: "22:00",
+        dates: ["2027-01-13", "2027-01-20", "2027-01-27", "2027-02-03", "2027-02-10", "2027-02-17"]
+      },
+      {
+        id: "starter-2027-february",
         labelDe: "Winter 2027 · Samstagvormittag",
         labelEn: "Winter 2027 · Saturday mornings",
         status: "open",
         format: "online",
         startTime: "09:00",
         endTime: "11:00",
-        dates: ["2027-01-16", "2027-01-23", "2027-01-30", "2027-02-06", "2027-02-13", "2027-02-20"]
-      },
-      {
-        id: "starter-2027-february",
-        labelDe: "Winter 2027 · Freitagabend",
-        labelEn: "Winter 2027 · Friday evenings",
-        status: "open",
-        format: "online",
-        startTime: "20:00",
-        endTime: "22:00",
-        dates: ["2027-02-12", "2027-02-19", "2027-02-26", "2027-03-05", "2027-03-12", "2027-03-19"]
+        dates: ["2027-02-20", "2027-02-27", "2027-03-06", "2027-03-13", "2027-03-20", "2027-03-27"]
       }
     ]
   };
