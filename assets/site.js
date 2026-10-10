@@ -52,6 +52,7 @@
       timeout: "Das Senden hat zu lange gedauert. Deine Eingaben sind noch da — bitte versuche es erneut oder schreib an julia@juliasutter.de.",
       retry: "Erneut versuchen",
       preview: "Das Formular wird gerade eingerichtet. Schreib bis dahin bitte an julia@juliasutter.de.",
+      courseStarted: "Dieser Kurs hat bereits begonnen. Ein späterer Einstieg ist nicht möglich. Lade die Seite neu, um einen anderen Kurs auszuwählen.",
       weekdays: ["sonntags", "montags", "dienstags", "mittwochs", "donnerstags", "freitags", "samstags"]
     },
     en: {
@@ -101,6 +102,7 @@
       timeout: "The submission took too long. Your entries are still here — please try again or email julia@juliasutter.de.",
       retry: "Try again",
       preview: "The form is currently being set up. In the meantime, please email julia@juliasutter.de.",
+      courseStarted: "This course has already started. Joining late is not possible. Reload the page to choose another course.",
       weekdays: ["Sundays", "Mondays", "Tuesdays", "Wednesdays", "Thursdays", "Fridays", "Saturdays"]
     }
   }[language];
@@ -284,10 +286,19 @@
     return { ...course, dates };
   };
 
+  const courseHasStarted = (course, now = new Date()) => {
+    const currentDay = calendarDateInTimeZone(now, courseTimeZone);
+    const firstDay = course.dates[0];
+    if (firstDay.getTime() !== currentDay.getTime()) return firstDay < currentDay;
+    const currentTime = new Intl.DateTimeFormat("en-GB", {
+      hour: "2-digit", minute: "2-digit", hourCycle: "h23", timeZone: courseTimeZone
+    }).format(now);
+    return currentTime >= (course.startTime || config.defaultStartTime || "20:00");
+  };
   const today = calendarDateInTimeZone(new Date(), courseTimeZone);
   const courses = (Array.isArray(config.courses) ? config.courses : [])
     .map(normalizeCourse)
-    .filter((course) => course && course.status !== "closed" && course.dates[course.dates.length - 1] >= today)
+    .filter((course) => course && course.status !== "closed" && !courseHasStarted(course))
     .sort((a, b) => a.dates[0] - b.dates[0]);
   const featuredCourse = courses[0] || null;
   let selectedCourse = featuredCourse;
@@ -767,6 +778,10 @@
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
       if (submitting || completed || !form.reportValidity()) return;
+      if (form === courseForm && selectedCourse && courseHasStarted(selectedCourse)) {
+        setStatus(copy.courseStarted);
+        return;
+      }
       const formEndpoint = endpoint;
       if (!formEndpoint) {
         setStatus(copy.preview);

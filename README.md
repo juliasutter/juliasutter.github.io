@@ -12,7 +12,7 @@ Alle Kursdaten stehen ausschließlich in [`assets/course-config.js`](assets/cour
 - `format`: optional `online` oder `vor_ort`; ohne Wert wird kein Format angezeigt.
 - Keine sichtbaren zukünftigen Kurse: die gesamte Seite wechselt automatisch auf „Kursplatz anfragen“.
 
-Vergangene Kurse verschwinden automatisch, sobald ihr letzter Termin vorbei ist. Offene Kurse und Wartelistenkurse stehen gemeinsam in der Terminübersicht. Der jeweilige Anmeldelink wählt den Kurs im Formular vor; die Auswahl dort bleibt änderbar und schaltet das Formular passend um. Deutsche und englische Seite nutzen dieselbe Konfiguration.
+Kurse verschwinden aus der Terminübersicht und Kursauswahl, sobald ihr erster Termin zur konfigurierten Startzeit beginnt. Maßgeblich ist die Zeitzone aus der Kurskonfiguration. Auch ein bereits geöffnetes Formular verhindert dann eine verspätete Anmeldung; ein späterer Einstieg ist nicht vorgesehen. Diese Prüfung erfolgt im Browser, nicht beim Formularanbieter. Offene Kurse und Wartelistenkurse stehen gemeinsam in der Terminübersicht. Der jeweilige Anmeldelink wählt den Kurs im Formular vor; die Auswahl dort bleibt änderbar und schaltet das Formular passend um. Deutsche und englische Seite nutzen dieselbe Konfiguration.
 
 Beginnt ein offener Kurs innerhalb der nächsten 14 Kalendertage, blendet das Anmeldeformular zusätzlich die verpflichtende Zustimmung zum vorzeitigen Leistungsbeginn ein. Maßgeblich ist aktuell der erste Kurstermin aus `dates`. Falls Unterlagen, Onboarding oder persönliche Begleitung schon davor beginnen, muss stattdessen dieser frühere Leistungsbeginn in der Logik berücksichtigt werden.
 
