@@ -20,7 +20,7 @@ test("mobile copy fits its line targets across phone widths and course selection
   await page.goto("/");
   await page.evaluate(() => document.fonts.ready);
 
-  for (const width of [360, 375, 390, 393, 414, 430, 720]) {
+  for (const width of [360, 375, 390, 391, 393, 400, 414, 415, 430, 720]) {
     await page.setViewportSize({ width, height: 852 });
     const lines = await page.evaluate((selectors) => selectors.map((selector) => {
       const element = document.querySelector(selector);

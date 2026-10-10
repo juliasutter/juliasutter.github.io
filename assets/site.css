@@ -2568,6 +2568,13 @@ html:not(.forms-ready) .form-panel {
   }
 }
 
+@media (max-width: 414px) {
+  html[lang="de"] .course-facts li:nth-child(3) {
+    font-size: 13px;
+    letter-spacing: -0.01em;
+  }
+}
+
 @media (max-width: 390px) {
   .hero-intro .mobile-copy-primary {
     display: none;
@@ -2575,11 +2582,6 @@ html:not(.forms-ready) .form-panel {
 
   .hero-intro .mobile-copy-short {
     display: inline;
-  }
-
-  html[lang="de"] .course-facts li:nth-child(3) {
-    font-size: 13px;
-    letter-spacing: -0.01em;
   }
 }
 
