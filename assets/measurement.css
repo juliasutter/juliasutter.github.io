@@ -37,3 +37,6 @@
   .consent-panel { inset: auto 12px 12px; width: auto; max-height: calc(100dvh - 24px); padding: 18px; }
   .consent-panel h2 { font-size: 20px; }
 }
+@media (max-height: 500px) {
+  .consent-panel { max-height: calc(100dvh - 96px); }
+}

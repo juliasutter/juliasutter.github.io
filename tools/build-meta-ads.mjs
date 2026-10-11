@@ -65,7 +65,7 @@ const campaign = {
     instagramIdentity: "Facebook page identity offered but selection does not persist; unresolved",
     previewStatus: "Facebook feed renders; Instagram and story previews remain incomplete",
     measurementStatus: "Published on 2026-10-11; live files match reviewed source and rejection persists without Meta requests. Browser blocks fbevents.js with ERR_BLOCKED_BY_CLIENT after consent; receipt in Meta Test Events not yet verified.",
-    websiteDeployment: { approved: true, date: "2026-10-11", commit: "13d9e3d", url: "https://juliasutter.de/" },
+    websiteDeployment: { approved: true, date: "2026-10-11", initialCommit: "13d9e3d", url: "https://juliasutter.de/" },
     securityStatus: "Portfolio does not require two-factor authentication yet; personal account setup needs user verification",
     automaticAdvancedMatching: false, automaticEvents: false,
     conversionsApi: false, allowedTrafficDomain: "juliasutter.de (including subdomains)"

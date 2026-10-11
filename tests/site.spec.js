@@ -198,6 +198,11 @@ for (const route of ["/", "/en/"]) {
 test("mobile navigation remains reachable in a short viewport", async ({ page }) => {
   await page.setViewportSize({ width: 568, height: 320 });
   await page.goto("/");
+  const consentBounds = await page.locator(".consent-panel").boundingBox();
+  expect(consentBounds.y).toBeGreaterThanOrEqual(72);
+  expect(consentBounds.y + consentBounds.height).toBeLessThanOrEqual(320);
+  await page.locator("[data-consent-reject]").click();
+  await expect(page.locator(".consent-panel")).toBeHidden();
   await page.locator("[data-menu-button]").click();
   const nav = page.locator("[data-mobile-nav]");
   const links = nav.getByRole("link");

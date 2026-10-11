@@ -29,6 +29,7 @@ test.beforeEach(async ({ page }) => {
 for (const path of ["/", "/en/"]) {
   test(`${path}: pointer opening and closing never outline dialog focus targets`, async ({ page, hasTouch }) => {
     await page.goto(path);
+    await page.locator("[data-consent-reject]").click();
     const storyDialog = page.locator("#story-dialog");
     for (const trigger of await page.locator(".tool-story-trigger").all()) {
       await activate(trigger, hasTouch);
@@ -54,6 +55,7 @@ for (const path of ["/", "/en/"]) {
 
   test(`${path}: keyboard opening, navigation and closing retain visible focus`, async ({ page, browserName }) => {
     await page.goto(path);
+    await page.locator("[data-consent-reject]").click();
     for (const selector of [".tool-item .tool-story-trigger", ".about-more .tool-story-trigger"]) {
       const trigger = page.locator(selector).first();
       const dialog = page.locator("#story-dialog");
@@ -81,6 +83,7 @@ for (const path of ["/", "/en/"]) {
 
   test(`${path}: switching from pointer to keyboard restores rings including after iframe focus`, async ({ page, hasTouch, browserName }) => {
     await page.goto(path);
+    await page.locator("[data-consent-reject]").click();
     const trigger = page.locator(".about-more .tool-story-trigger");
     await activate(trigger, hasTouch);
     await expectFocusRing(page.locator("#story-dialog .story-title"), false);

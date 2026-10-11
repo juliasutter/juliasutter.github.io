@@ -18,7 +18,7 @@
     "websiteDeployment": {
       "approved": true,
       "date": "2026-10-11",
-      "commit": "13d9e3d",
+      "initialCommit": "13d9e3d",
       "url": "https://juliasutter.de/"
     },
     "securityStatus": "Portfolio does not require two-factor authentication yet; personal account setup needs user verification",
