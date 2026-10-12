@@ -806,6 +806,10 @@
       try {
         const payload = new FormData(form);
         payload.set("page", window.location.origin + window.location.pathname);
+        try {
+          const attribution = window.JULIA_MEASUREMENT?.campaignAttribution?.();
+          for (const [key, value] of Object.entries(attribution || {})) payload.set(key, value);
+        } catch (_) { /* Optional measurement must never block a form submission. */ }
         const response = await fetch(formEndpoint, {
           method: "POST",
           body: payload,

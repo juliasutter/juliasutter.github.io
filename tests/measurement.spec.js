@@ -181,3 +181,113 @@ test("contact success and calendar opening remain distinct from purchases and sc
   await page.locator("[data-booking-trigger]").first().click();
   expect((await eventCalls(page)).slice(1)).toEqual([["trackSingle", "123456789", "Lead", { content_name: "Contact enquiry" }], ["trackSingleCustom", "123456789", "CalendarOpened", {}]]);
 });
+
+const attributionKey = "julia-campaign-attribution-v1";
+const campaignQuery = "utm_source=chatgpt&utm_medium=paid&utm_campaign=starterclass_oktober_2026&utm_content=ad_test123";
+const submittedLabels = (request) => Object.fromEntries(
+  [...(request.postData() || "").matchAll(/name="(utm_[^"]+)"\r\n\r\n([^\r]*)/g)].map((match) => [match[1], match[2]])
+);
+
+test("campaign labels require fresh consent and survive navigation to the English contact form", async ({ page, baseURL }) => {
+  await setup(page, baseURL);
+  // An older Meta-only consent does not authorize the additional purpose.
+  await page.addInitScript(({ key }) => {
+    if (!window.localStorage.getItem(key)) window.localStorage.setItem(key, JSON.stringify({ version: 1, choice: "accepted", timestamp: Date.now() }));
+  }, { key: consentKey });
+  await page.goto(`${origin}/?${campaignQuery}&oppref=secret-click&gclid=secret-google&utm_term=private-search&email=private@example.com`);
+  await expect(page.locator(".consent-panel")).toBeVisible();
+  expect(await page.evaluate((key) => window.sessionStorage.getItem(key), attributionKey)).toBeNull();
+  expect(await page.evaluate(() => window.JULIA_MEASUREMENT.campaignAttribution())).toBeNull();
+  await accept(page);
+  await page.goto(`${origin}/en/`);
+  await expect(page.locator(".consent-panel")).toBeHidden();
+  await page.locator("[data-form-tab=contact]").click();
+  const form = page.locator("#contact-panel form");
+  for (const [name, value] of Object.entries({ name: "PrivateName", email: "private@example.com", message: "Private message" })) await form.locator(`[name=${name}]`).fill(value);
+  await form.locator("[name=topic]").selectOption("other");
+  const sent = page.waitForRequest(endpoint);
+  await form.locator("button[type=submit]").click();
+  const request = await sent;
+  await expect(page.locator("#contact-panel .form-confirmation")).toBeVisible();
+  expect(submittedLabels(request)).toEqual({ utm_source: "chatgpt", utm_medium: "paid", utm_campaign: "starterclass_oktober_2026", utm_content: "ad_test123" });
+  expect(request.postData()).not.toMatch(/secret-click|secret-google|private-search|name="email".*email=/);
+  const stored = await page.evaluate((key) => window.sessionStorage.getItem(key), attributionKey);
+  expect(stored).not.toMatch(/secret|private|oppref|gclid|utm_term|email/);
+  expect(JSON.stringify(await eventCalls(page))).not.toMatch(/utm_|chatgpt|ad_test123|Private/);
+});
+
+test("course submissions omit campaign labels before consent, after refusal and after withdrawal", async ({ page, baseURL }) => {
+  await setup(page, baseURL);
+  for (const state of ["undecided", "rejected", "withdrawn"]) {
+    await page.goto(`${origin}/?${campaignQuery}`);
+    if (state === "rejected") await page.locator("[data-consent-reject]").click();
+    if (state === "withdrawn") {
+      await page.locator(".consent-settings").click();
+      await accept(page);
+      await page.locator(".consent-settings").click();
+      await page.locator("[data-consent-reject]").click();
+    }
+    const form = await fillCourse(page);
+    const sent = page.waitForRequest(endpoint);
+    await form.locator("button[type=submit]").click();
+    expect(submittedLabels(await sent)).toEqual({});
+    await expect(page.locator(".form-confirmation")).toBeVisible();
+    expect(await page.evaluate((key) => window.sessionStorage.getItem(key), attributionKey)).toBeNull();
+  }
+});
+
+test("a new campaign replaces attribution, invalid labels and expired attribution are dropped", async ({ page, baseURL }) => {
+  await setup(page, baseURL);
+  await page.goto(`${origin}/?${campaignQuery}`);
+  await accept(page);
+  await page.goto(`${origin}/?utm_source=google&utm_campaign=new_course&utm_content=person%40example.com&utm_medium=${"x".repeat(129)}`);
+  const form = await fillCourse(page);
+  const sent = page.waitForRequest(endpoint);
+  await form.locator("button[type=submit]").click();
+  expect(submittedLabels(await sent)).toEqual({ utm_source: "google", utm_campaign: "new_course" });
+  await page.evaluate((key) => window.sessionStorage.setItem(key, JSON.stringify({ labels: { utm_source: "chatgpt" }, timestamp: Date.now() - 31 * 60 * 1000 })), attributionKey);
+  await page.goto(origin);
+  expect(await page.evaluate(() => window.JULIA_MEASUREMENT.campaignAttribution())).toBeNull();
+  expect(await page.evaluate((key) => window.sessionStorage.getItem(key), attributionKey)).toBeNull();
+  await page.goto(`${origin}/?${campaignQuery}`);
+  await page.goto(`${origin}/?utm_source=person%40example.com`);
+  expect(await page.evaluate(() => window.JULIA_MEASUREMENT.campaignAttribution())).toBeNull();
+});
+
+test("reloading the same campaign preserves its original attribution expiry", async ({ page, baseURL }) => {
+  await setup(page, baseURL);
+  await page.goto(`${origin}/?${campaignQuery}&keep=ok#starter-class`);
+  await accept(page);
+  const originalTimestamp = await page.evaluate((key) => {
+    const value = JSON.parse(window.sessionStorage.getItem(key));
+    value.timestamp = Date.now() - 29 * 60 * 1000;
+    window.sessionStorage.setItem(key, JSON.stringify(value));
+    return value.timestamp;
+  }, attributionKey);
+  expect(page.url()).toBe(`${origin}/?keep=ok#starter-class`);
+  await page.reload();
+  expect(await page.evaluate((key) => JSON.parse(window.sessionStorage.getItem(key)).timestamp, attributionKey)).toBe(originalTimestamp);
+  await page.evaluate((key) => {
+    const value = JSON.parse(window.sessionStorage.getItem(key));
+    value.timestamp -= 2 * 60 * 1000;
+    window.sessionStorage.setItem(key, JSON.stringify(value));
+  }, attributionKey);
+  await page.reload();
+  expect(await page.evaluate(() => window.JULIA_MEASUREMENT.campaignAttribution())).toBeNull();
+  expect(await page.evaluate((key) => window.sessionStorage.getItem(key), attributionKey)).toBeNull();
+});
+
+for (const scenario of ["older API", "measurement exception"]) {
+  test(`forms still submit with ${scenario}`, async ({ page, baseURL }) => {
+    await setup(page, baseURL);
+    await page.goto(origin);
+    await page.evaluate((scenario) => {
+      window.JULIA_MEASUREMENT = scenario === "older API" ? {} : { campaignAttribution() { throw new Error("Measurement unavailable"); } };
+    }, scenario);
+    const form = await fillCourse(page);
+    const sent = page.waitForRequest(endpoint);
+    await form.locator("button[type=submit]").click();
+    expect(submittedLabels(await sent)).toEqual({});
+    await expect(page.locator(".form-confirmation")).toBeVisible();
+  });
+}

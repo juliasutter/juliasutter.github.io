@@ -2,28 +2,31 @@
   const storageKey = "julia-marketing-consent-v1";
   const lifetime = 180 * 24 * 60 * 60 * 1000;
   const pixelId = window.JULIA_MEASUREMENT_CONFIG?.pixelId;
-  if (typeof pixelId !== "string" || !/^\d+$/.test(pixelId)) return;
+  const validPixel = typeof pixelId === "string" && /^\d+$/.test(pixelId);
+  const consentVersion = 2;
+  const attributionKey = "julia-campaign-attribution-v1";
+  const attributionLifetime = 30 * 60 * 1000;
 
   const english = document.documentElement.lang === "en";
   const copy = english ? {
     title: "May we measure how our ads work?",
-    text: "With your permission, we use the Meta Pixel to measure visits, course registrations and enquiries and improve our Facebook and Instagram ads. Meta receives device and usage data and may link it to your Meta account. Cookies may be used. The website works just as well without this.",
+    text: "With your permission, the Meta Pixel measures visits, course registrations and enquiries. Meta receives device and usage data, may set cookies and link data to your Meta account. When you submit a form, Julia also receives the advertising source, campaign and ad identifier. This helps us improve our ads. The website works just as well without measurement.",
     accept: "Allow measurement", reject: "Continue without", settings: "Cookie settings",
     close: "Close", privacy: "Privacy details", privacyUrl: "/en/privacy/", status: "Your choice has been saved."
   } : {
     title: "Dürfen wir messen, wie unsere Anzeigen wirken?",
-    text: "Mit deiner Erlaubnis nutzen wir das Meta-Pixel, um Besuche, Kursbuchungen und Anfragen zu messen und unsere Facebook- und Instagram-Anzeigen zu verbessern. Meta erhält Geräte- und Nutzungsdaten und kann sie deinem Meta-Konto zuordnen. Dabei können Cookies verwendet werden. Die Website funktioniert auch ohne diese Messung vollständig.",
+    text: "Mit deiner Erlaubnis messen wir über das Meta-Pixel Besuche, Kursanmeldungen und Anfragen. Meta erhält Geräte- und Nutzungsdaten, kann Cookies setzen und Daten mit deinem Meta-Konto verknüpfen. Zusätzlich erhält Julia beim Absenden eines Formulars die Werbequelle, Kampagne und Anzeigenkennung. Das hilft uns, unsere Anzeigen zu verbessern. Die Website funktioniert auch ohne Messung vollständig.",
     accept: "Messung erlauben", reject: "Ohne Messung weiter", settings: "Cookie-Einstellungen",
     close: "Schließen", privacy: "Details zum Datenschutz", privacyUrl: "/datenschutz/", status: "Deine Auswahl wurde gespeichert."
   };
   const contentPage = ["/", "/index.html", "/en/", "/en/index.html"].includes(window.location.pathname);
   // Local previews and legal pages must never send production measurement events.
-  const canMeasure = contentPage && ["juliasutter.de", "www.juliasutter.de"].includes(window.location.hostname);
+  const canMeasure = validPixel && contentPage && ["juliasutter.de", "www.juliasutter.de"].includes(window.location.hostname);
   const readChoice = () => {
     try {
       const value = JSON.parse(localStorage.getItem(storageKey));
       const age = Date.now() - value?.timestamp;
-      return value?.version === 1 && ["accepted", "rejected"].includes(value.choice) && age >= 0 && age < lifetime ? value.choice : null;
+      return value?.version === consentVersion && ["accepted", "rejected"].includes(value.choice) && age >= 0 && age < lifetime ? value.choice : null;
     } catch (_) {
       // Storage can be unavailable; consent then lasts only for this page visit.
       return null;
@@ -35,6 +38,56 @@
   let initialized = false;
   let viewed = false;
   let pending = [];
+
+  // Only campaign labels enter form attribution: no referrer, full URL,
+  // search terms or person-level click identifiers (gclid, fbclid, oppref).
+  const attributionFields = ["utm_source", "utm_medium", "utm_campaign", "utm_content"];
+  const sanitizeAttribution = (value) => {
+    const result = {};
+    for (const key of attributionFields) {
+      if (typeof value?.[key] === "string" && /^[a-zA-Z0-9_-]{1,128}$/.test(value[key])) result[key] = value[key];
+    }
+    return result.utm_source ? result : null;
+  };
+  let attribution = null;
+  const clearAttribution = () => {
+    attribution = null;
+    try { sessionStorage.removeItem(attributionKey); } catch (_) { /* Storage is optional. */ }
+  };
+  const readAttribution = () => {
+    if (choice !== "accepted") return null;
+    if (!attribution) {
+      try {
+        const stored = JSON.parse(sessionStorage.getItem(attributionKey));
+        const labels = sanitizeAttribution(stored?.labels);
+        if (labels) attribution = { labels, timestamp: stored.timestamp };
+      } catch (_) { /* Storage is optional. */ }
+    }
+    const age = Date.now() - attribution?.timestamp;
+    if (!Number.isFinite(age) || age < 0 || age >= attributionLifetime) {
+      clearAttribution();
+      return null;
+    }
+    return attribution.labels;
+  };
+  const captureAttribution = () => {
+    if (!contentPage || choice !== "accepted") return;
+    const params = new window.URLSearchParams(window.location.search);
+    if (!params.has("utm_source")) { readAttribution(); return; }
+    const labels = sanitizeAttribution(Object.fromEntries(attributionFields.map((key) => [key, params.get(key)])));
+    // Consume these labels after consent so a reload cannot restart an expired
+    // attribution window. Keep the anchor and unrelated URL parameters intact.
+    const cleanUrl = new window.URL(window.location.href);
+    for (const key of attributionFields) cleanUrl.searchParams.delete(key);
+    window.history.replaceState(window.history.state, "", cleanUrl);
+    const previous = readAttribution();
+    // Reloading the same campaign must not extend its existing attribution window.
+    if (labels && previous && attributionFields.every((key) => labels[key] === previous[key])) return;
+    clearAttribution();
+    if (!labels) return;
+    attribution = { labels, timestamp: Date.now() };
+    try { sessionStorage.setItem(attributionKey, JSON.stringify(attribution)); } catch (_) { /* This page can still attribute forms. */ }
+  };
 
   const removeMarketingCookies = () => {
     for (const name of ["_fbp", "_fbc"]) {
@@ -92,6 +145,7 @@
   };
   // No names, contact details, addresses, child details or free text enter this API.
   window.JULIA_MEASUREMENT = {
+    campaignAttribution() { return readAttribution(); },
     formSucceeded(kind, mode, price) {
       if (kind === "course" && mode === "open" && Number.isFinite(price) && price > 0) {
         track("Purchase", { value: price, currency: "EUR", content_name: "Starter Class" });
@@ -135,8 +189,12 @@
   status.setAttribute("role", "status");
   const applyChoice = (next) => {
     choice = next;
-    if (choice === "accepted") startMeasurement();
+    if (choice === "accepted") {
+      captureAttribution();
+      startMeasurement();
+    }
     else {
+      clearAttribution();
       pending = [];
       if (window.fbq) window.fbq("consent", "revoke");
       removeMarketingCookies();
@@ -144,7 +202,7 @@
   };
   const choose = (next) => {
     try {
-      localStorage.setItem(storageKey, JSON.stringify({ version: 1, choice: next, timestamp: Date.now() }));
+      localStorage.setItem(storageKey, JSON.stringify({ version: consentVersion, choice: next, timestamp: Date.now() }));
     } catch (_) { /* The current page still honours the choice without storage. */ }
     applyChoice(next);
     panel.hidden = true;
