@@ -33,3 +33,8 @@ playwright-report/
 test-results/
 .lighthouseci/
 artifacts/lighthouse/
+
+# Internal advertising records, generators and local publication backups
+/.private/
+/artifacts/meta-ads-*/
+/tools/build-meta-*.mjs
