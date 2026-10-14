@@ -42,11 +42,8 @@
   let initialized = false;
   let viewed = false;
   let pending = [];
-  let openaiLoading = false;
-  let openaiReady = false;
-  let openaiInitialized = false;
   let openaiViewed = false;
-  let openaiPending = [];
+
 
   // Only campaign labels enter form attribution: no referrer, full URL,
   // search terms or person-level click identifiers (gclid, fbclid, oppref).
@@ -105,43 +102,65 @@
       }
     }
   };
+  const openaiReferenceKey = "julia-openai-click-v1";
+  const openaiReferenceLifetime = 30 * 24 * 60 * 60 * 1000;
+  let openaiReference = null;
+  // Opaque attribution token only; never contact data, UTM labels or full URLs.
+  const validReference = (value) => typeof value === "string" && /^[a-zA-Z0-9._~+/=-]{1,1024}$/.test(value);
+  const clearOpenaiReference = () => {
+    openaiReference = null;
+    try { localStorage.removeItem(openaiReferenceKey); } catch (_) { /* Storage is optional. */ }
+  };
+  const readOpenaiReference = () => {
+    if (choice !== "accepted") return null;
+    if (!openaiReference) {
+      try { openaiReference = JSON.parse(localStorage.getItem(openaiReferenceKey)); } catch (_) { /* Storage is optional. */ }
+    }
+    const age = Date.now() - openaiReference?.timestamp;
+    if (!validReference(openaiReference?.value) || !Number.isFinite(age) || age < 0 || age >= openaiReferenceLifetime) {
+      clearOpenaiReference();
+      return null;
+    }
+    return openaiReference.value;
+  };
+  const captureOpenaiReference = () => {
+    if (!canMeasureOpenai || choice !== "accepted") return;
+    const url = new window.URL(window.location.href);
+    if (!url.searchParams.has("oppref")) { readOpenaiReference(); return; }
+    const value = url.searchParams.get("oppref");
+    url.searchParams.delete("oppref");
+    window.history.replaceState(window.history.state, "", url);
+    if (validReference(value) && readOpenaiReference() === value) return;
+    clearOpenaiReference();
+    if (!validReference(value)) return;
+    openaiReference = { value, timestamp: Date.now() };
+    try { localStorage.setItem(openaiReferenceKey, JSON.stringify(openaiReference)); } catch (_) { /* Current-page attribution remains available. */ }
+  };
   const measureOpenai = (name, data) => {
     if (!canMeasureOpenai || choice !== "accepted") return;
-    const args = ["measure", name, data, { opt_out: true }];
-    if (openaiReady && openaiInitialized) window.oaiq(...args);
-    else openaiPending.push(args);
+    // Use the documented image endpoint, without the SDK's automatic form matching.
+    // Insert only on the confirmed event; never add a static/no-consent pixel.
+    const url = new window.URL("https://bzr.openai.com/v1/sdk/events");
+    url.searchParams.set("pid", openaiPixelId);
+    url.searchParams.set("event", name);
+    url.searchParams.set("data[type]", data.type);
+    url.searchParams.set("event_id", window.crypto.randomUUID());
+    const reference = readOpenaiReference();
+    if (reference) url.searchParams.set("oppref", reference);
+    const image = document.createElement("img");
+    image.width = 1;
+    image.height = 1;
+    image.alt = "";
+    image.style.display = "none";
+    image.referrerPolicy = "origin";
+    image.onload = image.onerror = () => image.remove();
+    image.src = url.href;
+    document.body.append(image);
   };
   const startOpenai = () => {
-    if (!canMeasureOpenai || choice !== "accepted") return;
-    if (openaiReady) {
-      // Consent is already granted here. Sending false at every startup would
-      // erase the SDK's stored click identifier on returning visits.
-      window.oaiq("consent", true);
-      if (!openaiInitialized) {
-        window.oaiq("init", { pixelId: openaiPixelId });
-        openaiInitialized = true;
-      }
-      if (!openaiViewed) {
-        measureOpenai("page_viewed", { type: "contents" });
-        openaiViewed = true;
-      }
-      for (const args of openaiPending) window.oaiq(...args);
-      openaiPending = [];
-      return;
-    }
-    if (openaiLoading) return;
-    openaiLoading = true;
-    const queue = function () { queue.q.push(arguments); };
-    queue.q = [];
-    window.oaiq = queue;
-    // Do not initialize or queue measurements before the script is ready.
-    // Withdrawal can discard our separate queue before the SDK sees it.
-    const script = document.createElement("script");
-    script.src = "https://bzrcdn.openai.com/sdk/oaiq.min.js";
-    script.async = true;
-    script.onload = () => { openaiReady = true; startOpenai(); };
-    script.onerror = () => { openaiPending = []; };
-    document.head.append(script);
+    if (!canMeasureOpenai || choice !== "accepted" || openaiViewed) return;
+    measureOpenai("page_viewed", { type: "contents" });
+    openaiViewed = true;
   };
   const startMeasurement = () => {
     if (!canMeasure || choice !== "accepted") return;
@@ -241,15 +260,15 @@
     choice = next;
     if (choice === "accepted") {
       captureAttribution();
+      captureOpenaiReference();
       startMeasurement();
       startOpenai();
     }
     else {
       clearAttribution();
       pending = [];
-      openaiPending = [];
+      clearOpenaiReference();
       if (window.fbq) window.fbq("consent", "revoke");
-      if (window.oaiq) window.oaiq("consent", false);
       removeMarketingCookies();
     }
   };

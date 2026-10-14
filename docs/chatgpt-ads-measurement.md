@@ -9,18 +9,21 @@
 
 ## Einwilligung und Daten
 
-Die öffentliche `openaiPixelId` gehört in `assets/measurement-config.js`. Ohne sie wird kein OpenAI-Pixel geladen. Vor Aktivierung muss in der Datenquelle der automatische erweiterte Abgleich deaktiviert und geprüft sein: keine automatische Erfassung und Übertragung gehashter Kontaktangaben.
+Die öffentliche `openaiPixelId` in `assets/measurement-config.js` ist `6jutvWmnqn6q1ZqrR2aDPL`. Die Datenquelle heißt „Julia Sutter | Website | Anfragen und Kursanmeldungen“. Die Ereignisdefinitionen heißen „Anfrage erfolgreich gesendet“ (`lead_created`) und „Verbindliche Kursanmeldung“ (`registration_completed`).
 
-Die gemeinsame Einwilligung trägt Version 3. Frühere Meta-only- oder Meta-plus-UTM-Einwilligungen reichen nicht für OpenAI. Das SDK lädt nur nach aktueller Zustimmung auf den Produktions-Hauptseiten. Lokale Vorschauen und Rechtstextseiten senden keine Ereignisse. Der eigene Ereignispuffer wird bei Widerruf geleert, auch wenn das SDK noch lädt. Widerruf setzt zusätzlich die SDK-Einwilligung auf `false` und löscht erreichbare `__oppref`- und `__obref`-Cookies. Formularinhalte werden nicht an OpenAI übergeben; Ereignisse setzen `opt_out: true`.
+Die gemeinsame Einwilligung trägt Version 3. Frühere Meta-only- oder Meta-plus-UTM-Einwilligungen reichen nicht für OpenAI. Messung erfolgt nur nach aktueller Zustimmung auf den Produktions-Hauptseiten. Lokale Vorschauen und Rechtstextseiten senden keine Ereignisse.
 
-Die bestehende Zuordnung für Julia bleibt separat: erlaubte UTM-Kampagnenangaben werden nach Einwilligung für höchstens 30 Minuten im Browser-Tab gehalten und mit Formularen an Formcarry gesendet. Sie identifizieren Quelle, Kampagne und Anzeige; persönliche Click-IDs und Suchbegriffe gehören nicht ins Formular. OpenAI ordnet Ereignisse über seine eigenen Kennungen zu. Abgelehnte Messung, gelöschte Cookies, Browserblocker und Besuche auf anderen Geräten begrenzen die Zuordnung. Fehlende gemessene Conversions sind kein Beweis für fehlende tatsächliche Anfragen.
+Da die aktuelle Oberfläche keinen Schalter zum Abschalten des automatischen Kontaktabgleichs bietet, lädt die Website kein OpenAI-SDK. Stattdessen fügt sie beim bestätigten Ereignis ein verborgenes Bild mit dem dokumentierten Image-Tag-Endpunkt ein. Der Request enthält nur `pid`, `event`, `data[type]`, eine zufällige `event_id` und optional `oppref`; der Referrer wird auf die Domain begrenzt. Keine Formularfelder, Kontaktangaben, Bestellnummern oder URL-Suchparameter gelangen in diesen Request. Der Bild-Endpunkt dokumentiert keinen `opt_out`-Parameter; ein solcher Widerspruch wird daher nicht behauptet.
 
-## Einrichtung und Prüfung
+Eine `oppref`-Kennung aus dem Anzeigenlink wird erst nach Zustimmung erfasst, aus der sichtbaren URL entfernt und im lokalen Browserspeicher unter `julia-openai-click-v1` aufbewahrt. Ihre Gültigkeit für die Zuordnung endet nach 30 Tagen; die physische Löschung abgelaufener Einträge erfolgt beim nächsten Seitenaufruf. Ohne erneuten Aufruf kann der Eintrag länger im Browser verbleiben. Ein erneuter Besuch mit derselben Kennung verlängert das Fenster nicht. Bei Widerruf wird sie gelöscht; spätere Ereignisse werden verhindert, auch wenn ein Formular gerade noch auf seine Antwort wartet. Schon gesendete Requests lassen sich nicht zurückrufen.
 
-1. Datenquelle im OpenAI Ads Manager erstellen und automatischen erweiterten Abgleich deaktivieren.
-2. Getrennte Conversion-Definitionen für `lead_created` (Anfragen) und `registration_completed` (verbindliche Kursanmeldungen) anlegen und für die laufende Kampagne zur Auswertung verknüpfen. Budget, CPC-Gebot und Klickoptimierung beibehalten.
-3. Öffentliche Pixel-ID konfigurieren, vollständige Repo-Prüfungen und Datenschutz-/Einwilligungsreview abschließen, dann veröffentlichen.
-4. Die veröffentlichten Dateien mit dem geprüften Stand vergleichen. Einen echten Seitenbesuch nach Einwilligung im OpenAI-Ereignisstream prüfen. Keine erfundenen Anfragen, Kursanmeldungen oder Zahlungseingänge als Produktionsereignisse senden.
-5. Anfrage- und Anmeldungsereignisse werden lokal mit abgefangenen Formcarry- und OpenAI-Aufrufen geprüft. Den Eingang des ersten echten Formularereignisses später im Ereignisstream kontrollieren; erst die Berichte zeigen die Zuordnung zur Kampagne.
+Die bestehende Zuordnung für Julia bleibt separat: erlaubte UTM-Kampagnenangaben werden nach Einwilligung für höchstens 30 Minuten im Browser-Tab gehalten und mit Formularen an Formcarry gesendet. Sie identifizieren Quelle, Kampagne und Anzeige; persönliche Click-IDs und Suchbegriffe gehören nicht ins Formular. Ohne OpenAI-Klickkennung ist eine Zuordnung im Ads Manager nicht gesichert. Abgelehnte Messung, Browserblocker und andere Geräte begrenzen die Zuordnung. Fehlende gemessene Conversions sind kein Beweis für fehlende tatsächliche Anfragen.
 
-Dokumentation: https://developers.openai.com/ads/measurement-pixel und https://developers.openai.com/ads/supported-events
+## Aktivierung und Prüfung
+
+1. Beide Ereignisdefinitionen mit der bestehenden Kampagne zur Berichterstattung verknüpfen. Klickoptimierung, Budget und Gebot beibehalten.
+2. `npm run test:ci` vollständig ausführen und unabhängige Datenschutz-/Implementierungsprüfung abschließen.
+3. Die veröffentlichten Dateien mit dem geprüften Stand vergleichen. Einen echten Seitenbesuch nach Einwilligung im OpenAI-Ereignisstream prüfen. Keine erfundenen Anfragen, Kursanmeldungen oder Zahlungseingänge als Produktionsereignisse senden.
+4. Anfrage- und Anmeldungsereignisse werden lokal mit abgefangenen Formcarry- und OpenAI-Aufrufen geprüft. Den Eingang des ersten echten Formularereignisses später im Ereignisstream kontrollieren; erst die Berichte zeigen die Zuordnung zur Kampagne.
+
+Dokumentation: https://developers.openai.com/ads/image-tag und https://developers.openai.com/ads/supported-events

@@ -7,7 +7,7 @@ const consentKey = "julia-marketing-consent-v1";
 const course = { id: "future", status: "open", dates: ["2099-03-02", "2099-03-09", "2099-03-16", "2099-03-23", "2099-03-30", "2099-04-06"] };
 const metaStub = `window.metaCalls=[]; const q=window.fbq; q.callMethod=(...args)=>window.metaCalls.push(args); for(const args of q.queue) q.callMethod(...args); q.queue=[];`;
 
-async function setup(page, baseURL, { courses = [course], delayPixel, openai = false, delayOpenai } = {}) {
+async function setup(page, baseURL, { courses = [course], delayPixel, openai = false } = {}) {
   const requests = [];
   page.on("request", (request) => {
     if (/facebook\.(net|com)/.test(request.url())) requests.push(request.url());
@@ -23,10 +23,7 @@ async function setup(page, baseURL, { courses = [course], delayPixel, openai = f
   });
   await page.route("https://**.facebook.com/**", (route) => route.abort());
   await page.route("https://bzr.openai.com/**", (route) => route.abort());
-  await page.route("https://bzrcdn.openai.com/**", async (route) => {
-    if (delayOpenai) await delayOpenai;
-    await route.fulfill({ contentType: "application/javascript", body: `window.openaiCalls=[]; const pending=window.oaiq.q; window.oaiq=(...args)=>{ window.openaiCalls.push(args); if(args[0] === "consent" && args[1] === false) for(const name of ["__oppref", "__obref"]) document.cookie=name+"=; Max-Age=0; Path=/"; }; for(const args of pending) window.oaiq(...args);` });
-  });
+  await page.route("https://bzrcdn.openai.com/**", (route) => route.abort());
   await page.route("https://connect.facebook.net/**", async (route) => {
     if (delayPixel) await delayPixel;
     await route.fulfill({ contentType: "application/javascript", body: metaStub });
@@ -34,6 +31,9 @@ async function setup(page, baseURL, { courses = [course], delayPixel, openai = f
   await page.route(endpoint, (route) => route.fulfill({ json: { code: 200, status: "success" } }));
   return requests;
 }
+
+// Let local asset proxies finish before the request context is disposed.
+test.afterEach(async ({ page }) => { await page.unrouteAll({ behavior: "wait" }); });
 
 const eventCalls = (page) => page.evaluate(() => (window.metaCalls || []).filter((args) => args[0] === "trackSingle" || args[0] === "trackSingleCustom"));
 async function accept(page) {
@@ -297,21 +297,29 @@ for (const scenario of ["older API", "measurement exception"]) {
   });
 }
 
-const openaiEvents = (page) => page.evaluate(() => (window.openaiCalls || []).filter((args) => args[0] === "measure"));
+const openaiReferenceKey = "julia-openai-click-v1";
+function collectOpenai(page) {
+  const events = [];
+  const scripts = [];
+  page.on("request", (request) => {
+    const url = new URL(request.url());
+    if (url.hostname === "bzrcdn.openai.com") scripts.push(url.href);
+    if (url.hostname === "bzr.openai.com") events.push({ params: Object.fromEntries(url.searchParams), referrer: request.headers().referer });
+  });
+  return { events, scripts };
+}
 
-test("OpenAI requires renewed consent, sends no form contents and separates enquiries from registrations", async ({ page, baseURL }) => {
+test("OpenAI requires renewed consent and separates successful registrations from enquiries without form contents", async ({ page, baseURL }) => {
   await setup(page, baseURL, { openai: true });
+  const { events, scripts } = collectOpenai(page);
   await page.addInitScript((key) => window.localStorage.setItem(key, JSON.stringify({ version: 2, choice: "accepted", timestamp: Date.now() })), consentKey);
-  const sdkRequests = [];
-  page.on("request", (request) => { if (request.url().includes("bzrcdn.openai.com")) sdkRequests.push(request.url()); });
-  await page.goto(`${origin}/?${campaignQuery}`);
+  await page.goto(`${origin}/?${campaignQuery}&oppref=ad-reference#kontakt`);
   await expect(page.locator(".consent-panel")).toBeVisible();
-  expect(sdkRequests).toEqual([]);
+  expect(events).toEqual([]);
+  expect(await page.evaluate((key) => window.localStorage.getItem(key), openaiReferenceKey)).toBeNull();
   await accept(page);
-  await expect.poll(() => openaiEvents(page)).toHaveLength(1);
-  expect(await page.evaluate(() => window.openaiCalls.slice(0, 2))).toEqual([
-    ["consent", true], ["init", { pixelId: "test-pixel" }]
-  ]);
+  await expect.poll(() => events.length).toBe(1);
+  expect(page.url()).not.toContain("oppref");
   const form = await fillCourse(page);
   await form.locator("button[type=submit]").click();
   await expect(page.locator(".form-confirmation")).toBeVisible();
@@ -323,78 +331,99 @@ test("OpenAI requires renewed consent, sends no form contents and separates enqu
   await expect(page.locator("#contact-panel .form-confirmation")).toBeVisible();
   await page.route("https://calendar.google.com/**", (route) => route.fulfill({ body: "Test calendar" }));
   await page.locator("[data-booking-trigger]").first().click();
-  expect(await openaiEvents(page)).toEqual([
-    ["measure", "page_viewed", { type: "contents" }, { opt_out: true }],
-    ["measure", "registration_completed", { type: "customer_action" }, { opt_out: true }],
-    ["measure", "lead_created", { type: "customer_action" }, { opt_out: true }]
+  await expect.poll(() => events.length).toBe(3);
+  expect(events.map(({ params }) => [params.event, params["data[type]"]])).toEqual([
+    ["page_viewed", "contents"], ["registration_completed", "customer_action"], ["lead_created", "customer_action"]
   ]);
-  expect(JSON.stringify(await page.evaluate(() => window.openaiCalls))).not.toMatch(/Private|private@|utm_|amount|Purchase|appointment_scheduled/);
+  for (const { params, referrer } of events) {
+    expect(Object.keys(params).sort()).toEqual(["data[type]", "event", "event_id", "oppref", "pid"]);
+    expect(params.oppref).toBe("ad-reference");
+    expect(params.pid).toBe("test-pixel");
+    expect(referrer).toBe(origin + "/");
+  }
+  expect(new Set(events.map(({ params }) => params.event_id)).size).toBe(3);
+  expect(JSON.stringify(events)).not.toMatch(/Private|private@|utm_|amount|appointment_scheduled/);
+  expect(scripts).toEqual([]);
 });
 
 for (const mode of ["inquiry", "waitlist"]) {
   test(`OpenAI counts ${mode} only after a successful response`, async ({ page, baseURL }) => {
     await setup(page, baseURL, { openai: true, courses: mode === "inquiry" ? [] : [{ ...course, status: "waitlist" }] });
+    const { events } = collectOpenai(page);
     let attempts = 0;
     await page.route(endpoint, (route) => route.fulfill({ json: ++attempts === 1 ? { code: 400, status: "error" } : { code: 200, status: "success" } }));
     await page.goto(origin);
     await accept(page);
-    await expect.poll(() => openaiEvents(page)).toHaveLength(1);
+    await expect.poll(() => events.length).toBe(1);
     const form = await fillCourse(page, false);
     await form.locator("button[type=submit]").click();
     await expect(form.locator("[data-form-status]")).not.toBeEmpty();
-    expect(await openaiEvents(page)).toHaveLength(1);
+    expect(events).toHaveLength(1);
     await form.locator("button[type=submit]").click();
     await expect(page.locator(".form-confirmation")).toBeVisible();
-    expect((await openaiEvents(page)).slice(1)).toEqual([["measure", "lead_created", { type: "customer_action" }, { opt_out: true }]]);
+    await expect.poll(() => events.length).toBe(2);
+    expect(events[1].params.event).toBe("lead_created");
+    expect(events[1].params).not.toHaveProperty("oppref");
   });
 }
 
-test("OpenAI discards queued conversions on withdrawal while the SDK loads", async ({ page, baseURL }) => {
+test("OpenAI withdrawal during submission prevents the conversion and removes stored attribution", async ({ page, baseURL }) => {
+  await setup(page, baseURL, { openai: true });
+  const { events } = collectOpenai(page);
   let finish;
   const hold = new Promise((resolve) => { finish = resolve; });
-  await setup(page, baseURL, { openai: true, delayOpenai: hold });
-  await page.goto(origin);
+  await page.route(endpoint, async (route) => { await hold; await route.fulfill({ json: { code: 200, status: "success" } }); });
+  await page.goto(`${origin}/?oppref=ad-reference`);
   await accept(page);
+  await expect.poll(() => events.length).toBe(1);
   const form = await fillCourse(page);
+  const submitted = page.waitForRequest(endpoint);
   await form.locator("button[type=submit]").click();
-  await expect(page.locator(".form-confirmation")).toBeVisible();
+  await submitted;
   await page.locator(".consent-settings").click();
   await page.locator("[data-consent-reject]").click();
   finish();
-  await expect.poll(() => page.evaluate(() => Boolean(window.openaiCalls))).toBe(true);
-  expect(await openaiEvents(page)).toEqual([]);
-  await page.locator(".consent-settings").click();
-  await page.locator("[data-consent-accept]").click();
-  await expect.poll(() => openaiEvents(page)).toHaveLength(1);
-  expect((await openaiEvents(page))[0][1]).toBe("page_viewed");
+  await expect(page.locator(".form-confirmation")).toBeVisible();
+  expect(events).toHaveLength(1);
+  expect(await page.evaluate((key) => window.localStorage.getItem(key), openaiReferenceKey)).toBeNull();
+  await page.reload();
+  await expect(page.locator(".consent-panel")).toBeHidden();
+  expect(events).toHaveLength(1);
 });
 
-test("OpenAI withdrawal stops future events and clears attribution cookies", async ({ page, baseURL, context }) => {
+test("OpenAI preserves the original attribution window on return visits and expires it after 30 days", async ({ page, baseURL }) => {
   await setup(page, baseURL, { openai: true });
-  await page.goto(origin);
+  const { events } = collectOpenai(page);
+  await page.goto(`${origin}/?oppref=original-reference`);
   await accept(page);
-  await expect.poll(() => openaiEvents(page)).toHaveLength(1);
-  await context.addCookies(["__oppref", "__obref"].map((name) => ({ name, value: "test", domain: ".juliasutter.de", path: "/" })));
-  await page.locator(".consent-settings").click();
-  await page.locator("[data-consent-reject]").click();
+  const saved = await page.evaluate((key) => JSON.parse(window.localStorage.getItem(key)), openaiReferenceKey);
+  await page.goto(`${origin}/en/?oppref=original-reference`);
+  await expect.poll(() => events.length).toBe(2);
+  expect(events[1].params.oppref).toBe("original-reference");
+  expect(await page.evaluate((key) => JSON.parse(window.localStorage.getItem(key)), openaiReferenceKey)).toEqual(saved);
   const form = await fillCourse(page);
   await form.locator("button[type=submit]").click();
   await expect(page.locator(".form-confirmation")).toBeVisible();
-  expect(await openaiEvents(page)).toHaveLength(1);
-  expect((await context.cookies()).filter((cookie) => ["__oppref", "__obref"].includes(cookie.name))).toEqual([]);
-  expect(await page.evaluate(() => window.openaiCalls.at(-1))).toEqual(["consent", false]);
+  await expect.poll(() => events.length).toBe(3);
+  expect(events[2].params.oppref).toBe("original-reference");
+  await page.evaluate((key) => window.localStorage.setItem(key, JSON.stringify({ value: "expired", timestamp: Date.now() - 30 * 86400000 })), openaiReferenceKey);
+  await page.goto(origin);
+  await expect.poll(() => events.length).toBe(4);
+  expect(events[3].params).not.toHaveProperty("oppref");
+  expect(await page.evaluate((key) => window.localStorage.getItem(key), openaiReferenceKey)).toBeNull();
 });
 
-
-test("OpenAI retains attribution cookies on a return visit with saved consent", async ({ page, baseURL, context }) => {
+test("OpenAI rejects malformed click tokens and sends nothing from local or legal pages", async ({ page, baseURL }) => {
   await setup(page, baseURL, { openai: true });
-  await context.addCookies(["__oppref", "__obref"].map((name) => ({ name, value: "original-ad-reference", url: origin })));
-  await page.addInitScript((key) => window.localStorage.setItem(key, JSON.stringify({ version: 3, choice: "accepted", timestamp: Date.now() })), consentKey);
-  await page.goto(origin);
-  await expect.poll(() => openaiEvents(page)).toHaveLength(1);
-  expect((await context.cookies()).filter((cookie) => ["__oppref", "__obref"].includes(cookie.name)).map((cookie) => cookie.value)).toEqual(["original-ad-reference", "original-ad-reference"]);
-  const form = await fillCourse(page);
-  await form.locator("button[type=submit]").click();
-  await expect(page.locator(".form-confirmation")).toBeVisible();
-  expect((await openaiEvents(page)).at(-1)[1]).toBe("registration_completed");
+  const { events } = collectOpenai(page);
+  await page.goto(`${origin}/?oppref=private%40example.com`);
+  await accept(page);
+  await expect.poll(() => events.length).toBe(1);
+  expect(events[0].params).not.toHaveProperty("oppref");
+  await page.goto(`${origin}/datenschutz/`);
+  await expect(page.locator(".consent-settings")).toBeVisible();
+  expect(events).toHaveLength(1);
+  await page.goto(baseURL);
+  await page.locator("[data-consent-accept]").click();
+  expect(events).toHaveLength(1);
 });
