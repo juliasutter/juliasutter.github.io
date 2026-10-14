@@ -3,25 +3,29 @@
   const lifetime = 180 * 24 * 60 * 60 * 1000;
   const pixelId = window.JULIA_MEASUREMENT_CONFIG?.pixelId;
   const validPixel = typeof pixelId === "string" && /^\d+$/.test(pixelId);
-  const consentVersion = 2;
+  const openaiPixelId = window.JULIA_MEASUREMENT_CONFIG?.openaiPixelId;
+  const validOpenaiPixel = typeof openaiPixelId === "string" && /^[a-zA-Z0-9_-]+$/.test(openaiPixelId);
+  const consentVersion = 3;
   const attributionKey = "julia-campaign-attribution-v1";
   const attributionLifetime = 30 * 60 * 1000;
 
   const english = document.documentElement.lang === "en";
   const copy = english ? {
     title: "May we measure how our ads work?",
-    text: "With your permission, the Meta Pixel measures visits, course registrations and enquiries. Meta receives device and usage data, may set cookies and link data to your Meta account. When you submit a form, Julia also receives the advertising source, campaign and ad identifier. This helps us improve our ads. The website works just as well without measurement.",
+    text: "With your permission, Meta and OpenAI measure visits, enquiries and course registrations for our ads. They receive technical data and may set cookies; Meta may link data to your account. We do not send form contents. Julia receives the advertising source, campaign and ad identifier with your form. You can use the website just as well without consent.",
     accept: "Allow measurement", reject: "Continue without", settings: "Cookie settings",
     close: "Close", privacy: "Privacy details", privacyUrl: "/en/privacy/", status: "Your choice has been saved."
   } : {
     title: "Dürfen wir messen, wie unsere Anzeigen wirken?",
-    text: "Mit deiner Erlaubnis messen wir über das Meta-Pixel Besuche, Kursanmeldungen und Anfragen. Meta erhält Geräte- und Nutzungsdaten, kann Cookies setzen und Daten mit deinem Meta-Konto verknüpfen. Zusätzlich erhält Julia beim Absenden eines Formulars die Werbequelle, Kampagne und Anzeigenkennung. Das hilft uns, unsere Anzeigen zu verbessern. Die Website funktioniert auch ohne Messung vollständig.",
+    text: "Mit deiner Erlaubnis messen Meta und OpenAI Besuche, Anfragen und Kursanmeldungen für unsere Anzeigen. Dafür erhalten sie technische Daten und können Cookies setzen; Meta kann Daten mit deinem Konto verknüpfen. Formularinhalte übermitteln wir nicht. Julia erhält mit deinem Formular die Werbequelle, Kampagne und Anzeigenkennung. Ohne Einwilligung kannst du die Website genauso nutzen.",
     accept: "Messung erlauben", reject: "Ohne Messung weiter", settings: "Cookie-Einstellungen",
     close: "Schließen", privacy: "Details zum Datenschutz", privacyUrl: "/datenschutz/", status: "Deine Auswahl wurde gespeichert."
   };
   const contentPage = ["/", "/index.html", "/en/", "/en/index.html"].includes(window.location.pathname);
   // Local previews and legal pages must never send production measurement events.
-  const canMeasure = validPixel && contentPage && ["juliasutter.de", "www.juliasutter.de"].includes(window.location.hostname);
+  const productionPage = contentPage && ["juliasutter.de", "www.juliasutter.de"].includes(window.location.hostname);
+  const canMeasure = validPixel && productionPage;
+  const canMeasureOpenai = validOpenaiPixel && productionPage;
   const readChoice = () => {
     try {
       const value = JSON.parse(localStorage.getItem(storageKey));
@@ -38,6 +42,11 @@
   let initialized = false;
   let viewed = false;
   let pending = [];
+  let openaiLoading = false;
+  let openaiReady = false;
+  let openaiInitialized = false;
+  let openaiViewed = false;
+  let openaiPending = [];
 
   // Only campaign labels enter form attribution: no referrer, full URL,
   // search terms or person-level click identifiers (gclid, fbclid, oppref).
@@ -90,11 +99,49 @@
   };
 
   const removeMarketingCookies = () => {
-    for (const name of ["_fbp", "_fbc"]) {
+    for (const name of ["_fbp", "_fbc", "__oppref", "__obref"]) {
       for (const domain of ["", window.location.hostname, ".juliasutter.de"]) {
         document.cookie = `${name}=; Max-Age=0; Path=/; SameSite=Lax${domain ? `; Domain=${domain}` : ""}`;
       }
     }
+  };
+  const measureOpenai = (name, data) => {
+    if (!canMeasureOpenai || choice !== "accepted") return;
+    const args = ["measure", name, data, { opt_out: true }];
+    if (openaiReady && openaiInitialized) window.oaiq(...args);
+    else openaiPending.push(args);
+  };
+  const startOpenai = () => {
+    if (!canMeasureOpenai || choice !== "accepted") return;
+    if (openaiReady) {
+      // Consent is already granted here. Sending false at every startup would
+      // erase the SDK's stored click identifier on returning visits.
+      window.oaiq("consent", true);
+      if (!openaiInitialized) {
+        window.oaiq("init", { pixelId: openaiPixelId });
+        openaiInitialized = true;
+      }
+      if (!openaiViewed) {
+        measureOpenai("page_viewed", { type: "contents" });
+        openaiViewed = true;
+      }
+      for (const args of openaiPending) window.oaiq(...args);
+      openaiPending = [];
+      return;
+    }
+    if (openaiLoading) return;
+    openaiLoading = true;
+    const queue = function () { queue.q.push(arguments); };
+    queue.q = [];
+    window.oaiq = queue;
+    // Do not initialize or queue measurements before the script is ready.
+    // Withdrawal can discard our separate queue before the SDK sees it.
+    const script = document.createElement("script");
+    script.src = "https://bzrcdn.openai.com/sdk/oaiq.min.js";
+    script.async = true;
+    script.onload = () => { openaiReady = true; startOpenai(); };
+    script.onerror = () => { openaiPending = []; };
+    document.head.append(script);
   };
   const startMeasurement = () => {
     if (!canMeasure || choice !== "accepted") return;
@@ -149,8 +196,11 @@
     formSucceeded(kind, mode, price) {
       if (kind === "course" && mode === "open" && Number.isFinite(price) && price > 0) {
         track("Purchase", { value: price, currency: "EUR", content_name: "Starter Class" });
+        // A submitted binding registration is not a confirmed payment.
+        measureOpenai("registration_completed", { type: "customer_action" });
       } else {
         track("Lead", { content_name: kind === "course" ? "Course enquiry" : "Contact enquiry" });
+        measureOpenai("lead_created", { type: "customer_action" });
       }
     },
     calendarOpened() { track("CalendarOpened", {}, true); }
@@ -192,11 +242,14 @@
     if (choice === "accepted") {
       captureAttribution();
       startMeasurement();
+      startOpenai();
     }
     else {
       clearAttribution();
       pending = [];
+      openaiPending = [];
       if (window.fbq) window.fbq("consent", "revoke");
+      if (window.oaiq) window.oaiq("consent", false);
       removeMarketingCookies();
     }
   };
