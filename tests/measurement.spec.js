@@ -50,6 +50,69 @@ async function fillCourse(page, binding = true) {
 
 for (const language of ["de", "en"]) {
   const path = language === "de" ? "/" : "/en/";
+  test(`${language}: inline privacy details are keyboard accessible without granting consent`, async ({ page, baseURL }) => {
+    const requests = await setup(page, baseURL, { openai: true });
+    const { events, scripts } = collectOpenai(page);
+    await page.goto(origin + path);
+    const panel = page.locator(".consent-panel");
+    const details = panel.locator("details");
+    const summary = details.locator("summary");
+    const content = details.locator(".consent-details-body");
+    await expect(content).toBeHidden();
+    await summary.focus();
+    await page.keyboard.press("Space");
+    await expect(content).toBeVisible();
+    await expect(details.getByRole("heading", { name: "Meta", exact: true })).toBeVisible();
+    await expect(details.getByRole("heading", { name: "OpenAI", exact: true })).toBeVisible();
+    expect(await page.evaluate((key) => window.localStorage.getItem(key), consentKey)).toBeNull();
+    expect(requests).toEqual([]);
+    expect(events).toEqual([]);
+    expect(scripts).toEqual([]);
+    const privacyPath = language === "de" ? "/datenschutz/#cookies" : "/en/privacy/#cookies";
+    await expect(details.getByRole("link")).toHaveAttribute("href", privacyPath);
+    await page.keyboard.press("Space");
+    await expect(content).toBeHidden();
+    await page.keyboard.press("Enter");
+    await expect(content).toBeVisible();
+    await panel.locator("[data-consent-reject]").click();
+    await expect(panel).toBeHidden();
+    expect(requests).toEqual([]);
+    expect(events).toEqual([]);
+    await page.locator(".consent-settings").click();
+    await expect(content).toBeHidden();
+    await summary.click();
+    await details.getByRole("link").click();
+    await expect(page).toHaveURL(origin + privacyPath);
+    await expect(page.locator("#cookies")).toBeInViewport();
+    expect(requests).toEqual([]);
+    expect(events).toEqual([]);
+  });
+
+  test(`${language}: both consent choices remain reachable in narrow and short viewports`, async ({ page, baseURL }) => {
+    await setup(page, baseURL);
+    for (const viewport of [{ width: 320, height: 568 }, { width: 568, height: 320 }]) {
+      await page.setViewportSize(viewport);
+      await page.goto(origin + path);
+      const panel = page.locator(".consent-panel");
+      for (const expanded of [false, true]) {
+        if (expanded) await panel.locator("summary").click();
+        await panel.locator(".consent-actions").scrollIntoViewIfNeeded();
+        const bounds = await panel.boundingBox();
+        expect(bounds.x).toBeGreaterThanOrEqual(0);
+        expect(bounds.x + bounds.width).toBeLessThanOrEqual(viewport.width);
+        expect(bounds.y).toBeGreaterThanOrEqual(0);
+        expect(bounds.y + bounds.height).toBeLessThanOrEqual(viewport.height);
+        for (const choice of ["accept", "reject"]) {
+          const button = panel.locator(`[data-consent-${choice}]`);
+          await expect(button).toBeInViewport({ ratio: 1 });
+          const buttonBounds = await button.boundingBox();
+          expect(buttonBounds.height).toBeGreaterThanOrEqual(44);
+          expect(buttonBounds.width).toBeGreaterThanOrEqual(44);
+        }
+      }
+    }
+  });
+
   test(`${language}: nothing loads before consent or after refusal; choice survives reload`, async ({ page, baseURL }) => {
     const requests = await setup(page, baseURL);
     await page.goto(origin + path);

@@ -17,9 +17,10 @@
 .consent-panel h2 { margin: 0 0 12px; font: 600 23px/1.25 "Manrope", "Avenir Next", sans-serif; }
 .consent-panel p { margin: 0 0 12px; }
 .consent-panel a { color: #354330; text-decoration: underline; }
-.consent-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+.consent-panel .consent-note { margin-bottom: 0; color: #536052; font-size: 13px; }
+.consent-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
 .consent-actions button {
-  flex: 1 1 180px;
+  flex: 1 1 120px;
   min-height: 46px;
   padding: 10px 14px;
   border: 1px solid #354330;
@@ -27,9 +28,15 @@
   background: #354330;
   color: #fffdfa;
   font: inherit;
+  font-weight: 600;
   cursor: pointer;
 }
+.consent-actions [data-consent-reject] { background: transparent; color: #354330; }
 .consent-actions [data-consent-close] { flex-basis: 100%; background: transparent; color: #354330; }
+.consent-details { margin-top: 10px; border-top: 1px solid #78866a66; }
+.consent-details summary { min-height: 44px; padding: 10px 0; color: #354330; font-weight: 600; text-decoration: underline; cursor: pointer; }
+.consent-details h3 { margin: 12px 0 4px; font: 600 15px/1.5 "Manrope", "Avenir Next", sans-serif; }
+.consent-details-body { font-size: 14px; }
 .consent-settings { border: 0; padding: 0; background: transparent; color: inherit; font: inherit; text-align: left; text-decoration: underline; cursor: pointer; }
 .consent-panel :focus-visible, .consent-settings:focus-visible { outline: 3px solid #bf684f; outline-offset: 4px; }
 .consent-status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
