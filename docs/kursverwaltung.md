@@ -12,7 +12,7 @@ Die eigene Oberfläche ist nach der Veröffentlichung direkt unter https://julia
 6. In Apple Passwörter einen Eintrag für `https://juliasutter.de` mit Julias GitHub-Benutzernamen und dem Token als Passwort speichern. Safari-Autofill/Touch ID aktivieren. Der Token gehört niemals in Git, Chat, URLs oder Dokumentation.
 7. In `/verwaltung/` anmelden und zunächst die vorhandenen Kurse prüfen. Die erste echte Kursveröffentlichung muss mit einem autorisierten, sinnvollen Datenupdate erfolgen; keine erfundenen Produktionsbuchungen zum Testen erzeugen.
 
-Die produktive Einrichtung wurde durch die lokale Implementierung nicht vorgenommen. Safari-Autofill auf einem echten Apple-Gerät und ein echtes GitHub-/Pages-Deployment sind gesonderte Abnahmeprüfungen.
+GitHub Pages verwendet GitHub Actions als Veröffentlichungsquelle. Safari-Autofill auf Julias Apple-Gerät und die erste echte Kursänderung mit ihrem Token sind zusätzlich zur Website-Veröffentlichung zu prüfen.
 
 ## Alltag
 
