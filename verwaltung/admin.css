@@ -141,7 +141,7 @@ details p {
 .login button {
   margin:.4rem 0 .8rem;
 }
-.section-heading,.dialog-heading,.dialog-footer,.actions {
+.section-heading,.dialog-heading,.dialog-footer {
   display:flex;
   align-items:center;
   justify-content:space-between;
@@ -161,6 +161,12 @@ details p {
   gap:1rem;
   margin-top:1rem;
 }
+.course-card {
+  position:relative;
+}
+.course-card .badge {
+  max-width:calc(100% - 6rem);
+}
 .course-card h3 {
   font-size:1.1rem;
 }
@@ -168,13 +174,16 @@ details p {
   font-size:.9rem;
   margin-bottom:.5rem;
 }
-.course-card .actions {
-  justify-content:flex-start;
-  margin-top:1.2rem;
-}
 .course-card button {
   padding:.4rem .65rem;
   font-size:.8rem;
+}
+.course-card .course-edit {
+  position:absolute;
+  top:1rem;
+  right:1rem;
+  min-height:44px;
+  background:#fffdf8;
 }
 .badge {
   display:inline-block;

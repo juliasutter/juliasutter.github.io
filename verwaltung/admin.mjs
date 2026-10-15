@@ -120,11 +120,9 @@ function card(course, controls = true, language = "de") {
       stepper.append(minus, count, plus);
       item.append(stepper);
     }
-    const actions = element("div", undefined, "actions");
-    const edit = button("Bearbeiten", () => openEditor(course));
+    const edit = button("Bearbeiten", () => openEditor(course), "quiet course-edit");
     edit.disabled = locked();
-    actions.append(edit);
-    item.append(actions);
+    item.append(edit);
   }
   return item;
 }
