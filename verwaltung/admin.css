@@ -196,12 +196,17 @@ details p {
 .badge.warn {
   background:#fae5d6;
 }
-.course-card details {
-  margin-top:.6rem;
-  font-size:.83rem;
+.course-schedule-line {
+  display:flex;
+  align-items:baseline;
+  flex-wrap:wrap;
+  gap:.1rem .6rem;
+  margin-bottom:.5rem;
+  font-size:.9rem;
 }
-.course-card ol {
+.course-card .individual-schedule {
   padding-left:1.2rem;
+  font-size:.83rem;
 }
 dialog {
   border:1px solid var(--line);

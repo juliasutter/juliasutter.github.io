@@ -467,3 +467,33 @@ for (const [capacity, remaining, expected] of [[undefined, 7, 7], [undefined, 9,
     await expect(plus).toBeDisabled();
   });
 }
+
+test("regular weekly courses show their weekday and time without expandable details", async ({ page }) => {
+  await localEditor(page);
+  const card = page.locator("#course-list article").first();
+  await expect(card).toContainText("17.10.2026 – 21.11.2026");
+  await expect(card).toContainText("samstags 09:00–11:00 Uhr");
+  await expect(card.locator("details")).toHaveCount(0);
+  await expect(card.getByRole("button", { name: /Individuelle Termine/ })).toHaveCount(0);
+});
+
+for (const variation of ["date", "time", "weekly gap"]) test(`individual schedule is shown on demand for a changed ${variation}`, async ({ page }) => {
+  const data = configCopy();
+  if (variation === "date") data.courses[0].dates[1] = "2026-10-25";
+  if (variation === "weekly gap") data.courses[0].dates[5] = "2026-11-28";
+  if (variation === "time") data.courses[0].sessionTimes = { "2026-10-24": { startTime: "10:00", endTime: "12:00" } };
+  await page.route("**/assets/course-config.json*", (route) => route.fulfill({ json: data }));
+  await localEditor(page);
+  const card = page.locator("#course-list article").first();
+  const toggle = card.getByRole("button", { name: "Individuelle Termine anzeigen", exact: true });
+  await expect(card.locator(".individual-schedule")).toBeHidden();
+  await expect(card.locator(".course-schedule-line")).toContainText("Individuelle Termine anzeigen");
+  await toggle.click();
+  await expect(card.locator(".individual-schedule li")).toHaveCount(6);
+  await expect(card.locator(".individual-schedule")).toBeVisible();
+  await expect(card.locator(".individual-schedule")).toContainText(variation === "date" ? "25.10.2026" : variation === "time" ? "24.10.2026 · 10:00–12:00 Uhr" : "28.11.2026");
+  await card.getByRole("button", { name: /Einen Platz weniger/ }).click();
+  await expect(card.locator(".individual-schedule")).toBeVisible();
+  await card.getByRole("button", { name: "Individuelle Termine ausblenden", exact: true }).click();
+  await expect(card.locator(".individual-schedule")).toBeHidden();
+});

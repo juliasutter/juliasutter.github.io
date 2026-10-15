@@ -17,6 +17,7 @@ let session = 0;
 let activeRun = null;
 let saveTimer;
 let saveError = "";
+const expandedSchedules = new Set();
 const changed = () => JSON.stringify(courses) !== JSON.stringify(baseCourses);
 const locked = () => preparing || resuming;
 const hasUnsentChanges = () => token && JSON.stringify(courses) !== JSON.stringify(activeRun?.courses || baseCourses);
@@ -82,49 +83,55 @@ function availability(course, language = "de") {
 function dateLabel(date, language = "de") {
   return new Intl.DateTimeFormat(language === "de" ? "de-DE" : "en-GB", { dateStyle: "medium", timeZone: "UTC" }).format(new Date(`${date}T12:00:00Z`));
 }
-function card(course, controls = true, language = "de") {
+function card(course) {
   const item = element("article", undefined, "card course-card");
-  const state = availability(course, language);
-  item.append(element("span", state, `badge${course.remainingPlaces === 0 ? " warn" : ""}`), element("h3", language === "de" ? course.labelDe : course.labelEn));
-  item.append(element("p", `${dateLabel(course.dates[0], language)} – ${dateLabel(course.dates[5], language)}`));
-  item.append(element("p", [course.format === "vor_ort" ? (language === "de" ? "Vor Ort" : "In person") : "Online", course.location].filter(Boolean).join(" · ")));
-  const details = element("details");
-  details.append(element("summary", controls ? "Termine und Kursdetails" : language === "de" ? "Alle Termine und Uhrzeiten" : "All dates and times"));
-  const list = element("ol");
-  for (const date of course.dates) {
-    const time = sessionTime(course, date, config);
-    list.append(element("li", `${dateLabel(date, language)} · ${time.startTime}–${time.endTime}`));
+  item.append(element("span", availability(course), `badge${course.remainingPlaces === 0 ? " warn" : ""}`), element("h3", course.labelDe));
+  const dates = course.dates;
+  const times = dates.map((date) => sessionTime(course, date, config));
+  const weekly = dates.every((date, index) => index === 0 || new Date(`${date}T12:00:00Z`) - new Date(`${dates[index - 1]}T12:00:00Z`) === 7 * 86400000);
+  const sameTimes = times.every((time) => time.startTime === times[0].startTime && time.endTime === times[0].endTime);
+  const dateLine = element("div", undefined, "course-schedule-line");
+  dateLine.append(element("span", `${dateLabel(dates[0])} – ${dateLabel(dates.at(-1))}`));
+  item.append(dateLine);
+  if (weekly && sameTimes) {
+    const weekday = new Intl.DateTimeFormat("de-DE", { weekday: "long", timeZone: "UTC" }).format(new Date(`${dates[0]}T12:00:00Z`)).toLocaleLowerCase("de-DE");
+    item.append(element("p", `${weekday}s ${times[0].startTime}–${times[0].endTime} Uhr`));
+  } else {
+    const list = element("ol", undefined, "individual-schedule");
+    list.id = `schedule-${course.id}`;
+    list.hidden = !expandedSchedules.has(course.id);
+    for (const [index, date] of dates.entries()) list.append(element("li", `${dateLabel(date)} · ${times[index].startTime}–${times[index].endTime} Uhr`));
+    const toggle = button("Individuelle Termine anzeigen", () => {
+      list.hidden = !list.hidden;
+      if (list.hidden) expandedSchedules.delete(course.id); else expandedSchedules.add(course.id);
+      toggle.textContent = list.hidden ? "Individuelle Termine anzeigen" : "Individuelle Termine ausblenden";
+      toggle.setAttribute("aria-expanded", String(!list.hidden));
+    }, "text-button");
+    if (!list.hidden) toggle.textContent = "Individuelle Termine ausblenden";
+    toggle.setAttribute("aria-expanded", String(!list.hidden));
+    toggle.setAttribute("aria-controls", list.id);
+    dateLine.append(toggle);
+    item.append(list);
   }
-  details.append(list);
-  item.append(details);
-  const price = course.priceEur ?? config.priceEur;
-  const friend = course.friendPriceEur === null ? null : course.friendPriceEur ?? config.friendPriceEur;
-  const info = controls ? details : item;
-  info.append(element("p", `${price} €${friend !== null && friend < price ? ` · ${language === "de" ? "Freund:innen" : "Friends"}: ${friend} €` : ""}`));
-  if (course.registrationDeadline) {
-    const deadline = berlinFields(course.registrationDeadline);
-    info.append(element("p", `${language === "de" ? "Anmeldung bis" : "Register by"} ${dateLabel(deadline.date, language)}, ${deadline.time} (${language === "de" ? "Deutsche Zeit" : "Berlin time"})`));
-  }
-  if (controls) {
-    item.dataset.courseId = course.id;
-    if (!courseEnded(course, config) && !course.archived) {
-      const stepper = element("div", undefined, "seat-stepper");
-      const count = element("div");
-      count.append(element("strong", String(course.remainingPlaces)), element("span", ` von ${courseCapacity(course)} Plätzen frei`));
-      const minus = button("−", () => adjustSeats(course.id, -1));
-      const plus = button("+", () => adjustSeats(course.id, 1));
-      for (const [control, direction, label] of [[minus, -1, "Einen Platz weniger"], [plus, 1, "Einen Platz mehr"]]) {
-        control.setAttribute("aria-label", `${label} · ${course.labelDe}`);
-        control.dataset.seatDirection = direction;
-        control.disabled = locked() || (direction < 0 ? course.remainingPlaces === 0 : course.remainingPlaces >= courseCapacity(course));
-      }
-      stepper.append(minus, count, plus);
-      item.append(stepper);
+  item.append(element("p", [course.format === "vor_ort" ? "Vor Ort" : "Online", course.location].filter(Boolean).join(" · ")));
+  item.dataset.courseId = course.id;
+  if (!courseEnded(course, config) && !course.archived) {
+    const stepper = element("div", undefined, "seat-stepper");
+    const count = element("div");
+    count.append(element("strong", String(course.remainingPlaces)), element("span", ` von ${courseCapacity(course)} Plätzen frei`));
+    const minus = button("−", () => adjustSeats(course.id, -1));
+    const plus = button("+", () => adjustSeats(course.id, 1));
+    for (const [control, direction, label] of [[minus, -1, "Einen Platz weniger"], [plus, 1, "Einen Platz mehr"]]) {
+      control.setAttribute("aria-label", `${label} · ${course.labelDe}`);
+      control.dataset.seatDirection = direction;
+      control.disabled = locked() || (direction < 0 ? course.remainingPlaces === 0 : course.remainingPlaces >= courseCapacity(course));
     }
-    const edit = button("Bearbeiten", () => openEditor(course), "quiet course-edit");
-    edit.disabled = locked();
-    item.append(edit);
+    stepper.append(minus, count, plus);
+    item.append(stepper);
   }
+  const edit = button("Bearbeiten", () => openEditor(course), "quiet course-edit");
+  edit.disabled = locked();
+  item.append(edit);
   return item;
 }
 function render() {

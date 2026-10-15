@@ -16,6 +16,8 @@ Die produktive Einrichtung wurde durch die lokale Implementierung nicht vorgenom
 
 ## Alltag
 
+**Kursübersicht:** Regelmäßige wöchentliche Kurse zeigen Datumsbereich, Wochentag und Uhrzeit direkt. Bei abweichenden Tagen, ausgelassenen Wochen oder unterschiedlichen Uhrzeiten öffnet **Individuelle Termine anzeigen** die vollständige Terminliste. Preise und Anmeldeschluss sind über **Bearbeiten** erreichbar.
+
 **Plätze ändern:** Direkt in der Übersicht auf − oder + klicken. Die Zahl wird sofort aktualisiert. Angemeldet werden Änderungen nach einer kurzen Klickpause automatisch gespeichert. Schnelle Klicks werden zusammengefasst; während eines laufenden Auftrags sammelt die Oberfläche weitere Speicherungen und überträgt den neuesten Stand nach dessen Abschluss. Es läuft aus dieser Sitzung immer nur ein Auftrag. Noch offene, nicht gespeicherte Formularfelder werden nicht übertragen.
 
 **Neuen Kurs anlegen:** Startdatum und gemeinsame Zeit prüfen. Neue Kurse starten Mo–Fr mit 20–22 Uhr, Sa–So mit 9–11 Uhr. Die Uhrzeiten folgen Änderungen des Startdatums bis zur manuellen Anpassung; bestehende Kurse behalten ihre Zeiten. Sechs wöchentliche Termine, Anmeldeschluss am Vortag um 21 Uhr, Online-Format, sieben Gesamtplätze und sieben freie Plätze sind voreingestellt. Bei neuen Kursen folgt die freie Platzanzahl der Gesamtkapazität, solange sie nicht separat geändert wurde. Der ausgefüllte deutsche Kursname folgt Datum und Uhrzeit bis zur eigenen Bearbeitung. Dann erscheint direkt darunter der englische Name. Bestehende eigene Namen bleiben erhalten.
