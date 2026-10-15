@@ -330,3 +330,77 @@ a {
     grid-template-columns:1fr;
   }
 }
+
+.seat-stepper {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:.6rem;
+  border-top:1px solid var(--line);
+  margin-top:1rem;
+  padding-top:1rem;
+}
+.seat-stepper div {
+  text-align:center;
+  font-size:.8rem;
+}
+.seat-stepper strong {
+  display:block;
+  font-size:1.65rem;
+  line-height:1.25;
+  font-variant-numeric:tabular-nums;
+}
+.course-card .seat-stepper button {
+  min-width:46px;
+  min-height:46px;
+  font-size:1.5rem;
+  padding:.15rem .6rem;
+}
+#seat-feedback:not(:has(span:empty)) {
+  margin:1rem 0;
+  padding:.75rem 1rem;
+  background:#e8ede1;
+  border-radius:7px;
+  font-size:.85rem;
+}
+.editor-settings {
+  padding:1rem 0;
+  border-top:1px solid var(--line);
+}
+.editor-settings>.fields {
+  margin-top:1rem;
+}
+.editor-settings .date-row {
+  grid-template-columns:1fr;
+  padding-bottom:1rem;
+  border-bottom:1px solid var(--line);
+}
+.date-row details {
+  margin-top:.3rem;
+  font-size:.85rem;
+}
+.date-row details .fields {
+  margin-top:.5rem;
+}
+input::placeholder {
+  color:#748176;
+  opacity:1;
+}
+#defaults-summary {
+  margin-top:1rem;
+}
+
+@media(max-width:540px) {
+  .primary-fields {
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  }
+  .primary-fields input {
+    min-width:0;
+  }
+  .primary-fields label {
+    min-height:3.2em;
+  }
+  .primary-fields .full label {
+    min-height:0;
+  }
+}

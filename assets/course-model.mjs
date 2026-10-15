@@ -75,6 +75,7 @@ export function validateCourses(courses, defaults = {}) {
     }
     if (course.format !== undefined && !["online", "vor_ort"].includes(course.format)) fail("Das Kursformat ist ungültig.");
     if (course.location !== undefined && !text(course.location, 200)) fail("Der Veranstaltungsort ist ungültig (max. 200 Zeichen).");
+    if (course.format === "vor_ort" && !text(course.location, 200)) fail("Bitte den öffentlichen Veranstaltungsort angeben.");
     for (const key of ["priceEur", "friendPriceEur"]) {
       if (key === "friendPriceEur" && course[key] === null) continue;
       if (course[key] !== undefined && (!Number.isFinite(course[key]) || course[key] < 0 || course[key] > 99999 || Math.abs(Math.round(course[key] * 100) - course[key] * 100) > 0.000001)) fail("Preise müssen gültige Eurobeträge mit höchstens zwei Nachkommastellen sein.");
@@ -86,6 +87,26 @@ export function validateCourses(courses, defaults = {}) {
   return courses;
 }
 
+export function courseLabels(date, time) {
+  if (!validDate(date) || !validTime(time)) throw new Error("Bitte Datum und Uhrzeit vollständig eintragen.");
+  const month = Number(date.slice(5, 7));
+  const season = Math.floor(month % 12 / 3);
+  const weekday = new Date(`${date}T12:00:00Z`).getUTCDay();
+  const hour = Number(time.slice(0, 2));
+  const period = hour < 5 ? 0 : hour < 12 ? 1 : hour < 14 ? 2 : hour < 18 ? 3 : 4;
+  const deDay = ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"][weekday];
+  const enDay = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][weekday];
+  return {
+    labelDe: `${["Winter", "Frühling", "Sommer", "Herbst"][season]} ${date.slice(0, 4)} · ${deDay}${["nacht", "vormittag", "mittag", "nachmittag", "abend"][period]}`,
+    labelEn: `${["Winter", "Spring", "Summer", "Autumn"][season]} ${date.slice(0, 4)} · ${enDay} ${["night", "morning", "midday", "afternoon", "evening"][period]}`
+  };
+}
+
+export function courseEnded(course, defaults = {}, now = new Date()) {
+  const last = course.dates.at(-1);
+  return new Date(berlinInstant(last, sessionTime(course, last, defaults).endTime)) <= now;
+}
+
 export function newCourse(startDate, defaults = {}) {
   const dates = Array.from({ length: 6 }, (_, index) => {
     const date = new Date(`${startDate}T12:00:00Z`);
@@ -95,9 +116,9 @@ export function newCourse(startDate, defaults = {}) {
   const before = new Date(`${startDate}T12:00:00Z`);
   before.setUTCDate(before.getUTCDate() - 1);
   return {
-    id: `starter-${globalThis.crypto.randomUUID()}`, labelDe: "Neuer Kurs", labelEn: "New course", status: "open",
+    id: `starter-${globalThis.crypto.randomUUID()}`, ...courseLabels(startDate, defaults.defaultStartTime || "20:00"), status: "open",
     dates, startTime: defaults.defaultStartTime || "20:00", endTime: defaults.defaultEndTime || "22:00",
-    format: "online", remainingPlaces: 0, registrationDeadline: berlinInstant(before.toISOString().slice(0, 10), "21:00"),
+    format: "online", capacity: 7, remainingPlaces: 7, registrationDeadline: berlinInstant(before.toISOString().slice(0, 10), "21:00"),
     priceEur: defaults.priceEur ?? 399, friendPriceEur: defaults.friendPriceEur ?? 349
   };
 }

@@ -20,8 +20,8 @@
     <button type="button" id="logout" class="quiet" hidden>Abmelden</button>
   </header>
   <main>
-    <h1>Raum für den nächsten Kurs.</h1>
-    <p class="intro">Termine planen, Plätze pflegen und in Ruhe vorbereiten.</p>
+    <h1>Deine Kursverwaltung.</h1>
+    <p class="intro">Plätze mit einem Klick ändern. Neue Kurse in wenigen Schritten planen.</p>
     <p id="status" role="status" aria-live="polite"></p>
     <section id="login-panel" class="login card" aria-labelledby="login-title">
       <p class="eyebrow">Willkommen, Julia</p>
@@ -38,38 +38,44 @@
       <button id="local-preview" type="button" class="quiet" hidden>Lokalen Entwurf öffnen</button>
     </section>
     <section id="workspace" hidden aria-label="Kursübersicht">
-      <div class="workspace-toolbar">
+      <div class="workspace-toolbar" id="draft-toolbar">
         <p id="draft-status">Alles auf dem aktuellen Stand</p>
         <div class="actions"><button type="button" id="discard" class="quiet">Entwurf verwerfen</button><button type="button" id="review">Änderungen ansehen</button></div>
       </div>
-      <div class="section-heading"><h2>Deine Kurse</h2><button type="button" id="add-course">+ Neuer Kurs</button></div>
-      <p class="hint">Plätze werden manuell gepflegt. Entwürfe bleiben in diesem Browser, bis du sie veröffentlichst.</p>
+      <div class="section-heading"><h2>Aktuelle Kurse</h2><button type="button" id="add-course">+ Neuer Kurs</button></div>
+      <p class="hint" id="seats-hint">Platzänderungen werden automatisch veröffentlicht. Neue Kurse und weitere Änderungen prüfst du vorher in der Vorschau.</p>
+      <div id="seat-feedback" role="status" aria-live="polite"><span id="seat-status"></span> <a id="seat-workflow-link" href="https://github.com/juliasutter/juliasutter.github.io/actions" target="_blank" rel="noopener noreferrer" hidden>GitHub-Status</a> <button type="button" id="retry-seats" class="quiet" hidden>Erneut versuchen</button></div>
       <div id="course-list" class="course-grid"></div>
-      <details id="past-section"><summary>Vergangene und archivierte Kurse</summary><div id="past-list" class="course-grid"></div></details>
+      <details id="past-section"><summary id="archive-title">Abgeschlossene Kurse</summary><div id="past-list" class="course-grid"></div></details>
     </section>
   </main>
   <dialog id="editor" aria-labelledby="editor-title">
     <form id="editor-form">
       <div class="dialog-heading"><h2 id="editor-title">Kurs bearbeiten</h2><button type="button" data-close="editor" class="quiet">Schließen</button></div>
       <p id="editor-error" role="alert"></p>
-      <div class="fields">
-        <div><label for="label-de">Bezeichnung · Deutsch</label><input type="text" id="label-de" name="labelDe" required maxlength="120"></div>
-        <div><label for="label-en">Bezeichnung · Englisch</label><input type="text" id="label-en" name="labelEn" required maxlength="120"></div>
-        <div><label for="course-status">Sichtbarkeit und Anmeldung</label><select id="course-status" name="status"><option value="open">Sichtbar · Anmeldung offen</option><option value="waitlist">Sichtbar · Warteliste</option><option value="closed">Ausgeblendet / abgesagt</option></select></div>
-        <div><label for="course-format">Format</label><select id="course-format" name="format"><option value="online">Online</option><option value="vor_ort">Vor Ort</option></select></div>
-        <div class="full"><label for="location">Öffentlicher Veranstaltungsort (optional)</label><input type="text" id="location" name="location" maxlength="200"><small>Keine privaten Einwahllinks oder Zugangscodes eintragen.</small></div>
-        <div><label for="start-time">Beginn · Berliner Zeit</label><input id="start-time" name="startTime" type="time" required></div>
+      <p class="hint">Sechs wöchentliche Termine. Online, sieben Plätze und die üblichen Preise sind schon eingestellt.</p>
+      <div class="fields primary-fields">
+        <div class="full"><label for="date-0">Erster Termin</label><input id="date-0" name="date-0" type="date" required><small id="schedule-summary"></small></div>
+        <div><label for="start-time">Beginn · Deutsche Zeit</label><input id="start-time" name="startTime" type="time" required></div>
         <div><label for="end-time">Ende</label><input id="end-time" name="endTime" type="time" required></div>
-      </div>
-      <fieldset><legend>Die sechs Termine</legend><p class="hint">Einzelne Termine lassen sich verschieben. Leere Uhrzeiten übernehmen die gemeinsame Kurszeit.</p><div id="dates"></div><button type="button" id="weekly" class="quiet">Ab erstem Termin wöchentlich ergänzen</button></fieldset>
-      <div class="fields">
+        <div class="full"><label for="label-de">Kursname</label><input type="text" id="label-de" name="labelDe" maxlength="120" placeholder="Herbst 2026 · Samstagvormittag"><small>Leer lassen, um den Vorschlag aus Startdatum und Uhrzeit zu übernehmen.</small></div>
+        <div><label for="capacity">Gesamtzahl der Plätze</label><input id="capacity" name="capacity" type="number" min="1" max="999" step="1" required></div>
         <div><label for="remaining">Freie Plätze</label><input id="remaining" name="remainingPlaces" type="number" min="0" max="999" step="1" required></div>
-        <div><label for="capacity">Gesamtzahl der Plätze (optional)</label><input id="capacity" name="capacity" type="number" min="1" max="999" step="1"></div>
-        <div><label for="deadline-date">Anmeldeschluss · Datum</label><input id="deadline-date" name="deadlineDate" type="date" required></div>
-        <div><label for="deadline-time">Anmeldeschluss · Berliner Zeit</label><input id="deadline-time" name="deadlineTime" type="time" required></div>
-        <div><label for="price">Standardpreis · €</label><input id="price" name="priceEur" type="number" min="0" max="99999" step="0.01" required></div>
-        <div><label for="friend-price">Freund:innenpreis · € (leer = deaktiviert)</label><input id="friend-price" name="friendPriceEur" type="number" min="0" max="99999" step="0.01"></div>
+        <div class="full"><label for="course-format">Format</label><select id="course-format" name="format"><option value="online">Online</option><option value="vor_ort">Vor Ort</option></select></div>
+        <div class="full" id="location-field" hidden><label for="location">Öffentlicher Veranstaltungsort</label><input type="text" id="location" name="location" maxlength="200"><small>Keine privaten Einwahllinks oder Zugangscodes eintragen.</small></div>
       </div>
+      <details id="session-settings" class="editor-settings"><summary>Einzelne Termine oder Uhrzeiten ändern</summary><p class="hint">Alle Termine verwenden die gemeinsame Kurszeit. Nur Abweichungen eintragen.</p><div id="dates"></div><button type="button" id="weekly" class="quiet">Wieder wöchentlich ab erstem Termin</button></details>
+      <details id="extra-settings" class="editor-settings"><summary>Preise, Anmeldeschluss und weitere Einstellungen</summary>
+        <div class="fields">
+          <div><label for="price">Standardpreis · €</label><input id="price" name="priceEur" type="number" min="0" max="99999" step="0.01" required></div>
+          <div><label for="friend-price">Freund:innenpreis · € (leer = deaktiviert)</label><input id="friend-price" name="friendPriceEur" type="number" min="0" max="99999" step="0.01"></div>
+          <div><label for="deadline-date">Anmeldeschluss · Datum</label><input id="deadline-date" name="deadlineDate" type="date" required></div>
+          <div><label for="deadline-time">Anmeldeschluss · Deutsche Zeit</label><input id="deadline-time" name="deadlineTime" type="time" required></div>
+          <div class="full"><label for="label-en">Kursname · Englisch</label><input type="text" id="label-en" name="labelEn" maxlength="120" placeholder="Autumn 2026 · Saturday morning"><small>Leer lassen für den englischen Vorschlag aus Datum und Uhrzeit.</small></div>
+          <div class="full"><label for="course-status">Sichtbarkeit und Anmeldung</label><select id="course-status" name="status"><option value="open">Sichtbar · Anmeldung offen</option><option value="waitlist">Sichtbar · Warteliste</option><option value="closed">Ausgeblendet / abgesagt</option></select></div>
+        </div>
+      </details>
+      <p id="defaults-summary" class="hint"></p>
       <div class="dialog-footer"><button type="button" data-close="editor" class="quiet">Abbrechen</button><button type="submit">Entwurf speichern</button></div>
     </form>
   </dialog>

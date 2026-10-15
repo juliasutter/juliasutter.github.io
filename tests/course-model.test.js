@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { berlinFields, berlinInstant, mergeCourses, newCourse, validateCourses } from "../assets/course-model.mjs";
+import { berlinFields, berlinInstant, mergeCourses, newCourse, validateCourses, courseLabels, courseEnded } from "../assets/course-model.mjs";
 import { applyCandidate } from "../tools/course-publication.mjs";
 import { fixtureConfig } from "./course-fixtures.js";
 
@@ -21,7 +21,9 @@ test("new courses generate six weekly sessions and a Berlin deadline", () => {
   assert.equal(course.dates.length, 6);
   assert.equal(course.dates[5], "2027-02-17");
   assert.equal(course.registrationDeadline, "2027-01-12T20:00:00.000Z");
-  assert.equal(course.remainingPlaces, 0);
+  assert.equal(course.remainingPlaces, 7);
+  assert.equal(course.capacity, 7);
+  assert.equal(course.labelDe, "Winter 2027 · Mittwochabend");
   validateCourses([course], fixtureConfig);
 });
 for (const [label, change] of [
@@ -33,6 +35,7 @@ for (const [label, change] of [
   ["invalid shared time", (course) => { course.startTime = "28:30"; }],
   ["invalid override", (course) => { course.sessionTimes = { [course.dates[0]]: { startTime: "10:00", endTime: "09:00" } }; }],
   ["late deadline", (course) => { course.registrationDeadline = "2026-12-01T21:00:00+01:00"; }],
+  ["missing in-person location", (course) => { course.format = "vor_ort"; }],
   ["unknown executable field", (course) => { course.script = "alert(1)"; }],
   ["unusable price", (course) => { course.priceEur = 1.333; }],
   ["invalid friend price", (course) => { course.friendPriceEur = 999; }]
@@ -64,4 +67,13 @@ test("three-way comparison keeps independent edits and refuses conflicting edits
   assert.equal(merged.find((course) => course.id === base[1].id).remainingPlaces, 4);
   remote[0].remainingPlaces = 0;
   assert.throws(() => mergeCourses(base, draft, remote), /GitHub geändert/);
+});
+
+test("names follow season, weekday and time; archive starts at the final session end", () => {
+  assert.deepEqual(courseLabels("2026-10-17", "10:00"), { labelDe: "Herbst 2026 · Samstagvormittag", labelEn: "Autumn 2026 · Saturday morning" });
+  assert.equal(courseLabels("2027-03-01", "18:00").labelDe, "Frühling 2027 · Montagabend");
+  const course = newCourse("2026-10-17", fixtureConfig);
+  course.sessionTimes = { "2026-11-21": { startTime: "10:00", endTime: "12:30" } };
+  assert.equal(courseEnded(course, fixtureConfig, new Date("2026-11-21T11:29:59Z")), false);
+  assert.equal(courseEnded(course, fixtureConfig, new Date("2026-11-21T11:30:00Z")), true);
 });
