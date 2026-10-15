@@ -201,6 +201,7 @@ function openEditor(course, isNew = false) {
   if (publishing && !automaticPublication) return;
   const generated = newCourse(course.dates[0], config);
   editing = { course: clone(course), isNew, customDates: course.dates.some((date, index) => date !== generated.dates[index]), customDeadline: Boolean(course.registrationDeadline) && new Date(course.registrationDeadline).getTime() !== new Date(generated.registrationDeadline).getTime() };
+  editing.customTime = !isNew;
   const form = $("editor-form");
   form.reset();
   $("extra-settings").open = false;
@@ -249,6 +250,10 @@ field("format").addEventListener("change", updateFormat);
 field("date-0").addEventListener("input", () => {
   if (!field("date-0").value) return;
   const generated = newCourse(field("date-0").value, config);
+  if (!editing.customTime) {
+    field("startTime").value = generated.startTime;
+    field("endTime").value = generated.endTime;
+  }
   if (!editing.customDates) generated.dates.slice(1).forEach((value, index) => { field(`date-${index + 1}`).value = value; });
   if (!editing.customDeadline) {
     const deadline = berlinFields(generated.registrationDeadline);
@@ -256,7 +261,8 @@ field("date-0").addEventListener("input", () => {
   }
   updateEditorHints();
 });
-for (const name of ["deadlineDate", "deadlineTime", "priceEur", "friendPriceEur", "startTime"]) field(name).addEventListener("input", () => {
+for (const name of ["deadlineDate", "deadlineTime", "priceEur", "friendPriceEur", "startTime", "endTime"]) field(name).addEventListener("input", () => {
+  if (name === "startTime" || name === "endTime") editing.customTime = true;
   if (name.startsWith("deadline")) editing.customDeadline = true;
   if (field("deadlineDate").value) updateEditorHints();
 });

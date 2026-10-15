@@ -369,3 +369,29 @@ test("discard cannot forget an uncertain dispatch; discarding queued edits cance
   await expect(page.locator("#discard")).toBeDisabled();
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem("julia-course-draft-v1")).activeRun.requestId)).toBe(mock.runs[0].payload.inputs.request_id);
 });
+
+for (const override of ["start-time", "end-time"]) test(`new course times follow the start weekday until ${override} is changed manually`, async ({ page }) => {
+  await localEditor(page);
+  await page.getByRole("button", { name: "+ Neuer Kurs", exact: true }).click();
+  for (const [date, start, end] of [["2027-03-05", "20:00", "22:00"], ["2027-03-06", "09:00", "11:00"], ["2027-03-07", "09:00", "11:00"], ["2027-03-08", "20:00", "22:00"]]) {
+    await page.locator("#date-0").fill(date);
+    await expect(page.locator("#start-time")).toHaveValue(start);
+    await expect(page.locator("#end-time")).toHaveValue(end);
+  }
+  await page.locator(`#${override}`).fill(override === "start-time" ? "19:00" : "21:00");
+  await page.locator("#date-0").fill("2027-03-13");
+  await expect(page.locator("#start-time")).toHaveValue(override === "start-time" ? "19:00" : "20:00");
+  await expect(page.locator("#end-time")).toHaveValue(override === "end-time" ? "21:00" : "22:00");
+  await page.getByRole("button", { name: "Entwurf speichern", exact: true }).click();
+  const stored = await page.evaluate(() => JSON.parse(localStorage.getItem("julia-course-draft-v1")).courses.at(-1));
+  expect(stored.startTime).toBe(override === "start-time" ? "19:00" : "20:00");
+  expect(stored.endTime).toBe(override === "end-time" ? "21:00" : "22:00");
+});
+
+test("rescheduling an existing course preserves its previously saved time", async ({ page }) => {
+  await localEditor(page);
+  await page.locator("#course-list article").first().getByRole("button", { name: "Bearbeiten", exact: true }).click();
+  await page.locator("#date-0").fill("2026-10-19");
+  await expect(page.locator("#start-time")).toHaveValue("09:00");
+  await expect(page.locator("#end-time")).toHaveValue("11:00");
+});

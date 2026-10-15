@@ -108,6 +108,10 @@ export function courseEnded(course, defaults = {}, now = new Date()) {
 }
 
 export function newCourse(startDate, defaults = {}) {
+  const weekday = new Date(`${startDate}T12:00:00Z`).getUTCDay();
+  const weekend = weekday === 0 || weekday === 6;
+  const startTime = weekend ? "09:00" : defaults.defaultStartTime || "20:00";
+  const endTime = weekend ? "11:00" : defaults.defaultEndTime || "22:00";
   const dates = Array.from({ length: 6 }, (_, index) => {
     const date = new Date(`${startDate}T12:00:00Z`);
     date.setUTCDate(date.getUTCDate() + index * 7);
@@ -116,8 +120,8 @@ export function newCourse(startDate, defaults = {}) {
   const before = new Date(`${startDate}T12:00:00Z`);
   before.setUTCDate(before.getUTCDate() - 1);
   return {
-    id: `starter-${globalThis.crypto.randomUUID()}`, ...courseLabels(startDate, defaults.defaultStartTime || "20:00"), status: "open",
-    dates, startTime: defaults.defaultStartTime || "20:00", endTime: defaults.defaultEndTime || "22:00",
+    id: `starter-${globalThis.crypto.randomUUID()}`, ...courseLabels(startDate, startTime), status: "open",
+    dates, startTime, endTime,
     format: "online", capacity: 7, remainingPlaces: 7, registrationDeadline: berlinInstant(before.toISOString().slice(0, 10), "21:00"),
     priceEur: defaults.priceEur ?? 399, friendPriceEur: defaults.friendPriceEur ?? 349
   };

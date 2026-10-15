@@ -77,3 +77,20 @@ test("names follow season, weekday and time; archive starts at the final session
   assert.equal(courseEnded(course, fixtureConfig, new Date("2026-11-21T11:29:59Z")), false);
   assert.equal(courseEnded(course, fixtureConfig, new Date("2026-11-21T11:30:00Z")), true);
 });
+
+test("new course time defaults distinguish weekdays and weekends, with matching names and prices", () => {
+  for (const [date, start, end, name] of [
+    ["2027-03-05", "20:00", "22:00", "Frühling 2027 · Freitagabend"],
+    ["2027-03-06", "09:00", "11:00", "Frühling 2027 · Samstagvormittag"],
+    ["2027-03-07", "09:00", "11:00", "Frühling 2027 · Sonntagvormittag"],
+    ["2027-03-08", "20:00", "22:00", "Frühling 2027 · Montagabend"]
+  ]) {
+    const course = newCourse(date, fixtureConfig);
+    assert.equal(course.startTime, start);
+    assert.equal(course.endTime, end);
+    assert.equal(course.labelDe, name);
+    assert.equal(course.priceEur, 399);
+    assert.equal(course.friendPriceEur, 349);
+    validateCourses([course], fixtureConfig);
+  }
+});
