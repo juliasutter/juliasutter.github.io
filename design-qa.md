@@ -151,3 +151,30 @@ Dependency commit `65b5b7d` was merged into this detached worktree without confl
 - Remaining failure: `tests/site.spec.js` course-height assertion at desktop expects <=810px but measures 834.5625px. Reproduced identically in a clean archive of pre-change HEAD `4fd3999`, so the unrelated assertion and course layout were left unchanged. Consequently the complete CI gate is not green.
 - Lighthouse: all assertions passed across six runs; performance 94–95, accessibility/best-practices/SEO 100 on both routes.
 - Local preview reloaded successfully after checks and remains running for acceptance.
+
+---
+
+# Design QA — Course availability and registration deadline (2026-10-15)
+
+## Reference and evidence
+
+- Approved reference: the course-list mockup selected in this chat (`exec-e5175ae8-8444-4a44-925a-cb2b57a87844.png`).
+- Desktop capture: `/Users/maxsutter/.codex/visualizations/2026/10/15/01a13e12-c682-7241-ba95-43cf8889f994/course-availability-desktop.png` (1280 × 720).
+- Mobile captures in the same folder: `course-availability-mobile.png` and `course-availability-form.png` (390 × 844).
+- Local route: `http://127.0.0.1:8000/#starter-class`.
+
+## Visual result
+
+The approved enlarged course component and the rendered desktop course list were inspected together. The implementation retains the existing page's component width and typography scale. Date, schedule, availability and deadline follow the approved hierarchy; the three underlined registration actions remain aligned at the right of each row. Existing colors, fonts, thin dividers, course image and surrounding layout are preserved.
+
+October shows two remaining places and the Friday, 16 October, 21:00 deadline. January and February show availability without a count or deadline in the list. At 390 px the October deadline wraps naturally; the time and its unit stay together. The selected course's availability and complete deadline also appear beneath the form's course selector. The October registration action selects the matching course and focuses the form heading. No browser console errors were observed.
+
+## Verification
+
+- `npm run test:ci` passed: lint, HTML validation, site checks, unit tests, 289 browser tests (4 existing skips), and all Lighthouse assertions across six runs.
+- Coverage includes remaining-place thresholds, sold-out and waitlist states, the seven-day visibility boundary, summer/winter deadlines outside the visitor's time zone, course selection, and preventing submission from a form left open past the cutoff.
+- Rest places remain explicitly maintained in the shared course configuration; this static site does not provide a transactional capacity reservation or server-side deadline enforcement.
+
+No actionable P0, P1 or P2 visual findings remain.
+
+final result: passed

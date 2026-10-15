@@ -23,6 +23,13 @@
       sixDates: "6 Termine",
       courseFormatOnline: "Online",
       courseFormatInPerson: "Vor Ort",
+      placesAvailable: "Freie Plätze",
+      placesRemaining: (count) => `Noch ${count} ${count === 1 ? "Platz" : "Plätze"} frei`,
+      fullyBooked: "Ausgebucht",
+      registrationClosed: "Anmeldung geschlossen",
+      registrationDeadline: (date, time) => `Anmeldung bis ${date}, ${time.replace(/:00$/, "")}\u00a0Uhr`,
+      registrationClosedError: "Anmeldung geschlossen: Die Anmeldefrist für diesen Kurs ist abgelaufen. Bitte wähle einen anderen Kurs.",
+      fullyBookedError: "Dieser Kurs ist ausgebucht. Bitte wähle einen anderen Kurs.",
       shortMonths: ["Jan.", "Feb.", "März", "Apr.", "Mai", "Juni", "Juli", "Aug.", "Sep.", "Okt.", "Nov.", "Dez."],
       shortWeekdays: ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"],
       sending: "Wird gesendet…",
@@ -73,6 +80,13 @@
       sixDates: "6 sessions",
       courseFormatOnline: "Online",
       courseFormatInPerson: "In person",
+      placesAvailable: "Places available",
+      placesRemaining: (count) => `${count} ${count === 1 ? "place" : "places"} left`,
+      fullyBooked: "Fully booked",
+      registrationClosed: "Registration closed",
+      registrationDeadline: (date, time) => `Register by ${date}, ${time} (Berlin time)`,
+      registrationClosedError: "Registration closed: The registration deadline for this course has passed. Please choose another course.",
+      fullyBookedError: "This course is fully booked. Please choose another course.",
       shortMonths: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
       shortWeekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
       sending: "Sending…",
@@ -282,8 +296,11 @@
     const dates = Array.isArray(course.dates) ? course.dates.map(parseCourseDate) : [];
     if (dates.length !== 6 || dates.some((date) => !date)) return null;
     if (new Set(dates.map((date) => date.getTime())).size !== dates.length) return null;
+    if (course.remainingPlaces !== undefined && (!Number.isInteger(course.remainingPlaces) || course.remainingPlaces < 0)) return null;
+    const registrationDeadline = course.registrationDeadline === undefined ? null : new Date(course.registrationDeadline);
+    if (registrationDeadline && !Number.isFinite(registrationDeadline.getTime())) return null;
     dates.sort((a, b) => a - b);
-    return { ...course, dates };
+    return { ...course, dates, registrationDeadline };
   };
 
   const courseHasStarted = (course, now = new Date()) => {
@@ -295,12 +312,16 @@
     }).format(now);
     return currentTime >= (course.startTime || config.defaultStartTime || "20:00");
   };
+  const courseRegistrationClosed = (course, now = new Date()) => Boolean(course.registrationDeadline && now >= course.registrationDeadline);
+  const courseIsBookable = (course) => !courseHasStarted(course) && !courseRegistrationClosed(course)
+    && (course.status === "waitlist" || course.remainingPlaces !== 0);
   const today = calendarDateInTimeZone(new Date(), courseTimeZone);
   const courses = (Array.isArray(config.courses) ? config.courses : [])
     .map(normalizeCourse)
     .filter((course) => course && course.status !== "closed" && !courseHasStarted(course))
     .sort((a, b) => a.dates[0] - b.dates[0]);
-  const featuredCourse = courses[0] || null;
+  const bookableCourses = courses.filter(courseIsBookable);
+  const featuredCourse = bookableCourses[0] || null;
   let selectedCourse = featuredCourse;
   let courseMode = selectedCourse ? selectedCourse.status : "inquiry";
 
@@ -467,6 +488,40 @@
     return "";
   };
 
+  const getCourseAvailability = (course) => {
+    if (!course) return "";
+    if (courseRegistrationClosed(course)) return copy.registrationClosed;
+    if (course.status === "waitlist") return copy.waitlistStatus;
+    if (course.remainingPlaces === 0) return copy.fullyBooked;
+    if (course.remainingPlaces <= 3) return copy.placesRemaining(course.remainingPlaces);
+    return copy.placesAvailable;
+  };
+
+  const formatRegistrationDeadline = (course) => {
+    if (!course?.registrationDeadline) return "";
+    const locale = language === "de" ? "de-DE" : "en-GB";
+    const weekday = new Intl.DateTimeFormat(locale, {
+      weekday: "long", timeZone: courseTimeZone
+    }).format(course.registrationDeadline);
+    const date = new Intl.DateTimeFormat(locale, {
+      day: "numeric", month: "long", timeZone: courseTimeZone
+    }).format(course.registrationDeadline);
+    const time = new Intl.DateTimeFormat("en-GB", {
+      hour: "2-digit", minute: "2-digit", hourCycle: "h23", timeZone: courseTimeZone
+    }).format(course.registrationDeadline);
+    return copy.registrationDeadline(`${weekday}, ${date}`, time);
+  };
+
+  const courseRegistrationStatus = courseForm?.querySelector("[data-course-registration-status]");
+  const updateCourseRegistrationStatus = (course) => {
+    if (!courseRegistrationStatus) return;
+    courseRegistrationStatus.hidden = !course;
+    courseRegistrationStatus.querySelector("[data-course-availability]").textContent = getCourseAvailability(course);
+    const deadline = courseRegistrationStatus.querySelector("[data-course-deadline]");
+    deadline.textContent = formatRegistrationDeadline(course);
+    deadline.hidden = !deadline.textContent;
+  };
+
   const setCourseFormatFields = (course) => {
     const formatLabel = getCourseFormat(course);
     if (bindingCourseFormatRow) bindingCourseFormatRow.hidden = !formatLabel;
@@ -510,13 +565,14 @@
       bindingMobileCourseSchedule.textContent = formatMobileCourseSchedule(selectedCourse);
     }
     setCourseFormatFields(selectedCourse);
+    updateCourseRegistrationStatus(selectedCourse);
     setFieldGroupEnabled(bindingFields, courseMode === "open");
     setFieldGroupEnabled(bindingCheckout, courseMode === "open");
     updateRegistrationPrice();
     setEarlyStartConsentEnabled(courseMode === "open" && courseStartsWithinWithdrawalPeriod(selectedCourse));
   };
 
-  const visibleCourseOptions = courses;
+  const visibleCourseOptions = bookableCourses;
   if (courseSelect) {
     courseSelect.innerHTML = "";
     if (!visibleCourseOptions.length) {
@@ -548,13 +604,16 @@
   const courseList = document.querySelector("[data-course-list]");
   if (courseList) {
     courseList.hidden = !courses.length;
-    document.querySelectorAll("[data-course-inquiry]").forEach((element) => { element.hidden = courses.length > 0; });
+    document.querySelectorAll("[data-course-inquiry]").forEach((element) => { element.hidden = bookableCourses.length > 0; });
     courses.forEach((course) => {
       const item = document.createElement("li");
-      const link = document.createElement("a");
+      const bookable = courseIsBookable(course);
+      const link = document.createElement(bookable ? "a" : "div");
       link.className = "course-option";
-      link.href = language === "de" ? "#anmeldung" : "#contact";
-      link.dataset.openForm = "course";
+      if (bookable) {
+        link.href = language === "de" ? "#anmeldung" : "#contact";
+        link.dataset.openForm = "course";
+      }
       link.dataset.courseId = course.id;
 
       const details = document.createElement("span");
@@ -564,10 +623,26 @@
       schedule.textContent = [formatSchedule(course), getCourseFormat(course)].filter(Boolean).join(" · ");
       details.append(title, schedule);
 
-      const action = document.createElement("span");
-      action.className = "course-option-action";
-      action.textContent = modeCopy[course.status].cta;
-      link.append(details, action);
+      const availability = document.createElement("span");
+      availability.className = "course-availability";
+      availability.dataset.courseAvailability = "";
+      availability.textContent = getCourseAvailability(course);
+      details.append(availability);
+      const daysUntilStart = (course.dates[0] - today) / 86400000;
+      if (bookable && course.registrationDeadline && daysUntilStart <= 7) {
+        const deadline = document.createElement("span");
+        deadline.dataset.courseDeadline = "";
+        deadline.textContent = formatRegistrationDeadline(course);
+        details.append(deadline);
+      }
+
+      link.append(details);
+      if (bookable) {
+        const action = document.createElement("span");
+        action.className = "course-option-action";
+        action.textContent = modeCopy[course.status].cta;
+        link.append(action);
+      }
       item.append(link);
       courseList.append(item);
     });
@@ -779,8 +854,10 @@
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
       if (submitting || completed || !form.reportValidity()) return;
-      if (form === courseForm && selectedCourse && courseHasStarted(selectedCourse)) {
-        setStatus(copy.courseStarted);
+      if (form === courseForm && selectedCourse && !courseIsBookable(selectedCourse)) {
+        setStatus(courseHasStarted(selectedCourse) ? copy.courseStarted
+          : courseRegistrationClosed(selectedCourse) ? copy.registrationClosedError : copy.fullyBookedError);
+        updateCourseRegistrationStatus(selectedCourse);
         return;
       }
       const formEndpoint = endpoint;

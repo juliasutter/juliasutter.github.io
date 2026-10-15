@@ -3,6 +3,8 @@
   // status: "open" = binding registration, "waitlist" = non-binding waitlist,
   // "closed" = hidden from the public course selection.
   // format: "online" = online course, "vor_ort" = in-person course.
+  // remainingPlaces: actual places still available; update after bookings/cancellations.
+  // registrationDeadline: ISO timestamp with the Berlin UTC offset (+01:00 or +02:00).
   //
   // Example:
   // {
@@ -29,6 +31,8 @@
         labelDe: "Herbst 2026 · Samstagvormittag",
         labelEn: "Autumn 2026 · Saturday mornings",
         status: "open",
+        remainingPlaces: 2,
+        registrationDeadline: "2026-10-16T21:00:00+02:00",
         format: "online",
         startTime: "09:00",
         endTime: "11:00",
@@ -39,6 +43,8 @@
         labelDe: "Winter 2027 · Mittwochabend",
         labelEn: "Winter 2027 · Wednesday evenings",
         status: "open",
+        remainingPlaces: 7,
+        registrationDeadline: "2027-01-12T21:00:00+01:00",
         format: "online",
         startTime: "20:00",
         endTime: "22:00",
@@ -49,6 +55,8 @@
         labelDe: "Winter 2027 · Samstagvormittag",
         labelEn: "Winter 2027 · Saturday mornings",
         status: "open",
+        remainingPlaces: 7,
+        registrationDeadline: "2027-02-19T21:00:00+01:00",
         format: "online",
         startTime: "09:00",
         endTime: "11:00",

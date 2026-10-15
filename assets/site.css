@@ -1265,7 +1265,7 @@ body.story-open {
   text-decoration: none;
 }
 
-.course-option:hover {
+.course-option[href]:hover {
   border-color: var(--clay-dark);
 }
 
@@ -1286,6 +1286,26 @@ body.story-open {
   font-weight: 750;
   text-decoration: underline;
   text-underline-offset: 3px;
+}
+
+.course-availability,
+.course-registration-status > [data-course-availability] {
+  font-weight: 600;
+}
+
+.course-option .course-availability {
+  margin-top: 8px;
+}
+
+.course-registration-status {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 14px;
+}
+
+.course-registration-status > span {
+  display: block;
 }
 
 .fine-print {
