@@ -21,6 +21,7 @@ const changed = () => JSON.stringify(courses) !== JSON.stringify(baseCourses);
 const locked = () => preparing || resuming;
 const hasUnsentChanges = () => token && JSON.stringify(courses) !== JSON.stringify(activeRun?.courses || baseCourses);
 const clone = (value) => JSON.parse(JSON.stringify(value));
+const courseCapacity = (course) => course.capacity ?? Math.max(7, course.remainingPlaces);
 const status = (message) => { $("status").textContent = message; };
 const field = (name) => $("editor-form").elements.namedItem(name);
 const local = ["127.0.0.1", "localhost", "[::1]"].includes(window.location.hostname);
@@ -109,13 +110,13 @@ function card(course, controls = true, language = "de") {
     if (!courseEnded(course, config) && !course.archived) {
       const stepper = element("div", undefined, "seat-stepper");
       const count = element("div");
-      count.append(element("strong", String(course.remainingPlaces)), element("span", course.capacity ? ` von ${course.capacity} Plätzen frei` : " Plätze frei"));
+      count.append(element("strong", String(course.remainingPlaces)), element("span", ` von ${courseCapacity(course)} Plätzen frei`));
       const minus = button("−", () => adjustSeats(course.id, -1));
       const plus = button("+", () => adjustSeats(course.id, 1));
       for (const [control, direction, label] of [[minus, -1, "Einen Platz weniger"], [plus, 1, "Einen Platz mehr"]]) {
         control.setAttribute("aria-label", `${label} · ${course.labelDe}`);
         control.dataset.seatDirection = direction;
-        control.disabled = locked() || (direction < 0 ? course.remainingPlaces === 0 : course.remainingPlaces >= (course.capacity ?? 999));
+        control.disabled = locked() || (direction < 0 ? course.remainingPlaces === 0 : course.remainingPlaces >= courseCapacity(course));
       }
       stepper.append(minus, count, plus);
       item.append(stepper);
@@ -207,7 +208,7 @@ function openEditor(course, isNew = false) {
   $("editor-title").textContent = isNew ? "Neuer Kurs" : "Kurs bearbeiten";
   for (const name of ["labelDe", "labelEn", "status", "format", "location", "remainingPlaces"]) field(name).value = course[name] ?? config[name] ?? "";
   for (const name of ["startTime", "endTime"]) field(name).value = sessionTime({ ...course, sessionTimes: undefined }, course.dates[0], config)[name];
-  field("capacity").value = course.capacity ?? Math.max(7, course.remainingPlaces);
+  field("capacity").value = courseCapacity(course);
   field("remainingPlaces").max = field("capacity").value;
   editing.autoName = isNew || course.labelDe === courseLabels(course.dates[0], field("startTime").value).labelDe;
   editing.autoEnglishName = isNew || course.labelEn === courseLabels(course.dates[0], field("startTime").value).labelEn;
@@ -359,8 +360,10 @@ function requestSave(delay = 0) {
 function adjustSeats(id, delta) {
   if (locked()) return;
   const course = courses.find((entry) => entry.id === id);
+  const capacity = courseCapacity(course);
   const value = course.remainingPlaces + delta;
-  if (value < 0 || value > (course.capacity ?? 999)) return;
+  if (value < 0 || value > capacity) return;
+  course.capacity = capacity;
   course.remainingPlaces = value;
   render();
   requestSave(800);

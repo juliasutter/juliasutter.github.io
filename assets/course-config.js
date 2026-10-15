@@ -15,6 +15,7 @@ window.JULIA_SITE_CONFIG = {
       "labelEn": "Autumn 2026 · Saturday mornings",
       "status": "open",
       "remainingPlaces": 2,
+      "capacity": 7,
       "registrationDeadline": "2026-10-16T21:00:00+02:00",
       "format": "online",
       "startTime": "09:00",
@@ -34,6 +35,7 @@ window.JULIA_SITE_CONFIG = {
       "labelEn": "Winter 2027 · Wednesday evenings",
       "status": "open",
       "remainingPlaces": 7,
+      "capacity": 7,
       "registrationDeadline": "2027-01-12T21:00:00+01:00",
       "format": "online",
       "startTime": "20:00",
@@ -53,6 +55,7 @@ window.JULIA_SITE_CONFIG = {
       "labelEn": "Winter 2027 · Saturday mornings",
       "status": "open",
       "remainingPlaces": 7,
+      "capacity": 7,
       "registrationDeadline": "2027-02-19T21:00:00+01:00",
       "format": "online",
       "startTime": "09:00",
@@ -67,5 +70,5 @@ window.JULIA_SITE_CONFIG = {
       ]
     }
   ],
-  "dataVersion": "17a08c881056979c848cc23413701bb948e3fa4b6d91fe256ce73e1d6e77d472"
+  "dataVersion": "1ab40a548fd3b16063b01f9d7d50cd6bf0dbea671d4c98988df40ab5da31a244"
 };

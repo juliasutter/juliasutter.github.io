@@ -28,7 +28,7 @@ Die produktive Einrichtung wurde durch die lokale Implementierung nicht vorgenom
 
 **Automatisches Archiv:** Zukünftige und laufende Kurse stehen unter **Aktuelle Kurse**. Erst ab dem Ende des letzten Termins wechseln sie automatisch in das eingeklappte Archiv. Dafür wird nichts veröffentlicht und nichts gelöscht. Frühere manuell archivierte Datensätze bleiben ebenfalls dort erhalten. Öffentlich verschwinden Kurse weiterhin schon mit dem Beginn des ersten Termins. Veröffentlichte Kursdaten und Git-Historie sind öffentlich; Teilnehmerdaten gehören nicht hierher.
 
-Zeitzone ist `Europe/Berlin` (in der Oberfläche „Deutsche Zeit“), einschließlich Sommer- und Winterzeit. Nicht existierende oder doppeldeutige Uhrzeiten werden abgelehnt. Die Gesamtzahl ist im Editor verpflichtend, mit sieben als Vorgabe bei neuen und bislang unbekannten Kapazitäten (mindestens vorhandene freie Plätze). Bestehende Daten ohne Kapazität bleiben bis zur Bearbeitung unverändert.
+Zeitzone ist `Europe/Berlin` (in der Oberfläche „Deutsche Zeit“), einschließlich Sommer- und Winterzeit. Nicht existierende oder doppeldeutige Uhrzeiten werden abgelehnt. Die Gesamtzahl ist im Editor verpflichtend. Bei neuen Kursen und älteren Daten ohne Kapazität gilt einheitlich sieben als Vorgabe (mindestens vorhandene freie Plätze), auch für die Anzeige und das Plus-Limit in der Übersicht. Bei der nächsten Bearbeitung oder Platzänderung wird diese Kapazität mitgespeichert. Die bestehenden drei Durchläufe haben jeweils sieben Gesamtplätze.
 
 ## Veröffentlichung und Fehler
 

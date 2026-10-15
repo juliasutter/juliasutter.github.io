@@ -443,3 +443,27 @@ test("a successful superseded request reloads verified current courses and unloc
   expect(mock.publication()).toBeUndefined();
   expect(await page.evaluate(() => localStorage.getItem("julia-course-publication-v1"))).toBeNull();
 });
+
+for (const [capacity, remaining, expected] of [[undefined, 7, 7], [undefined, 9, 9], [10, 10, 10]]) {
+  test(`seat capacity is consistent before and after editing (${capacity ?? "legacy"}, ${remaining} remaining)`, async ({ page }) => {
+    const data = configCopy();
+    data.courses[0].remainingPlaces = remaining;
+    if (capacity !== undefined) data.courses[0].capacity = capacity;
+    await page.route("**/assets/course-config.json*", (route) => route.fulfill({ json: data }));
+    await localEditor(page);
+    const card = page.locator("#course-list article").first();
+    const plus = card.getByRole("button", { name: /Einen Platz mehr/ });
+    await expect(card.locator(".seat-stepper")).toContainText(`von ${expected} Plätzen frei`);
+    await expect(plus).toBeDisabled();
+    await card.getByRole("button", { name: /Einen Platz weniger/ }).click();
+    await expect(card.locator(".seat-stepper")).toContainText(`von ${expected} Plätzen frei`);
+    await expect(plus).toBeEnabled();
+    await plus.click();
+    await expect(plus).toBeDisabled();
+    await card.getByRole("button", { name: "Bearbeiten", exact: true }).click();
+    await expect(page.locator("#capacity")).toHaveValue(String(expected));
+    await page.locator("#save-course").click();
+    await expect(card.locator(".seat-stepper")).toContainText(`von ${expected} Plätzen frei`);
+    await expect(plus).toBeDisabled();
+  });
+}
