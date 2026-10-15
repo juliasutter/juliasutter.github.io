@@ -2,24 +2,24 @@ import { berlinFields, berlinInstant, newCourse, sessionTime, validateCourses, m
 
 const repository = "/repos/juliasutter/juliasutter.github.io";
 const workflow = "site-quality.yml";
-const draftKey = "julia-course-draft-v1";
+const runKey = "julia-course-publication-v1";
 const $ = (id) => document.getElementById(id);
 let token = "";
 let config;
 let courses = [];
 let baseCourses = [];
-let baseSha = "";
 let editing;
 let editorInitial = "";
 let publishing = false;
+let preparing = false;
+let resuming = false;
 let session = 0;
 let activeRun = null;
-let seatChanges = {};
-let seatTimer;
-let seatError = "";
-let automaticPublication = false;
-const hasSeatChanges = () => Object.keys(seatChanges).length > 0;
+let saveTimer;
+let saveError = "";
 const changed = () => JSON.stringify(courses) !== JSON.stringify(baseCourses);
+const locked = () => preparing || resuming;
+const hasUnsentChanges = () => token && JSON.stringify(courses) !== JSON.stringify(activeRun?.courses || baseCourses);
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const status = (message) => { $("status").textContent = message; };
 const field = (name) => $("editor-form").elements.namedItem(name);
@@ -63,43 +63,6 @@ async function loadRemote() {
   const data = JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(file.content.replace(/\s/g, "")), (character) => character.charCodeAt(0))));
   validateCourses(data.courses, data);
   return { sha, data };
-}
-function saveDraft() {
-  try {
-    if (changed() || hasSeatChanges() || activeRun) localStorage.setItem(draftKey, JSON.stringify({ baseSha, baseCourses, courses, activeRun, seatChanges }));
-    else localStorage.removeItem(draftKey);
-    $("draft-status").textContent = changed() ? "Entwurf in diesem Browser gespeichert" : "Alles auf dem aktuellen Stand";
-  } catch (_) {
-    $("draft-status").textContent = "Dieser Browser kann den Entwurf nicht speichern. Bitte vor dem Schließen veröffentlichen oder die Daten sichern.";
-  }
-  $("draft-toolbar").hidden = !changed() && !hasSeatChanges() && !activeRun;
-  $("review").disabled = (!changed() && !activeRun) || publishing || hasSeatChanges();
-  $("discard").disabled = (!changed() && !hasSeatChanges()) || publishing || Boolean(activeRun);
-}
-function restoreDraft() {
-  try {
-    const draft = JSON.parse(localStorage.getItem(draftKey) || "null");
-    if (!draft) return;
-    validateCourses(draft.courses, config);
-    validateCourses(draft.baseCourses, config);
-    if (typeof draft.baseSha !== "string") throw new Error("Invalid draft");
-    courses = draft.courses;
-    baseCourses = draft.baseCourses;
-    baseSha = draft.baseSha;
-    seatChanges = {};
-    for (const [id, change] of Object.entries(draft.seatChanges || {})) {
-      const course = courses.find((entry) => entry.id === id);
-      if (course && baseCourses.some((entry) => entry.id === id) && Number.isInteger(change.from) && change.from >= 0 && change.from <= 999 && change.value === course.remainingPlaces) seatChanges[id] = change;
-    }
-    activeRun = draft.activeRun && (Number.isSafeInteger(draft.activeRun.id) || /^[a-f0-9-]{36}$/.test(draft.activeRun.requestId || "")) && /^[a-f0-9]{64}$/.test(draft.activeRun.version || "") ? draft.activeRun : null;
-    if (activeRun) {
-      validateCourses(activeRun.courses, config);
-    }
-    if (activeRun?.kind === "seats") {
-      if (!activeRun.seats || Object.entries(activeRun.seats).some(([id, change]) => !Number.isInteger(change.from) || change.from < 0 || change.from > 999 || change.value !== activeRun.courses.find((course) => course.id === id)?.remainingPlaces)) activeRun = null;
-    }
-    status("Dein lokaler Entwurf wurde wiederhergestellt. Vor dem Veröffentlichen wird der Stand auf GitHub abgeglichen.");
-  } catch (_) { status("Ein gespeicherter Entwurf konnte nicht wiederhergestellt werden. Die veröffentlichten Kurse wurden geladen."); }
 }
 function courseStarted(course) {
   return new Date(berlinInstant(course.dates[0], sessionTime(course, course.dates[0], config).startTime)) <= new Date();
@@ -152,14 +115,14 @@ function card(course, controls = true, language = "de") {
       for (const [control, direction, label] of [[minus, -1, "Einen Platz weniger"], [plus, 1, "Einen Platz mehr"]]) {
         control.setAttribute("aria-label", `${label} · ${course.labelDe}`);
         control.dataset.seatDirection = direction;
-        control.disabled = (publishing && !automaticPublication) || (direction < 0 ? course.remainingPlaces === 0 : course.remainingPlaces >= (course.capacity ?? 999));
+        control.disabled = locked() || (direction < 0 ? course.remainingPlaces === 0 : course.remainingPlaces >= (course.capacity ?? 999));
       }
       stepper.append(minus, count, plus);
       item.append(stepper);
     }
     const actions = element("div", undefined, "actions");
     const edit = button("Bearbeiten", () => openEditor(course));
-    edit.disabled = publishing && !automaticPublication;
+    edit.disabled = locked();
     actions.append(edit);
     item.append(actions);
   }
@@ -177,20 +140,56 @@ function render() {
   if (!$("course-list").children.length) $("course-list").append(element("p", "Hier ist Platz für deinen nächsten Kurs."));
   $("past-section").hidden = !$("past-list").children.length;
   $("archive-title").textContent = `Abgeschlossene Kurse (${ $("past-list").children.length })`;
-  saveDraft();
+  $("add-course").disabled = locked();
+  $("save-course").disabled = locked();
   if (focusId && direction) Array.from($("workspace").querySelectorAll("[data-course-id]")).find((item) => item.dataset.courseId === focusId)?.querySelector(`[data-seat-direction="${direction}"]`)?.focus({ preventScroll: true });
 }
 function editorSnapshot() { return JSON.stringify(Array.from(new FormData($("editor-form")).entries())); }
+function setSection(id, visible) {
+  $(id).hidden = !visible;
+  const control = $(id === "session-settings" ? "edit-sessions" : "edit-settings");
+  control.setAttribute("aria-expanded", String(visible));
+}
+function showEnglishName() {
+  $("english-name-field").hidden = editing.autoName;
+}
 function updateEditorHints() {
+  const dates = Array.from({ length: 6 }, (_, index) => field(`date-${index}`).value);
+  const start = field("startTime").value;
+  const end = field("endTime").value;
+  if (dates[0] && start && editing.autoName) {
+    const names = courseLabels(dates[0], start);
+    field("labelDe").value = names.labelDe;
+    if (editing.autoEnglishName) field("labelEn").value = names.labelEn;
+  }
+  if (dates.every(Boolean)) {
+    const weekdays = dates.map((date) => new Date(`${date}T12:00:00Z`).getUTCDay());
+    const days = new Set(weekdays).size === 1 ? ["Sonntage", "Montage", "Dienstage", "Mittwoche", "Donnerstage", "Freitage", "Samstage"][weekdays[0]] : "Termine";
+    const times = dates.map((_, index) => `${field(`start-${index}`).value || start}–${field(`end-${index}`).value || end}`);
+    const time = new Set(times).size === 1 ? `jeweils ${times[0]} Uhr` : "mit unterschiedlichen Uhrzeiten";
+    $("schedule-summary").textContent = `6 ${days} vom ${dateLabel(dates[0])} bis ${dateLabel(dates[5])}, ${time}`;
+  } else $("schedule-summary").textContent = "Bitte alle sechs Termine vollständig angeben.";
+  $("defaults-summary").textContent = field("deadlineDate").value ? `Anmeldung bis ${dateLabel(field("deadlineDate").value)}, ${field("deadlineTime").value} Uhr · ${field("priceEur").value} €${field("friendPriceEur").value ? ` / ${field("friendPriceEur").value} € mit Freund:in` : ""}` : "Anmeldeschluss bitte ergänzen.";
+}
+for (const [buttonId, sectionId] of [["edit-sessions", "session-settings"], ["edit-settings", "extra-settings"]]) $(buttonId).addEventListener("click", () => setSection(sectionId, $(sectionId).hidden));
+field("labelDe").addEventListener("input", () => {
   const date = field("date-0").value;
   const time = field("startTime").value;
-  if (date && time) {
-    const names = courseLabels(date, time);
-    for (const name of ["labelDe", "labelEn"]) field(name).placeholder = names[name];
-  }
-  $("schedule-summary").textContent = `6 Termine bis ${dateLabel(field("date-5").value)}${editing.customDates ? " · mit individuellen Terminen" : " · jede Woche"}`;
-  $("defaults-summary").textContent = `Anmeldung bis ${dateLabel(field("deadlineDate").value)}, ${field("deadlineTime").value} Uhr · ${field("priceEur").value} €${field("friendPriceEur").value ? ` / ${field("friendPriceEur").value} € mit Freund:in` : ""}`;
+  editing.autoName = Boolean(date && time && field("labelDe").value === courseLabels(date, time).labelDe);
+  showEnglishName();
+  if (editing.autoName) updateEditorHints();
+});
+field("labelEn").addEventListener("input", () => { editing.autoEnglishName = false; });
+function attachDatePicker(input) {
+  input.addEventListener("click", () => {
+    try { input.showPicker?.(); }
+    catch (error) {
+      // Native keyboard entry remains available if the browser cannot open its picker here.
+      if (!["NotAllowedError", "InvalidStateError", "SecurityError"].includes(error.name)) throw error;
+    }
+  });
 }
+for (const input of document.querySelectorAll('input[type="date"]')) attachDatePicker(input);
 function updateFormat() {
   const inPerson = field("format").value === "vor_ort";
   $("location-field").hidden = !inPerson;
@@ -198,22 +197,23 @@ function updateFormat() {
   field("location").disabled = !inPerson;
 }
 function openEditor(course, isNew = false) {
-  if (publishing && !automaticPublication) return;
+  if (locked()) return;
   const generated = newCourse(course.dates[0], config);
   editing = { course: clone(course), isNew, customDates: course.dates.some((date, index) => date !== generated.dates[index]), customDeadline: Boolean(course.registrationDeadline) && new Date(course.registrationDeadline).getTime() !== new Date(generated.registrationDeadline).getTime() };
   editing.customTime = !isNew;
   const form = $("editor-form");
   form.reset();
-  $("extra-settings").open = false;
-  $("session-settings").open = false;
+  setSection("extra-settings", false);
+  setSection("session-settings", false);
   $("editor-error").textContent = "";
   $("editor-title").textContent = isNew ? "Neuer Kurs" : "Kurs bearbeiten";
   for (const name of ["labelDe", "labelEn", "status", "format", "location", "remainingPlaces"]) field(name).value = course[name] ?? config[name] ?? "";
   for (const name of ["startTime", "endTime"]) field(name).value = sessionTime({ ...course, sessionTimes: undefined }, course.dates[0], config)[name];
   field("capacity").value = course.capacity ?? Math.max(7, course.remainingPlaces);
   field("remainingPlaces").max = field("capacity").value;
-  field("remainingPlaces").disabled = Boolean(seatChanges[course.id] || activeRun?.kind === "seats" && activeRun.seats[course.id]);
-  if (isNew) { field("labelDe").value = ""; field("labelEn").value = ""; }
+  editing.autoName = isNew || course.labelDe === courseLabels(course.dates[0], field("startTime").value).labelDe;
+  editing.autoEnglishName = isNew || course.labelEn === courseLabels(course.dates[0], field("startTime").value).labelEn;
+  showEnglishName();
   field("priceEur").value = course.priceEur ?? config.priceEur;
   field("friendPriceEur").value = course.friendPriceEur === null ? "" : course.friendPriceEur ?? config.friendPriceEur;
   const deadline = berlinFields(course.registrationDeadline || generated.registrationDeadline);
@@ -228,15 +228,16 @@ function openEditor(course, isNew = false) {
       const input = element("input"); input.name = `date-${index}`; input.id = input.name; input.type = "date"; input.value = date; input.required = true;
       const label = element("label", `Termin ${index + 1}`); label.htmlFor = input.id;
       const group = element("div"); group.append(label, input); row.append(group);
-      input.addEventListener("input", () => { editing.customDates = true; if (input.value) updateEditorHints(); });
+      attachDatePicker(input);
+      input.addEventListener("input", () => { editing.customDates = true; updateEditorHints(); });
     }
-    const times = element("details"); times.open = Boolean(course.sessionTimes?.[date]);
-    times.append(element("summary", "Andere Uhrzeit"));
+    const times = element("div");
     const fields = element("div", undefined, "fields");
     for (const [kind, label] of [["start", "Beginn (optional)"], ["end", "Ende (optional)"]]) {
       const group = element("div");
       const input = element("input"); input.name = `${kind}-${index}`; input.id = input.name; input.type = "time"; input.value = course.sessionTimes?.[date]?.[`${kind}Time`] || "";
       const caption = element("label", label); caption.htmlFor = input.id;
+      input.addEventListener("input", updateEditorHints);
       group.append(caption, input); fields.append(group);
     }
     times.append(fields); row.append(times); $("dates").append(row);
@@ -274,7 +275,8 @@ field("capacity").addEventListener("input", () => {
 // Reveal invalid optional settings before native validation focuses the field.
 $("editor-form").addEventListener("invalid", (event) => {
   let parent = event.target.parentElement;
-  while (parent) { if (parent.tagName === "DETAILS") parent.open = true; parent = parent.parentElement; }
+  while (parent) { if (["session-settings", "extra-settings"].includes(parent.id)) setSection(parent.id, true); parent = parent.parentElement; }
+  if (event.target.id === "label-en") $("english-name-field").hidden = false;
 }, true);
 function closeEditor() {
   if (editorSnapshot() !== editorInitial && !window.confirm("Die Änderungen in diesem Fenster verwerfen?")) return;
@@ -286,8 +288,8 @@ $("editor-form").addEventListener("submit", (event) => {
   try {
     const value = { ...editing.course };
     for (const name of ["status", "format", "startTime", "endTime"]) value[name] = field(name).value.trim();
-    const names = courseLabels(field("date-0").value, value.startTime);
-    for (const name of ["labelDe", "labelEn"]) value[name] = field(name).value.trim() || names[name];
+    if (locked()) return;
+    for (const name of ["labelDe", "labelEn"]) value[name] = field(name).value.trim();
     value.remainingPlaces = Number(field("remainingPlaces").value);
     value.priceEur = Number(field("priceEur").value);
     value.friendPriceEur = field("friendPriceEur").value === "" ? null : Number(field("friendPriceEur").value);
@@ -303,17 +305,14 @@ $("editor-form").addEventListener("submit", (event) => {
       const endTime = field(`end-${index}`).value;
       if (startTime || endTime) value.sessionTimes[date] = { startTime: startTime || value.startTime, endTime: endTime || value.endTime };
     }
-    value.dates.sort();
     if (!Object.keys(value.sessionTimes).length) delete value.sessionTimes;
     const next = editing.isNew ? [...courses, value] : courses.map((course) => course.id === value.id ? value : course);
     validateCourses(next, config);
-    // A place update already in flight must retain the latest count from the overview.
-    if (field("remainingPlaces").disabled) value.remainingPlaces = courses.find((course) => course.id === value.id).remainingPlaces;
-    validateCourses(next, config);
+    if (!editing.isNew && JSON.stringify(courses.find((course) => course.id === value.id)) !== JSON.stringify(editing.course)) throw new Error("Dieser Kurs wurde inzwischen aktualisiert. Bitte das Fenster schließen und die aktuellen Angaben erneut öffnen.");
     courses = next;
     $("editor").close();
     render();
-    status("Der Kurs ist im lokalen Entwurf gespeichert.");
+    requestSave();
   } catch (error) { $("editor-error").textContent = error.message; }
 });
 $("weekly").addEventListener("click", () => {
@@ -325,71 +324,58 @@ $("weekly").addEventListener("click", () => {
   editing.customDates = false;
   updateEditorHints();
 });
-function preview() {
-  const language = $("preview-language").value;
-  const visible = courses.filter((course) => !course.archived && course.status !== "closed" && !courseStarted(course));
-  $("public-preview").replaceChildren(...visible.map((course) => card(course, false, language)));
-  if (!visible.length) $("public-preview").append(element("p", language === "de" ? "Keine zukünftigen Kurse sichtbar. Die Website zeigt eine unverbindliche Kursanfrage." : "No upcoming courses. Visitors can request a course place."));
-}
-function changeSummary() {
-  const list = element("ul");
-  for (const course of courses) {
-    const previous = baseCourses.find((entry) => entry.id === course.id);
-    if (JSON.stringify(previous) !== JSON.stringify(course)) list.append(element("li", `${previous ? "Geändert" : "Neu"}: ${course.labelDe}${previous ? ` · Plätze ${previous.remainingPlaces} → ${course.remainingPlaces}` : ""}`));
-  }
-  for (const course of baseCourses.filter((entry) => !courses.some((value) => value.id === entry.id))) list.append(element("li", `Gelöscht: ${course.labelDe}`));
-  $("change-summary").replaceChildren(list);
-}
-$("review").addEventListener("click", () => {
-  changeSummary();
-  preview();
-  $("publish-status").textContent = token ? "" : "Lokale Vorschau: Zum Veröffentlichen bitte mit dem GitHub-Schlüssel anmelden.";
-  $("publish").disabled = !token || publishing;
-  $("review-dialog").showModal();
-});
-$("preview-language").addEventListener("change", preview);
-
 async function versionOf(data) {
   const bytes = new TextEncoder().encode(JSON.stringify(data));
   return Array.from(new Uint8Array(await globalThis.crypto.subtle.digest("SHA-256", bytes)), (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
-function seatStatus(message) {
-  $("seat-status").textContent = message;
-  $("retry-seats").hidden = !seatError || !token;
+function saveStatus(message) {
+  $("save-status").textContent = message;
+  $("retry-save").hidden = !saveError || !token;
+  $("retry-save").textContent = activeRun ? "Status erneut prüfen" : "Erneut versuchen";
 }
-function publicationStatus(message) {
-  $("publish-status").textContent = message;
-  if (automaticPublication) seatStatus(message);
+// Only the identity of an already submitted request survives a reload, never course drafts or tokens.
+function rememberRun(run) {
+  if (run) localStorage.setItem(runKey, JSON.stringify({ id: run.id, requestId: run.requestId, version: run.version }));
+  else localStorage.removeItem(runKey);
 }
-function scheduleSeats() {
-  window.clearTimeout(seatTimer);
-  if (token && !publishing && !seatError && (hasSeatChanges() || activeRun?.kind === "seats")) seatTimer = window.setTimeout(() => publishChanges(true), 800);
+function readRun() {
+  const value = JSON.parse(localStorage.getItem(runKey) || "null");
+  if (!value) return null;
+  if (!/^[a-f0-9-]{36}$/.test(value.requestId || "") || !/^[a-f0-9]{64}$/.test(value.version || "") || (value.id !== undefined && !Number.isSafeInteger(value.id))) throw new Error("Der gespeicherte Auftragsstatus ist ungültig. Bitte den letzten Auftrag auf GitHub prüfen.");
+  return { id: value.id, requestId: value.requestId, version: value.version };
+}
+function scheduleSave(delay = 800) {
+  window.clearTimeout(saveTimer);
+  if (token && !publishing && !saveError && (changed() || activeRun)) saveTimer = window.setTimeout(() => publishChanges(), delay);
+}
+function requestSave(delay = 0) {
+  if (!token) {
+    baseCourses = clone(courses);
+    saveStatus("In der Testvorschau übernommen. Beim Neuladen werden die ursprünglichen Kurse geladen.");
+    return;
+  }
+  saveError = "";
+  saveStatus(publishing ? "Änderung vorgemerkt · wird nach dem laufenden Speichern übertragen …" : "Wird gespeichert …");
+  scheduleSave(delay);
 }
 function adjustSeats(id, delta) {
-  if (publishing && !automaticPublication) return;
+  if (locked()) return;
   const course = courses.find((entry) => entry.id === id);
   const value = course.remainingPlaces + delta;
   if (value < 0 || value > (course.capacity ?? 999)) return;
   course.remainingPlaces = value;
-  const base = baseCourses.find((entry) => entry.id === id);
-  if (token && base) {
-    seatChanges[id] = { from: seatChanges[id]?.from ?? base.remainingPlaces, value };
-    if (!publishing && !activeRun && value === base.remainingPlaces) delete seatChanges[id];
-    seatError = "";
-    seatStatus(hasSeatChanges() ? (publishing ? "Gespeichert · folgt nach der laufenden Veröffentlichung …" : "Gespeichert · wird automatisch veröffentlicht …") : "Alles auf dem aktuellen Stand");
-    scheduleSeats();
-  } else {
-    seatStatus(token ? "Im Kursentwurf gespeichert · gemeinsam mit dem neuen Kurs veröffentlichen." : "Lokal gespeichert · in dieser Vorschau wird nichts veröffentlicht.");
-  }
   render();
+  requestSave(800);
 }
-$("retry-seats").addEventListener("click", () => { seatError = ""; seatStatus("Die Platzänderungen werden erneut abgeglichen …"); scheduleSeats(); });
-function lockPublishing(locked, automatic = false) {
-  publishing = locked;
-  automaticPublication = locked && automatic;
-  $("publish").disabled = locked || !token;
-  $("add-course").disabled = locked && !automatic;
-  render();
+$("retry-save").addEventListener("click", () => { saveError = ""; saveStatus("Der Speicherstatus wird geprüft …"); publishChanges(true); });
+async function findRun(run, ownSession) {
+  for (let attempt = 0; !run.id && attempt < 12 && ownSession === session; attempt += 1) {
+    const result = await api(`${repository}/actions/workflows/${workflow}/runs?event=workflow_dispatch&per_page=30`);
+    if (ownSession !== session) return;
+    run.id = result.workflow_runs?.find((entry) => entry.display_title === `Kurse · ${run.requestId}`)?.id;
+    if (!run.id) await new Promise((resolve) => window.setTimeout(resolve, 2500));
+  }
+  if (!Number.isSafeInteger(run.id)) throw new Error("Der Auftragsstatus ist noch unklar. Bitte auf GitHub nachsehen und den Status erneut prüfen; es wird kein zweiter Auftrag gestartet.");
 }
 async function monitorRun(run, ownSession) {
   while (ownSession === session && token) {
@@ -397,56 +383,54 @@ async function monitorRun(run, ownSession) {
     if (ownSession !== session) return false;
     if (current.status === "completed") {
       if (current.conclusion !== "success") {
+        rememberRun(null);
         activeRun = null;
-        throw new Error("Prüfung oder Veröffentlichung fehlgeschlagen. Deine Änderungen bleiben gespeichert. Bitte den GitHub-Status prüfen und erneut versuchen.");
+        resuming = false;
+        throw new Error("Prüfung oder Veröffentlichung fehlgeschlagen. Bitte den GitHub-Status prüfen und erneut versuchen. Deine Eingaben bleiben in diesem geöffneten Fenster erhalten.");
       }
-      publicationStatus("Deployment erfolgreich. Die ausgelieferte Kursversion wird geprüft …");
+      saveStatus("Übertragung abgeschlossen · die Website wird geprüft …");
       const publicVersion = await fetch(`/assets/course-version.json?v=${run.version}`, { cache: "no-store", signal: AbortSignal.timeout(10000) }).then((response) => response.ok ? response.json() : null);
       if (ownSession !== session) return false;
-      if (publicVersion?.version !== run.version) throw new Error("GitHub hat veröffentlicht; die erwartete Kursversion ist hier noch nicht bestätigt. Deine Änderungen bleiben erhalten. Bitte später den Status erneut prüfen.");
-      return true;
+      if (publicVersion?.version === run.version) return { confirmed: true };
+      if (resuming) {
+        // A successful request can have been superseded while this browser was closed.
+        // Resume only from a current GitHub snapshot that is also confirmed on the website.
+        const remote = await loadRemote();
+        const version = await versionOf(remote.data);
+        if (ownSession !== session) return false;
+        if (publicVersion?.version === version) return { currentData: remote.data };
+      }
+      throw new Error("Die gespeicherte Kursversion ist auf der Website noch nicht bestätigt. Bitte später den Status erneut prüfen.");
     }
-    publicationStatus(current.status === "queued" ? "Veröffentlichung wartet auf GitHub …" : "Gespeichert · Prüfung und Veröffentlichung laufen im Hintergrund. Das dauert einige Minuten.");
+    saveStatus(current.status === "queued" ? "Speichern wartet auf GitHub …" : "Speichern läuft im Hintergrund. Die Website wird nach der Prüfung aktualisiert.");
     await new Promise((resolve) => window.setTimeout(resolve, 5000));
   }
   return false;
 }
-async function findRun(run, ownSession) {
-  for (let attempt = 0; !run.id && attempt < 12 && ownSession === session; attempt += 1) {
-    const result = await api(`${repository}/actions/workflows/${workflow}/runs?event=workflow_dispatch&per_page=30`);
-    run.id = result.workflow_runs?.find((entry) => entry.display_title === `Kurse · ${run.requestId}`)?.id;
-    if (!run.id) await new Promise((resolve) => window.setTimeout(resolve, 2500));
-  }
-  if (!Number.isSafeInteger(run.id)) throw new Error("Der Auftrag wurde an GitHub übergeben, sein Status ist noch unklar. Bitte den Status erneut prüfen; es wird kein zweiter Auftrag gestartet.");
-}
-async function publishChanges(automatic = false) {
-  if (publishing || !token || (automatic ? !hasSeatChanges() && activeRun?.kind !== "seats" : !changed() && !activeRun)) return;
+async function publishChanges(retry = false) {
+  if (publishing || !token || (!changed() && !activeRun && !retry)) return;
   const ownSession = session;
-  lockPublishing(true, automatic);
+  publishing = true;
+  preparing = !activeRun;
+  render();
   try {
     let run = activeRun;
     if (!run) {
-      publicationStatus("Gespeichert · der aktuelle Stand wird abgeglichen …");
-      const seats = automatic ? clone(seatChanges) : null;
-      const before = clone(baseCourses);
-      const draft = automatic ? before.map((course) => seats[course.id] ? { ...course, remainingPlaces: seats[course.id].value } : course) : clone(courses);
+      saveStatus("Wird gespeichert · der aktuelle Stand wird abgeglichen …");
       const remote = await loadRemote();
       if (ownSession !== session) return;
-      const merged = mergeCourses(before, draft, remote.data.courses);
+      const merged = mergeCourses(baseCourses, courses, remote.data.courses);
       validateCourses(merged, remote.data);
+      if (new TextEncoder().encode(JSON.stringify(merged)).byteLength > 60000) throw new Error("Die Kursliste ist zu groß für eine Übertragung. Bitte Unterstützung bei der Einrichtung anfragen.");
       const version = await versionOf({ ...remote.data, courses: merged });
       if (ownSession !== session) return;
-      if (!automatic) {
-        courses = clone(merged);
-        baseCourses = clone(remote.data.courses);
-        config = remote.data;
-        baseSha = remote.sha;
-      }
-      if (new TextEncoder().encode(JSON.stringify(merged)).byteLength > 60000) throw new Error("Die Kursliste ist zu groß für eine Veröffentlichung. Bitte Unterstützung bei der Einrichtung anfragen.");
-      run = { kind: automatic ? "seats" : "draft", version, requestId: globalThis.crypto.randomUUID(), courses: merged, seats };
-      // Persist the request identity before dispatch: an uncertain response must never cause a duplicate dispatch.
+      courses = clone(merged);
+      baseCourses = clone(remote.data.courses);
+      config = remote.data;
+      run = { version, requestId: globalThis.crypto.randomUUID(), courses: clone(merged) };
+      // Persist before dispatch, so a lost response cannot cause a duplicate request after reload.
+      rememberRun(run);
       activeRun = run;
-      saveDraft();
       try {
         const response = await api(`${repository}/actions/workflows/${workflow}/dispatches`, {
           method: "POST", body: { ref: "main", inputs: { courses: JSON.stringify(merged), expected_head: remote.sha, request_id: run.requestId } }
@@ -454,62 +438,65 @@ async function publishChanges(automatic = false) {
         if (ownSession !== session) return;
         run.id = response?.workflow_run_id;
       } catch (error) {
-        // Definite rejections did not create a run; ambiguous network errors retain its request identity.
-        if (error.rejected) activeRun = null;
+        if (ownSession !== session) return;
+        if (error.rejected) { rememberRun(null); activeRun = null; }
         throw error;
       }
     }
     if (!run.id) await findRun(run, ownSession);
     if (ownSession !== session) return;
-    saveDraft();
+    rememberRun(run);
+    preparing = false;
+    render();
     $("workflow-link").href = `https://github.com/juliasutter/juliasutter.github.io/actions/runs/${run.id}`;
     $("workflow-link").hidden = false;
-    $("seat-workflow-link").href = $("workflow-link").href;
-    $("seat-workflow-link").hidden = !automatic;
-    if (!await monitorRun(run, ownSession)) return;
-    if (run.kind === "seats") {
-      // Only acknowledge the published seat snapshot. Later clicks and other drafts stay untouched.
-      for (const [id, change] of Object.entries(run.seats)) {
-        const base = baseCourses.find((course) => course.id === id);
-        if (base) base.remainingPlaces = change.value;
-        if (seatChanges[id]?.value === change.value) delete seatChanges[id];
-        else if (seatChanges[id]) seatChanges[id].from = change.value;
-      }
-      seatStatus(hasSeatChanges() ? "Plätze veröffentlicht · weitere Änderungen folgen …" : "Plätze veröffentlicht · auf der Website bestätigt.");
-    } else {
-      // A resumed run acknowledges only its snapshot; edits made since dispatch stay local.
+    const result = await monitorRun(run, ownSession);
+    if (!result) return;
+    if (run.courses) {
+      // Acknowledge exactly the sent snapshot; later Save clicks remain queued in courses.
       baseCourses = clone(run.courses);
-      publicationStatus("Veröffentlicht. Die neuen Kursdaten sind auf der Website bestätigt.");
-      status("Deine Kursänderungen sind veröffentlicht.");
+    } else {
+      const data = result.currentData || (await loadRemote()).data;
+      if (ownSession !== session) return;
+      config = data;
+      courses = clone(data.courses);
+      baseCourses = clone(courses);
     }
+    rememberRun(null);
     activeRun = null;
+    resuming = false;
+    saveStatus(changed() ? "Gespeichert · weitere Änderungen werden als Nächstes übertragen …" : result.currentData ? "Speichern abgeschlossen · aktueller Website-Stand geladen." : "Gespeichert · auf der Website bestätigt.");
   } catch (error) {
-    if (ownSession === session) {
-      if (automatic) { seatError = error.message; seatStatus(`Noch nicht veröffentlicht: ${error.message}`); }
-      else publicationStatus(error.message);
-    }
+    if (ownSession === session) { saveError = error.message; saveStatus(`Noch nicht abgeschlossen: ${error.message}`); }
   } finally {
     if (ownSession === session) {
-      lockPublishing(false);
-      $("publish").disabled = !token || (!changed() && !activeRun);
-      scheduleSeats();
+      publishing = false;
+      preparing = false;
+      render();
+      scheduleSave();
     }
   }
 }
-$("publish").addEventListener("click", () => publishChanges());
-async function enter(data, sha) {
+async function enter(data) {
+  // The pre-release preview stored course drafts; discard these obsolete snapshots.
+  try { localStorage.removeItem("julia-course-draft-v1"); }
+  catch (error) { if (error.name !== "SecurityError") throw error; }
   config = data;
   courses = clone(data.courses);
   baseCourses = clone(courses);
-  baseSha = sha;
-  restoreDraft();
+  activeRun = token ? readRun() : null;
+  resuming = Boolean(activeRun);
+  publishing = false;
+  preparing = false;
+  saveError = "";
+  saveStatus(activeRun ? "Der letzte Speicherauftrag wird geprüft …" : "");
+  $("workflow-link").hidden = true;
   $("login-panel").hidden = true;
   $("workspace").hidden = false;
   $("logout").hidden = false;
-  seatError = "";
-  $("seats-hint").textContent = token ? "Platzänderungen werden automatisch veröffentlicht. Neue Kurse und weitere Änderungen prüfst du vorher in der Vorschau." : "Lokale Vorschau: Platzänderungen werden sofort im Browser gespeichert. Hier wird nichts veröffentlicht.";
+  $("seats-hint").textContent = token ? "Plätze direkt mit −/+ ändern. Weitere Änderungen im Kurs mit „Speichern“ übernehmen." : "Testvorschau ohne Veröffentlichung. Änderungen werden beim Neuladen zurückgesetzt.";
   render();
-  scheduleSeats();
+  scheduleSave(0);
   window.scrollTo({ top: 0, behavior: "instant" });
 }
 $("login-form").addEventListener("submit", async (event) => {
@@ -526,14 +513,15 @@ $("login-form").addEventListener("submit", async (event) => {
     const remote = await loadRemote();
     if (ownSession !== session) return;
     $("token").value = "";
+    await enter(remote.data);
     status("");
-    await enter(remote.data, remote.sha);
-  } catch (error) { token = ""; $("token").value = ""; status(error.message); }
+  } catch (error) { if (ownSession === session) { token = ""; $("token").value = ""; status(error.message); } }
   finally { control.disabled = false; }
 });
 $("logout").addEventListener("click", () => {
+  if (hasUnsentChanges() && !window.confirm("Es warten noch Änderungen auf die Übertragung. Trotzdem abmelden und diese Änderungen verwerfen?")) return;
   session += 1;
-  window.clearTimeout(seatTimer);
+  window.clearTimeout(saveTimer);
   token = "";
   publishing = false;
   for (const dialog of document.querySelectorAll("dialog[open]")) dialog.close();
@@ -541,40 +529,17 @@ $("logout").addEventListener("click", () => {
   $("login-panel").hidden = false;
   $("logout").hidden = true;
   $("token").value = "";
-  status("Abgemeldet. Dein lokaler Entwurf bleibt in diesem Browser gespeichert.");
-});
-$("discard").addEventListener("click", async () => {
-  if (publishing || activeRun) return;
-  if (!window.confirm("Den gesamten lokalen Entwurf verwerfen und die aktuellen Kurse neu laden?")) return;
-  window.clearTimeout(seatTimer);
-  const ownSession = session;
-  lockPublishing(true);
-  try {
-    const remote = token ? await loadRemote() : { data: await fetch("/assets/course-config.json").then((response) => response.json()), sha: "local" };
-    if (ownSession !== session) return;
-    config = remote.data;
-    validateCourses(config.courses, config);
-    courses = clone(config.courses);
-    baseCourses = clone(courses);
-    baseSha = remote.sha;
-    activeRun = null;
-    seatChanges = {}; seatError = ""; window.clearTimeout(seatTimer); seatStatus("");
-    render();
-    status("Der Entwurf wurde verworfen. Die aktuellen Kursdaten sind geladen.");
-  } catch (error) { if (ownSession === session) status(error.message); }
-  finally { if (ownSession === session) { lockPublishing(false); scheduleSeats(); } }
+  status("Abgemeldet.");
 });
 $("add-course").addEventListener("click", () => {
   const date = new Date(); date.setDate(date.getDate() + 7);
   openEditor(newCourse(berlinFields(date).date, config), true);
 });
-for (const control of document.querySelectorAll("[data-close]")) control.addEventListener("click", () => {
-  if (control.dataset.close === "editor") closeEditor(); else $(control.dataset.close).close();
-});
+for (const control of document.querySelectorAll("[data-close]")) control.addEventListener("click", closeEditor);
 window.addEventListener("beforeunload", (event) => {
-  if ($("editor").open && editorSnapshot() !== editorInitial) { event.preventDefault(); event.returnValue = ""; }
+  if (hasUnsentChanges() || ($("editor").open && editorSnapshot() !== editorInitial)) { event.preventDefault(); event.returnValue = ""; }
 });
-window.addEventListener("pagehide", () => { session += 1; window.clearTimeout(seatTimer); token = ""; $("token").value = ""; });
+window.addEventListener("pagehide", () => { session += 1; window.clearTimeout(saveTimer); token = ""; $("token").value = ""; });
 window.setInterval(() => { if (config && !$("workspace").hidden && !$("editor").open) render(); }, 60000);
 if (local) {
   $("local-preview").hidden = false;
@@ -582,8 +547,8 @@ if (local) {
     try {
       const data = await fetch("/assets/course-config.json", { cache: "no-store" }).then((response) => response.json());
       validateCourses(data.courses, data);
-      status("Lokale Vorschau: Änderungen bleiben als Entwurf in diesem Browser.");
-      await enter(data, "local");
+      await enter(data);
+      status("");
     } catch (error) { status(error.message); }
   });
 }

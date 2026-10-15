@@ -34,17 +34,13 @@
         <input id="token" name="password" type="password" autocomplete="current-password" required spellcheck="false">
         <button type="submit">Verwaltung öffnen</button>
       </form>
-      <details><summary>Den Zugang einmalig einrichten</summary><p>In GitHub einen Fine-grained Personal Access Token für <strong>juliasutter.github.io</strong> mit <strong>Actions: Read and write</strong> anlegen. Den Schlüssel in Apple Passwörter für diese Website speichern. Ein abgelaufener oder widerrufener Schlüssel muss dort ersetzt werden.</p><p>Der Schlüssel bleibt hier nur bis zum Neuladen im Arbeitsspeicher. Entwürfe werden unabhängig davon lokal gespeichert.</p></details>
-      <button id="local-preview" type="button" class="quiet" hidden>Lokalen Entwurf öffnen</button>
+      <details><summary>Den Zugang einmalig einrichten</summary><p>In GitHub einen Fine-grained Personal Access Token für <strong>juliasutter.github.io</strong> mit <strong>Actions: Read and write</strong> anlegen. Den Schlüssel in Apple Passwörter für diese Website speichern. Ein abgelaufener oder widerrufener Schlüssel muss dort ersetzt werden.</p><p>Der Schlüssel bleibt hier nur bis zum Neuladen im Arbeitsspeicher.</p></details>
+      <button id="local-preview" type="button" class="quiet" hidden>Testvorschau öffnen</button>
     </section>
     <section id="workspace" hidden aria-label="Kursübersicht">
-      <div class="workspace-toolbar" id="draft-toolbar">
-        <p id="draft-status">Alles auf dem aktuellen Stand</p>
-        <div class="actions"><button type="button" id="discard" class="quiet">Entwurf verwerfen</button><button type="button" id="review">Änderungen ansehen</button></div>
-      </div>
       <div class="section-heading"><h2>Aktuelle Kurse</h2><button type="button" id="add-course">+ Neuer Kurs</button></div>
-      <p class="hint" id="seats-hint">Platzänderungen werden automatisch veröffentlicht. Neue Kurse und weitere Änderungen prüfst du vorher in der Vorschau.</p>
-      <div id="seat-feedback" role="status" aria-live="polite"><span id="seat-status"></span> <a id="seat-workflow-link" href="https://github.com/juliasutter/juliasutter.github.io/actions" target="_blank" rel="noopener noreferrer" hidden>GitHub-Status</a> <button type="button" id="retry-seats" class="quiet" hidden>Erneut versuchen</button></div>
+      <p class="hint" id="seats-hint">Plätze direkt mit −/+ ändern. Weitere Änderungen im Kurs mit „Speichern“ übernehmen.</p>
+      <div id="save-feedback" role="status" aria-live="polite"><span id="save-status"></span> <a id="workflow-link" href="https://github.com/juliasutter/juliasutter.github.io/actions" target="_blank" rel="noopener noreferrer" hidden>GitHub-Status</a> <button type="button" id="retry-save" class="quiet" hidden>Erneut versuchen</button></div>
       <div id="course-list" class="course-grid"></div>
       <details id="past-section"><summary id="archive-title">Abgeschlossene Kurse</summary><div id="past-list" class="course-grid"></div></details>
     </section>
@@ -55,42 +51,30 @@
       <p id="editor-error" role="alert"></p>
       <p class="hint">Sechs wöchentliche Termine. Online, sieben Plätze und die üblichen Preise sind schon eingestellt.</p>
       <div class="fields primary-fields">
-        <div class="full"><label for="date-0">Erster Termin</label><input id="date-0" name="date-0" type="date" required><small id="schedule-summary"></small></div>
+        <div class="full"><label for="date-0">Erster Termin</label><input id="date-0" name="date-0" type="date" required></div>
         <div><label for="start-time">Beginn · Deutsche Zeit</label><input id="start-time" name="startTime" type="time" required></div>
         <div><label for="end-time">Ende</label><input id="end-time" name="endTime" type="time" required></div>
-        <small class="full">Neue Kurse: Mo–Fr 20–22 Uhr, Sa–So 9–11 Uhr. Eigene Uhrzeiten bleiben beim Ändern des Startdatums erhalten.</small>
-        <div class="full"><label for="label-de">Kursname</label><input type="text" id="label-de" name="labelDe" maxlength="120" placeholder="Herbst 2026 · Samstagvormittag"><small>Leer lassen, um den Vorschlag aus Startdatum und Uhrzeit zu übernehmen.</small></div>
+        <div class="full inline-setting"><p id="schedule-summary" class="hint"></p><button type="button" id="edit-sessions" class="text-button" aria-expanded="false" aria-controls="session-settings">Individuell abweichende Termine festlegen</button></div>
+        <section id="session-settings" class="full editor-settings" aria-label="Individuelle Termine" hidden><div id="dates"></div><button type="button" id="weekly" class="text-button">Wieder wöchentlich ab erstem Termin</button></section>
+        <div class="full"><label for="label-de">Kursname</label><input type="text" id="label-de" name="labelDe" maxlength="120" required></div>
+        <div class="full" id="english-name-field" hidden><label for="label-en">Kursname · Englisch</label><input type="text" id="label-en" name="labelEn" maxlength="120" required></div>
         <div><label for="capacity">Gesamtzahl der Plätze</label><input id="capacity" name="capacity" type="number" min="1" max="999" step="1" required></div>
         <div><label for="remaining">Freie Plätze</label><input id="remaining" name="remainingPlaces" type="number" min="0" max="999" step="1" required></div>
         <div class="full"><label for="course-format">Format</label><select id="course-format" name="format"><option value="online">Online</option><option value="vor_ort">Vor Ort</option></select></div>
         <div class="full" id="location-field" hidden><label for="location">Öffentlicher Veranstaltungsort</label><input type="text" id="location" name="location" maxlength="200"><small>Keine privaten Einwahllinks oder Zugangscodes eintragen.</small></div>
       </div>
-      <details id="session-settings" class="editor-settings"><summary>Einzelne Termine oder Uhrzeiten ändern (optional)</summary><p class="hint">Die sechs Termine werden automatisch wöchentlich ergänzt und übernehmen die gemeinsame Kurszeit. Hier nur Abweichungen eintragen.</p><div id="dates"></div><button type="button" id="weekly" class="quiet">Wieder wöchentlich ab erstem Termin</button></details>
-      <details id="extra-settings" class="editor-settings"><summary>Preise, Anmeldeschluss und Weiteres (optional)</summary>
-        <p class="hint">Für neue Kurse sind die üblichen Preise, Anmeldung offen und Anmeldeschluss am Vortag um 21 Uhr vorbelegt. Der englische Name wird bei leerem Feld automatisch ergänzt. Du musst hier nichts eintragen.</p>
+      <div class="inline-setting"><p id="defaults-summary" class="hint"></p><button type="button" id="edit-settings" class="text-button" aria-expanded="false" aria-controls="extra-settings">Bearbeiten</button></div>
+      <section id="extra-settings" class="editor-settings" aria-label="Preise und Anmeldung" hidden>
         <div class="fields">
           <div><label for="price">Standardpreis · €</label><input id="price" name="priceEur" type="number" min="0" max="99999" step="0.01" required></div>
           <div><label for="friend-price">Freund:innenpreis · € (leer = deaktiviert)</label><input id="friend-price" name="friendPriceEur" type="number" min="0" max="99999" step="0.01"></div>
           <div><label for="deadline-date">Anmeldeschluss · Datum</label><input id="deadline-date" name="deadlineDate" type="date" required></div>
           <div><label for="deadline-time">Anmeldeschluss · Deutsche Zeit</label><input id="deadline-time" name="deadlineTime" type="time" required></div>
-          <div class="full"><label for="label-en">Kursname · Englisch</label><input type="text" id="label-en" name="labelEn" maxlength="120" placeholder="Autumn 2026 · Saturday morning"><small>Leer lassen für den englischen Vorschlag aus Datum und Uhrzeit.</small></div>
           <div class="full"><label for="course-status">Sichtbarkeit und Anmeldung</label><select id="course-status" name="status"><option value="open">Sichtbar · Anmeldung offen</option><option value="waitlist">Sichtbar · Warteliste</option><option value="closed">Ausgeblendet / abgesagt</option></select></div>
         </div>
-      </details>
-      <p id="defaults-summary" class="hint"></p>
-      <div class="dialog-footer"><button type="button" data-close="editor" class="quiet">Abbrechen</button><button type="submit">Entwurf speichern</button></div>
+      </section>
+      <div class="dialog-footer"><button type="button" data-close="editor" class="quiet">Abbrechen</button><button type="submit" id="save-course">Speichern</button></div>
     </form>
-  </dialog>
-  <dialog id="review-dialog" aria-labelledby="review-title">
-    <div class="dialog-heading"><h2 id="review-title">Vor dem Veröffentlichen</h2><button type="button" data-close="review-dialog" class="quiet">Schließen</button></div>
-    <p>Diese Änderungen werden geprüft und anschließend auf der Website veröffentlicht. Das kann einige Minuten dauern.</p>
-    <div id="change-summary"></div>
-    <h3>So erscheinen die Kurse</h3>
-    <label for="preview-language">Sprache der Vorschau</label><select id="preview-language"><option value="de">Deutsch</option><option value="en">English</option></select>
-    <div id="public-preview" class="course-grid"></div>
-    <p id="publish-status" role="status" aria-live="polite"></p>
-    <a id="workflow-link" href="https://github.com/juliasutter/juliasutter.github.io/actions" target="_blank" rel="noopener noreferrer" hidden>Status auf GitHub ansehen</a>
-    <div class="dialog-footer"><button type="button" data-close="review-dialog" class="quiet">Weiter bearbeiten</button><button type="button" id="publish">Jetzt veröffentlichen</button></div>
   </dialog>
   <noscript><p>Bitte JavaScript aktivieren, um Kurse zu verwalten. Es wurden keine Zugangsdaten übertragen.</p></noscript>
 </body>
