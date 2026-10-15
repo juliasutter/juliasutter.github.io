@@ -42,6 +42,8 @@ Terminbeschreibung, freie Zeiten und Google Meet werden in Google Kalender gepfl
 
 Die Auswahl wird für 180 Tage lokal gespeichert und ist über „Cookie-Einstellungen“ im Footer änderbar. Ablehnen und Widerrufen verhindern weitere Ereignisse, verwerfen wartende Ereignisse und löschen die von dieser Implementierung erreichbaren `_fbp`-/`_fbc`-Cookies. Änderungen gelten auch in anderen offenen Tabs. Vor der Einwilligung erfolgte Handlungen werden nicht nachträglich gemeldet.
 
+Der kurze Einwilligungstext enthält direkt aufklappbare „Datenschutzdetails“ mit Angaben zu Meta, OpenAI, Datenübermittlungen und Speicherung sowie einem Link zum vollständigen Datenschutzhinweis. Das Öffnen der Details erteilt keine Einwilligung. „Einwilligen“ ist farbig hervorgehoben, „Ablehnen“ bleibt als gleich großer umrandeter Button direkt erreichbar.
+
 - `Purchase`: bestätigte erfolgreiche Formcarry-Antwort für eine verbindliche Kursanmeldung, mit dem tatsächlich abgeschickten Preis in EUR. Das bedeutet noch keinen Zahlungseingang.
 - `Lead`: bestätigte Kontaktanfrage, unverbindliche Kursanfrage oder Wartelisteneintragung.
 - `CalendarOpened`: Öffnen der Google-Terminbuchung; kein Nachweis einer gebuchten Sprechstunde.
