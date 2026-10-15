@@ -50,9 +50,10 @@ async function login(page) {
   await page.locator("#token").fill(fakeToken);
   await page.getByRole("button", { name: "Verwaltung öffnen", exact: true }).click();
 }
-async function editPlaces(page, count) {
+async function editRemainingPlaces(page, count) {
   await page.locator("#course-list article").first().getByRole("button", { name: "Bearbeiten", exact: true }).click();
-  await page.getByLabel("Freie Plätze", { exact: true }).fill(String(count));
+  const capacity = Number(await page.locator("#capacity").inputValue());
+  await page.getByLabel("Anmeldungen", { exact: true }).fill(String(capacity - count));
   await page.getByRole("button", { name: "Speichern", exact: true }).click();
 }
 
@@ -65,17 +66,17 @@ test("new courses need only a start date; defaults, names and weekly dates follo
   await expect(page.locator("#editor details")).toHaveCount(0);
   await expect(page.locator("#location")).toBeHidden();
   await expect(page.locator("#capacity")).toHaveValue("7");
-  await expect(page.locator("#remaining")).toHaveValue("7");
+  await expect(page.locator("#registrations")).toHaveValue("0");
   await page.locator("#date-0").fill("2027-03-06");
   await page.locator("#start-time").fill("10:00");
   await expect(page.locator("#label-de")).toHaveValue("Frühling 2027 · Samstagvormittag");
   await expect(page.locator("#date-5")).toHaveValue("2027-04-10");
   await expect(page.locator("#deadline-date")).toHaveValue("2027-03-05");
   await page.locator("#capacity").fill("8");
-  await expect(page.locator("#remaining")).toHaveValue("8");
+  await expect(page.locator("#registrations")).toHaveValue("0");
   await page.getByRole("button", { name: "Speichern", exact: true }).click();
   const card = page.locator("#course-list article").filter({ hasText: "Frühling 2027 · Samstagvormittag" });
-  await expect(card).toContainText("von 8 Plätzen frei");
+  await expect(card).toContainText("Anmeldungen · max. 8");
   await card.getByRole("button", { name: "Bearbeiten", exact: true }).click();
   await expect(page.locator("#label-en")).toHaveValue("Spring 2027 · Saturday morning");
   await page.getByRole("button", { name: "Schließen", exact: true }).click();
@@ -138,26 +139,26 @@ test("local seat buttons save immediately, retain keyboard focus and respect zer
   await page.route("**/assets/course-config.json*", (route) => route.fulfill({ json: data }));
   await localEditor(page);
   const card = page.locator("#course-list article").first();
-  const minus = card.getByRole("button", { name: /Einen Platz weniger/ });
-  const plus = card.getByRole("button", { name: /Einen Platz mehr/ });
-  await expect(plus).toBeDisabled();
-  await minus.focus();
-  await minus.press("Enter");
-  await expect(minus).toBeFocused();
-  await minus.press("Enter");
-  await expect(minus).toBeDisabled();
-  await expect(card.locator(".seat-stepper strong")).toHaveText("0");
+  const addRegistration = card.getByRole("button", { name: /Eine Anmeldung mehr/ });
+  const removeRegistration = card.getByRole("button", { name: /Eine Anmeldung weniger/ });
+  await expect(removeRegistration).toBeDisabled();
+  await addRegistration.focus();
+  await addRegistration.press("Enter");
+  await expect(addRegistration).toBeFocused();
+  await addRegistration.press("Enter");
+  await expect(addRegistration).toBeDisabled();
+  await expect(card.locator(".seat-stepper strong")).toHaveText("2");
   await expect(page.locator("#save-status")).toContainText("In der Testvorschau übernommen");
-  await plus.click();
+  await removeRegistration.click();
   await page.reload();
   await page.getByRole("button", { name: "Testvorschau öffnen" }).click();
-  await expect(card.locator(".seat-stepper strong")).toHaveText("2");
+  await expect(card.locator(".seat-stepper strong")).toHaveText("0");
 });
 
 test("a publication dispatch carries only courses and revision; tokens never enter persistent storage", async ({ page }) => {
   const mock = await github(page);
   await login(page);
-  await editPlaces(page, 1);
+  await editRemainingPlaces(page, 1);
   const stored = await page.evaluate(() => JSON.stringify({ ...localStorage }));
   expect(stored).not.toContain(fakeToken);
   await expect(page.locator("#token")).toHaveValue("");
@@ -179,9 +180,9 @@ for (const [scenario, options, message] of [
   await github(page, options);
   await login(page);
   if (options.invalid) { await expect(page.locator("#status")).toContainText(message); return; }
-  await editPlaces(page, 1);
+  await editRemainingPlaces(page, 1);
   await expect(page.locator("#save-status")).toContainText(message);
-  await expect(page.locator("#course-list .seat-stepper strong").first()).toHaveText("1");
+  await expect(page.locator("#course-list .seat-stepper strong").first()).toHaveText("6");
 });
 
 test("remote course conflict prevents dispatch and retains the current inputs", async ({ page }) => {
@@ -190,10 +191,10 @@ test("remote course conflict prevents dispatch and retains the current inputs", 
   await expect(page.locator("#workspace")).toBeVisible();
   const remote = configCopy(); remote.courses[0].remainingPlaces = 0;
   await page.route(`${apiRoot}/contents/**`, (route) => route.fulfill({ json: { encoding: "base64", content: Buffer.from(JSON.stringify(remote)).toString("base64") } }));
-  await editPlaces(page, 1);
+  await editRemainingPlaces(page, 1);
   await expect(page.locator("#save-status")).toContainText("auch auf GitHub geändert");
   expect(mock.publication()).toBeUndefined();
-  await expect(page.locator("#course-list .seat-stepper strong").first()).toHaveText("1");
+  await expect(page.locator("#course-list .seat-stepper strong").first()).toHaveText("6");
 });
 
 test("admin has no external resources or public navigation link and renders untrusted labels as text", async ({ page }) => {
@@ -249,8 +250,8 @@ test("rapid seat clicks coalesce; later course saves are serialized without losi
   const mock = await queuedGithub(page);
   await login(page);
   const card = page.locator("#course-list article").first();
-  const minus = card.getByRole("button", { name: /Einen Platz weniger/ });
-  await minus.click(); await minus.click();
+  const addRegistration = card.getByRole("button", { name: /Eine Anmeldung mehr/ });
+  await addRegistration.click(); await addRegistration.click();
   await page.clock.fastForward(1000);
   await expect.poll(() => mock.runs.length).toBe(1);
   await expect(page.locator("#save-status")).toContainText("läuft im Hintergrund");
@@ -260,9 +261,9 @@ test("rapid seat clicks coalesce; later course saves are serialized without losi
   await page.clock.fastForward(1000);
   expect(mock.runs[0].data.courses[0].labelDe).toBe(fixtureConfig.courses[0].labelDe);
   await page.getByRole("button", { name: "Speichern", exact: true }).click();
-  await card.getByRole("button", { name: /Einen Platz mehr/ }).click();
+  await card.getByRole("button", { name: /Eine Anmeldung weniger/ }).click();
   expect(mock.runs.length).toBe(1);
-  await expect(card.locator(".seat-stepper strong")).toHaveText("1");
+  await expect(card.locator(".seat-stepper strong")).toHaveText("6");
   mock.finish();
   await page.clock.fastForward(5000);
   await expect(page.locator("#save-status")).toContainText("weitere Änderungen werden als Nächstes übertragen");
@@ -277,7 +278,7 @@ test("rapid seat clicks coalesce; later course saves are serialized without losi
 test("reloading resumes an in-flight seat publication without dispatching again", async ({ page }) => {
   const mock = await queuedGithub(page);
   await login(page);
-  await page.locator("#course-list article").first().getByRole("button", { name: /Einen Platz weniger/ }).click();
+  await page.locator("#course-list article").first().getByRole("button", { name: /Eine Anmeldung mehr/ }).click();
   await page.clock.fastForward(1000);
   await expect(page.locator("#save-status")).toContainText("läuft im Hintergrund");
   await page.reload();
@@ -292,7 +293,7 @@ test("reloading resumes an in-flight seat publication without dispatching again"
 test("an uncertain dispatch response is reconciled by request identity without a duplicate publication", async ({ page }) => {
   const mock = await queuedGithub(page, { uncertain: true });
   await login(page);
-  await page.locator("#course-list article").first().getByRole("button", { name: /Einen Platz weniger/ }).click();
+  await page.locator("#course-list article").first().getByRole("button", { name: /Eine Anmeldung mehr/ }).click();
   await page.clock.fastForward(1000);
   await expect(page.locator("#save-status")).toContainText("Noch nicht abgeschlossen");
   mock.finish();
@@ -305,24 +306,24 @@ test("an uncertain dispatch response is reconciled by request identity without a
 for (const failure of ["conflict", "workflow"]) test(`automatic seat saving retains changes after ${failure}`, async ({ page }) => {
   const mock = await queuedGithub(page, { fail: failure === "workflow" });
   await login(page);
-  await expect(page.locator("#course-list .seat-stepper strong").first()).toHaveText("2");
+  await expect(page.locator("#course-list .seat-stepper strong").first()).toHaveText("5");
   if (failure === "conflict") {
     const remote = configCopy(); remote.courses[0].remainingPlaces = 0;
     await page.route(`${apiRoot}/contents/**`, (route) => route.fulfill({ json: { encoding: "base64", content: Buffer.from(JSON.stringify(remote)).toString("base64") } }));
   }
   mock.finish();
-  await page.locator("#course-list article").first().getByRole("button", { name: /Einen Platz weniger/ }).click();
+  await page.locator("#course-list article").first().getByRole("button", { name: /Eine Anmeldung mehr/ }).click();
   await page.clock.fastForward(1000);
   await expect(page.locator("#save-status")).toContainText(failure === "conflict" ? "auch auf GitHub geändert" : "fehlgeschlagen");
   await expect(page.locator("#retry-save")).toBeVisible();
   expect(mock.runs.length).toBe(failure === "conflict" ? 0 : 1);
-  await expect(page.locator("#course-list .seat-stepper strong").first()).toHaveText("1");
+  await expect(page.locator("#course-list .seat-stepper strong").first()).toHaveText("6");
 });
 
 test("resuming locks changes until the submitted version is confirmed and stores only request identity", async ({ page }) => {
   const mock = await queuedGithub(page);
   await login(page);
-  await editPlaces(page, 1);
+  await editRemainingPlaces(page, 1);
   await expect(page.locator("#save-status")).toContainText("läuft im Hintergrund");
   const stored = await page.evaluate(() => JSON.parse(localStorage.getItem("julia-course-publication-v1")));
   expect(Object.keys(stored).sort()).toEqual(["id", "requestId", "version"]);
@@ -336,7 +337,7 @@ test("resuming locks changes until the submitted version is confirmed and stores
   await page.clock.fastForward(5000);
   await expect(page.locator("#save-status")).toContainText("auf der Website bestätigt");
   await expect(page.locator("#add-course")).toBeEnabled();
-  await expect(page.locator("#course-list .seat-stepper strong").first()).toHaveText("1");
+  await expect(page.locator("#course-list .seat-stepper strong").first()).toHaveText("6");
   expect(mock.runs.length).toBe(1);
   expect(await page.evaluate(() => localStorage.getItem("julia-course-publication-v1"))).toBeNull();
 });
@@ -414,7 +415,7 @@ test("saving an unrelated field preserves an existing custom English name", asyn
   const data = configCopy(); data.courses[0].labelEn = "My custom English title";
   await page.route("**/assets/course-config.json*", (route) => route.fulfill({ json: data }));
   await localEditor(page);
-  await editPlaces(page, 1);
+  await editRemainingPlaces(page, 1);
   await page.locator("#course-list article").first().getByRole("button", { name: "Bearbeiten", exact: true }).click();
   await expect(page.locator("#label-en")).toHaveValue("My custom English title");
 });
@@ -439,7 +440,7 @@ test("a successful superseded request reloads verified current courses and unloc
   await page.getByRole("button", { name: "Verwaltung öffnen", exact: true }).click();
   await expect(page.locator("#save-status")).toContainText("aktueller Website-Stand geladen");
   await expect(page.locator("#add-course")).toBeEnabled();
-  await expect(page.locator("#course-list .seat-stepper strong").first()).toHaveText("0");
+  await expect(page.locator("#course-list .seat-stepper strong").first()).toHaveText("7");
   expect(mock.publication()).toBeUndefined();
   expect(await page.evaluate(() => localStorage.getItem("julia-course-publication-v1"))).toBeNull();
 });
@@ -452,19 +453,19 @@ for (const [capacity, remaining, expected] of [[undefined, 7, 7], [undefined, 9,
     await page.route("**/assets/course-config.json*", (route) => route.fulfill({ json: data }));
     await localEditor(page);
     const card = page.locator("#course-list article").first();
-    const plus = card.getByRole("button", { name: /Einen Platz mehr/ });
-    await expect(card.locator(".seat-stepper")).toContainText(`von ${expected} Plätzen frei`);
-    await expect(plus).toBeDisabled();
-    await card.getByRole("button", { name: /Einen Platz weniger/ }).click();
-    await expect(card.locator(".seat-stepper")).toContainText(`von ${expected} Plätzen frei`);
-    await expect(plus).toBeEnabled();
-    await plus.click();
-    await expect(plus).toBeDisabled();
+    const removeRegistration = card.getByRole("button", { name: /Eine Anmeldung weniger/ });
+    await expect(card.locator(".seat-stepper")).toContainText(`Anmeldungen · max. ${expected}`);
+    await expect(removeRegistration).toBeDisabled();
+    await card.getByRole("button", { name: /Eine Anmeldung mehr/ }).click();
+    await expect(card.locator(".seat-stepper")).toContainText(`Anmeldungen · max. ${expected}`);
+    await expect(removeRegistration).toBeEnabled();
+    await removeRegistration.click();
+    await expect(removeRegistration).toBeDisabled();
     await card.getByRole("button", { name: "Bearbeiten", exact: true }).click();
     await expect(page.locator("#capacity")).toHaveValue(String(expected));
     await page.locator("#save-course").click();
-    await expect(card.locator(".seat-stepper")).toContainText(`von ${expected} Plätzen frei`);
-    await expect(plus).toBeDisabled();
+    await expect(card.locator(".seat-stepper")).toContainText(`Anmeldungen · max. ${expected}`);
+    await expect(removeRegistration).toBeDisabled();
   });
 }
 
@@ -492,8 +493,30 @@ for (const variation of ["date", "time", "weekly gap"]) test(`individual schedul
   await expect(card.locator(".individual-schedule li")).toHaveCount(6);
   await expect(card.locator(".individual-schedule")).toBeVisible();
   await expect(card.locator(".individual-schedule")).toContainText(variation === "date" ? "25.10.2026" : variation === "time" ? "24.10.2026 · 10:00–12:00 Uhr" : "28.11.2026");
-  await card.getByRole("button", { name: /Einen Platz weniger/ }).click();
+  await card.getByRole("button", { name: /Eine Anmeldung mehr/ }).click();
   await expect(card.locator(".individual-schedule")).toBeVisible();
   await card.getByRole("button", { name: "Individuelle Termine ausblenden", exact: true }).click();
   await expect(card.locator(".individual-schedule")).toBeHidden();
+});
+
+test("changing capacity preserves registration count and publishes derived free places", async ({ page }) => {
+  const mock = await github(page);
+  await login(page);
+  const card = page.locator("#course-list article").first();
+  await expect(card.locator(".seat-stepper strong")).toHaveText("5");
+  await card.getByRole("button", { name: "Bearbeiten", exact: true }).click();
+  await expect(page.getByLabel("Anmeldungen", { exact: true })).toHaveValue("5");
+  await page.locator("#capacity").fill("4");
+  await page.locator("#save-course").click();
+  await expect(page.locator("#editor")).toBeVisible();
+  expect(mock.publication()).toBeUndefined();
+  await page.locator("#capacity").fill("8");
+  await expect(page.getByLabel("Anmeldungen", { exact: true })).toHaveValue("5");
+  await page.locator("#save-course").click();
+  await expect(page.locator("#save-status")).toContainText("auf der Website bestätigt");
+  const course = JSON.parse(mock.publication().inputs.courses)[0];
+  expect(course.capacity).toBe(8);
+  expect(course.remainingPlaces).toBe(3);
+  expect(course).not.toHaveProperty("registrations");
+  await expect(card.locator(".seat-stepper strong")).toHaveText("5");
 });

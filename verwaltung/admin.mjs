@@ -23,6 +23,7 @@ const locked = () => preparing || resuming;
 const hasUnsentChanges = () => token && JSON.stringify(courses) !== JSON.stringify(activeRun?.courses || baseCourses);
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const courseCapacity = (course) => course.capacity ?? Math.max(7, course.remainingPlaces);
+const registrations = (course) => courseCapacity(course) - course.remainingPlaces;
 const status = (message) => { $("status").textContent = message; };
 const field = (name) => $("editor-form").elements.namedItem(name);
 const local = ["127.0.0.1", "localhost", "[::1]"].includes(window.location.hostname);
@@ -77,8 +78,7 @@ function availability(course, language = "de") {
   if (course.registrationDeadline && new Date(course.registrationDeadline) <= new Date()) return language === "de" ? "Anmeldung geschlossen" : "Registration closed";
   if (course.remainingPlaces === 0) return language === "de" ? "Ausgebucht" : "Fully booked";
   if (course.status === "waitlist") return language === "de" ? "Warteliste" : "Waitlist";
-  if (course.remainingPlaces > 3) return language === "de" ? "Freie Plätze" : "Places available";
-  return language === "de" ? `Noch ${course.remainingPlaces} ${course.remainingPlaces === 1 ? "Platz" : "Plätze"} frei` : `${course.remainingPlaces} ${course.remainingPlaces === 1 ? "place" : "places"} left`;
+  return language === "de" ? "Anmeldung offen" : "Registration open";
 }
 function dateLabel(date, language = "de") {
   return new Intl.DateTimeFormat(language === "de" ? "de-DE" : "en-GB", { dateStyle: "medium", timeZone: "UTC" }).format(new Date(`${date}T12:00:00Z`));
@@ -118,13 +118,13 @@ function card(course) {
   if (!courseEnded(course, config) && !course.archived) {
     const stepper = element("div", undefined, "seat-stepper");
     const count = element("div");
-    count.append(element("strong", String(course.remainingPlaces)), element("span", ` von ${courseCapacity(course)} Plätzen frei`));
-    const minus = button("−", () => adjustSeats(course.id, -1));
-    const plus = button("+", () => adjustSeats(course.id, 1));
-    for (const [control, direction, label] of [[minus, -1, "Einen Platz weniger"], [plus, 1, "Einen Platz mehr"]]) {
+    count.append(element("strong", String(registrations(course))), element("span", ` Anmeldungen · max. ${courseCapacity(course)}`));
+    const minus = button("−", () => adjustRegistrations(course.id, -1));
+    const plus = button("+", () => adjustRegistrations(course.id, 1));
+    for (const [control, direction, label] of [[minus, -1, "Eine Anmeldung weniger"], [plus, 1, "Eine Anmeldung mehr"]]) {
       control.setAttribute("aria-label", `${label} · ${course.labelDe}`);
       control.dataset.seatDirection = direction;
-      control.disabled = locked() || (direction < 0 ? course.remainingPlaces === 0 : course.remainingPlaces >= courseCapacity(course));
+      control.disabled = locked() || (direction < 0 ? registrations(course) === 0 : registrations(course) >= courseCapacity(course));
     }
     stepper.append(minus, count, plus);
     item.append(stepper);
@@ -213,10 +213,11 @@ function openEditor(course, isNew = false) {
   setSection("session-settings", false);
   $("editor-error").textContent = "";
   $("editor-title").textContent = isNew ? "Neuer Kurs" : "Kurs bearbeiten";
-  for (const name of ["labelDe", "labelEn", "status", "format", "location", "remainingPlaces"]) field(name).value = course[name] ?? config[name] ?? "";
+  for (const name of ["labelDe", "labelEn", "status", "format", "location"]) field(name).value = course[name] ?? config[name] ?? "";
   for (const name of ["startTime", "endTime"]) field(name).value = sessionTime({ ...course, sessionTimes: undefined }, course.dates[0], config)[name];
   field("capacity").value = courseCapacity(course);
-  field("remainingPlaces").max = field("capacity").value;
+  field("registrations").value = registrations(course);
+  field("registrations").max = field("capacity").value;
   editing.autoName = isNew || course.labelDe === courseLabels(course.dates[0], field("startTime").value).labelDe;
   editing.autoEnglishName = isNew || course.labelEn === courseLabels(course.dates[0], field("startTime").value).labelEn;
   showEnglishName();
@@ -274,9 +275,7 @@ for (const name of ["deadlineDate", "deadlineTime", "priceEur", "friendPriceEur"
   if (field("deadlineDate").value) updateEditorHints();
 });
 field("capacity").addEventListener("input", () => {
-  const before = field("remainingPlaces").max;
-  if (editing.isNew && field("remainingPlaces").value === before) field("remainingPlaces").value = field("capacity").value;
-  field("remainingPlaces").max = field("capacity").value;
+  field("registrations").max = field("capacity").value;
 });
 // Reveal invalid optional settings before native validation focuses the field.
 $("editor-form").addEventListener("invalid", (event) => {
@@ -296,10 +295,10 @@ $("editor-form").addEventListener("submit", (event) => {
     for (const name of ["status", "format", "startTime", "endTime"]) value[name] = field(name).value.trim();
     if (locked()) return;
     for (const name of ["labelDe", "labelEn"]) value[name] = field(name).value.trim();
-    value.remainingPlaces = Number(field("remainingPlaces").value);
     value.priceEur = Number(field("priceEur").value);
     value.friendPriceEur = field("friendPriceEur").value === "" ? null : Number(field("friendPriceEur").value);
     value.capacity = Number(field("capacity").value);
+    value.remainingPlaces = value.capacity - Number(field("registrations").value);
     if (value.format === "vor_ort" && field("location").value.trim()) value.location = field("location").value.trim(); else delete value.location;
     value.registrationDeadline = berlinInstant(field("deadlineDate").value, field("deadlineTime").value);
     value.dates = [];
@@ -364,14 +363,14 @@ function requestSave(delay = 0) {
   saveStatus(publishing ? "Änderung vorgemerkt · wird nach dem laufenden Speichern übertragen …" : "Wird gespeichert …");
   scheduleSave(delay);
 }
-function adjustSeats(id, delta) {
+function adjustRegistrations(id, delta) {
   if (locked()) return;
   const course = courses.find((entry) => entry.id === id);
   const capacity = courseCapacity(course);
-  const value = course.remainingPlaces + delta;
+  const value = registrations(course) + delta;
   if (value < 0 || value > capacity) return;
   course.capacity = capacity;
-  course.remainingPlaces = value;
+  course.remainingPlaces = capacity - value;
   render();
   requestSave(800);
 }
@@ -502,7 +501,7 @@ async function enter(data) {
   $("login-panel").hidden = true;
   $("workspace").hidden = false;
   $("logout").hidden = false;
-  $("seats-hint").textContent = token ? "Plätze direkt mit −/+ ändern. Weitere Änderungen im Kurs mit „Speichern“ übernehmen." : "Testvorschau ohne Veröffentlichung. Änderungen werden beim Neuladen zurückgesetzt.";
+  $("seats-hint").textContent = token ? "Anmeldungen direkt mit −/+ zählen. Weitere Änderungen im Kurs mit „Speichern“ übernehmen." : "Testvorschau ohne Veröffentlichung. Änderungen werden beim Neuladen zurückgesetzt.";
   render();
   scheduleSave(0);
   window.scrollTo({ top: 0, behavior: "instant" });

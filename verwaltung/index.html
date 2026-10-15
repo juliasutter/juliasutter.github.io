@@ -21,7 +21,7 @@
   </header>
   <main>
     <h1>Deine Kursverwaltung.</h1>
-    <p class="intro">Plätze mit einem Klick ändern. Neue Kurse in wenigen Schritten planen.</p>
+    <p class="intro">Anmeldungen mit einem Klick zählen. Neue Kurse in wenigen Schritten planen.</p>
     <p id="status" role="status" aria-live="polite"></p>
     <section id="login-panel" class="login card" aria-labelledby="login-title">
       <p class="eyebrow">Willkommen, Julia</p>
@@ -39,7 +39,7 @@
     </section>
     <section id="workspace" hidden aria-label="Kursübersicht">
       <div class="section-heading"><h2>Aktuelle Kurse</h2><button type="button" id="add-course">+ Neuer Kurs</button></div>
-      <p class="hint" id="seats-hint">Plätze direkt mit −/+ ändern. Weitere Änderungen im Kurs mit „Speichern“ übernehmen.</p>
+      <p class="hint" id="seats-hint">Anmeldungen direkt mit −/+ zählen. Weitere Änderungen im Kurs mit „Speichern“ übernehmen.</p>
       <div id="save-feedback" role="status" aria-live="polite"><span id="save-status"></span> <a id="workflow-link" href="https://github.com/juliasutter/juliasutter.github.io/actions" target="_blank" rel="noopener noreferrer" hidden>GitHub-Status</a> <button type="button" id="retry-save" class="quiet" hidden>Erneut versuchen</button></div>
       <div id="course-list" class="course-grid"></div>
       <details id="past-section"><summary id="archive-title">Abgeschlossene Kurse</summary><div id="past-list" class="course-grid"></div></details>
@@ -59,7 +59,7 @@
         <div class="full"><label for="label-de">Kursname</label><input type="text" id="label-de" name="labelDe" maxlength="120" required></div>
         <div class="full" id="english-name-field" hidden><label for="label-en">Kursname · Englisch</label><input type="text" id="label-en" name="labelEn" maxlength="120" required></div>
         <div><label for="capacity">Gesamtzahl der Plätze</label><input id="capacity" name="capacity" type="number" min="1" max="999" step="1" required></div>
-        <div><label for="remaining">Freie Plätze</label><input id="remaining" name="remainingPlaces" type="number" min="0" max="999" step="1" required></div>
+        <div><label for="registrations">Anmeldungen</label><input id="registrations" name="registrations" type="number" min="0" max="999" step="1" required></div>
         <div class="full"><label for="course-format">Format</label><select id="course-format" name="format"><option value="online">Online</option><option value="vor_ort">Vor Ort</option></select></div>
         <div class="full" id="location-field" hidden><label for="location">Öffentlicher Veranstaltungsort</label><input type="text" id="location" name="location" maxlength="200"><small>Keine privaten Einwahllinks oder Zugangscodes eintragen.</small></div>
       </div>
