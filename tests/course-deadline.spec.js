@@ -1,4 +1,7 @@
 import { expect, test } from "@playwright/test";
+import { installCourseFixture } from "./course-fixtures.js";
+
+test.beforeEach(async ({ page }) => { await installCourseFixture(page); });
 
 for (const language of ["de", "en"]) {
   for (const [time, state] of [

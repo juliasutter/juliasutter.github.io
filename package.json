@@ -7,13 +7,14 @@
   },
   "scripts": {
     "dev": "./dev",
-    "lint": "eslint assets/*.js tools tests playwright.config.js eslint.config.js",
-    "validate:html": "html-validate index.html starterclass/index.html en/index.html 404.html impressum/index.html datenschutz/index.html agb/index.html widerruf/index.html en/imprint/index.html en/privacy/index.html en/terms/index.html en/withdrawal/index.html",
+    "lint": "eslint assets/*.js assets/*.mjs verwaltung/*.mjs tools tests playwright.config.js eslint.config.js",
+    "validate:html": "html-validate index.html starterclass/index.html en/index.html 404.html impressum/index.html datenschutz/index.html agb/index.html widerruf/index.html en/imprint/index.html en/privacy/index.html en/terms/index.html en/withdrawal/index.html verwaltung/index.html",
     "check:site": "node tools/check-site.mjs",
     "test:unit": "node --test tests/*.test.js",
     "test:e2e": "playwright test",
     "test:lighthouse": "node tools/run-lighthouse.mjs",
-    "test:ci": "npm run lint && npm run validate:html && npm run check:site && npm run test:unit && npm run test:e2e && npm run test:lighthouse"
+    "test:ci": "npm run build:courses && npm run lint && npm run validate:html && npm run check:site && npm run test:unit && npm run test:e2e && npm run test:lighthouse",
+    "build:courses": "node tools/build-course-config.mjs"
   },
   "devDependencies": {
     "@lhci/cli": "0.15.1",

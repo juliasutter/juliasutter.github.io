@@ -2640,3 +2640,11 @@ html:not(.forms-ready) .form-panel {
     transform: none;
   }
 }
+
+.course-label { font-size: .75rem; letter-spacing: .02em; }
+.course-session-details { margin: .6rem 1rem 1rem; font-size: .85rem; }
+.course-session-details summary { cursor: pointer; }
+[data-binding-session-dates] { padding-left: 1.2rem; font-size: .85rem; }
+
+.course-change-notice { padding: 1rem; border: 1px solid currentColor; margin-bottom: 1rem; }
+.course-change-notice button { padding: .6rem 1rem; cursor: pointer; font: inherit; }

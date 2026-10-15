@@ -30,6 +30,9 @@
       registrationDeadline: (date, time) => `Anmeldung bis ${date}, ${time.replace(/:00$/, "")}\u00a0Uhr`,
       registrationClosedError: "Anmeldung geschlossen: Die Anmeldefrist für diesen Kurs ist abgelaufen. Bitte wähle einen anderen Kurs.",
       fullyBookedError: "Dieser Kurs ist ausgebucht. Bitte wähle einen anderen Kurs.",
+      courseUnavailableError: "Dieser Kurs ist derzeit nicht buchbar. Bitte wähle einen anderen Kurs.",
+      courseChanged: "Die Angaben zu diesem Kurs wurden aktualisiert. Bitte sieh dir die aktuellen Termine, Preise und die Anmeldemöglichkeit an. Deine Eingaben bleiben erhalten.",
+      courseChangedAction: "Aktuelle Kursangaben ansehen",
       shortMonths: ["Jan.", "Feb.", "März", "Apr.", "Mai", "Juni", "Juli", "Aug.", "Sep.", "Okt.", "Nov.", "Dez."],
       shortWeekdays: ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"],
       sending: "Wird gesendet…",
@@ -87,6 +90,9 @@
       registrationDeadline: (date, time) => `Register by ${date}, ${time} (Berlin time)`,
       registrationClosedError: "Registration closed: The registration deadline for this course has passed. Please choose another course.",
       fullyBookedError: "This course is fully booked. Please choose another course.",
+      courseUnavailableError: "This course is no longer available. Please choose another course.",
+      courseChanged: "This course has been updated. Please review the current dates, prices and registration type. Your entries are kept.",
+      courseChangedAction: "View current course details",
       shortMonths: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
       shortWeekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
       sending: "Sending…",
@@ -303,6 +309,12 @@
     return { ...course, dates, registrationDeadline };
   };
 
+  const courseSessionTime = (course, date) => course.sessionTimes?.[date.toISOString().slice(0, 10)] || {
+    startTime: course.startTime || config.defaultStartTime || "20:00",
+    endTime: course.endTime || config.defaultEndTime || "22:00"
+  };
+  let latestCourses = null;
+  const availabilityCourse = (course) => latestCourses ? latestCourses.get(course.id) : course;
   const courseHasStarted = (course, now = new Date()) => {
     const currentDay = calendarDateInTimeZone(now, courseTimeZone);
     const firstDay = course.dates[0];
@@ -310,15 +322,29 @@
     const currentTime = new Intl.DateTimeFormat("en-GB", {
       hour: "2-digit", minute: "2-digit", hourCycle: "h23", timeZone: courseTimeZone
     }).format(now);
-    return currentTime >= (course.startTime || config.defaultStartTime || "20:00");
+    return currentTime >= courseSessionTime(course, firstDay).startTime;
   };
   const courseRegistrationClosed = (course, now = new Date()) => Boolean(course.registrationDeadline && now >= course.registrationDeadline);
-  const courseIsBookable = (course) => !courseHasStarted(course) && !courseRegistrationClosed(course)
-    && (course.status === "waitlist" || course.remainingPlaces !== 0);
+  const courseIsBookable = (course) => {
+    const current = availabilityCourse(course);
+    return Boolean(current && !current.archived && ["open", "waitlist"].includes(current.status)
+      && !courseHasStarted(current) && !courseRegistrationClosed(current) && current.remainingPlaces !== 0);
+  };
+  const courseTerms = (course) => JSON.stringify({
+    status: course.status, dates: course.dates.map((date) => date.toISOString()),
+    times: course.dates.map((date) => { const time = courseSessionTime(course, date); return [time.startTime, time.endTime]; }),
+    price: course.priceEur ?? config.priceEur,
+    friendPrice: course.friendPriceEur === null ? null : course.friendPriceEur ?? config.friendPriceEur,
+    format: course.format, location: course.location || ""
+  });
+  const courseTermsChanged = (course) => {
+    const latest = availabilityCourse(course);
+    return Boolean(latest && courseTerms(course) !== courseTerms(latest));
+  };
   const today = calendarDateInTimeZone(new Date(), courseTimeZone);
   const courses = (Array.isArray(config.courses) ? config.courses : [])
     .map(normalizeCourse)
-    .filter((course) => course && course.status !== "closed" && !courseHasStarted(course))
+    .filter((course) => course && !course.archived && course.status !== "closed" && !courseHasStarted(course))
     .sort((a, b) => a.dates[0] - b.dates[0]);
   const bookableCourses = courses.filter(courseIsBookable);
   const featuredCourse = bookableCourses[0] || null;
@@ -360,19 +386,28 @@
     return `${dayAndMonth(first)} ${first.getUTCFullYear()}–${dayAndMonth(last)} ${last.getUTCFullYear()}`;
   };
 
+  const irregularSchedule = (course) => course.dates.some((date) => {
+    const time = courseSessionTime(course, date);
+    const first = courseSessionTime(course, course.dates[0]);
+    return date.getUTCDay() !== course.dates[0].getUTCDay() || time.startTime !== first.startTime || time.endTime !== first.endTime;
+  });
+  const sessionScheduleText = (course) => course.dates.map((date) => {
+    const time = courseSessionTime(course, date);
+    return `${shortDateFormatter.format(date)} · ${time.startTime}–${time.endTime}`;
+  });
   const formatSchedule = (course) => {
     if (!course) return language === "de" ? "montags 20:00–22:00 Uhr" : "Mondays, 20:00–22:00";
+    if (irregularSchedule(course)) return language === "de" ? "6 individuelle Termine · siehe Terminliste" : "6 individual sessions · see session dates";
     const weekday = copy.weekdays[course.dates[0].getUTCDay()];
-    const start = course.startTime || config.defaultStartTime || "20:00";
-    const end = course.endTime || config.defaultEndTime || "22:00";
+    const { startTime: start, endTime: end } = courseSessionTime(course, course.dates[0]);
     return language === "de" ? `${weekday} ${start}–${end} Uhr` : `${weekday}, ${start}–${end}`;
   };
 
   const formatCompactSchedule = (course) => {
     if (!course) return language === "de" ? "Mo · 20:00–22:00 Uhr" : "Mon · 20:00–22:00";
+    if (irregularSchedule(course)) return language === "de" ? "Termine und Uhrzeiten unten" : "Dates and times below";
     const weekday = copy.shortWeekdays[course.dates[0].getUTCDay()];
-    const start = course.startTime || config.defaultStartTime || "20:00";
-    const end = course.endTime || config.defaultEndTime || "22:00";
+    const { startTime: start, endTime: end } = courseSessionTime(course, course.dates[0]);
     return language === "de" ? `${weekday} ${start}–${end} Uhr` : `${weekday} ${start}–${end}`;
   };
 
@@ -381,9 +416,11 @@
     const last = course.dates[course.dates.length - 1];
     const date = (value, includeYear) => `${value.getUTCDate()}.${String(value.getUTCMonth() + 1).padStart(2, "0")}.${includeYear ? value.getUTCFullYear() : ""}`;
     const range = `${date(first, first.getUTCFullYear() !== last.getUTCFullYear())}–${date(last, true)}`;
+    if (irregularSchedule(course)) return `${range} · ${language === "de" ? "6 Termine · Uhrzeiten unten" : "6 sessions · times below"}`;
     const time = (value) => value.replace(/^0/, "").replace(/:00$/, "");
-    const start = time(course.startTime || config.defaultStartTime || "20:00");
-    const end = time(course.endTime || config.defaultEndTime || "22:00");
+    const times = courseSessionTime(course, first);
+    const start = time(times.startTime);
+    const end = time(times.endTime);
     return `${range} · ${course.dates.length}× ${copy.weekdays[first.getUTCDay()]} ${start}–${end} Uhr`;
   };
 
@@ -396,7 +433,8 @@
   const priceFormatter = new Intl.NumberFormat(language === "de" ? "de-DE" : "en-GB", {
     style: "currency",
     currency: "EUR",
-    maximumFractionDigits: 0
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2
   });
   const renderPrice = (selector, value) => {
     const price = Number(value);
@@ -414,7 +452,9 @@
   const courseIntroText = contactIntro?.textContent;
   const contactFacts = document.querySelector(".contact-facts");
   const contactNote = document.querySelector(".contact-note");
+  let refreshCourseAvailability = () => {};
   const activateFormPanel = (name, moveFocus = false) => {
+    if (name === "course") refreshCourseAvailability();
     formTabs.forEach((tab) => {
       const selected = tab.dataset.formTab === name;
       tab.setAttribute("aria-selected", String(selected));
@@ -469,13 +509,20 @@
   };
 
   const updateRegistrationPrice = () => {
-    const friendPriceAvailable = Number.isFinite(config.friendPriceEur) && config.friendPriceEur >= 0 && config.friendPriceEur < config.priceEur;
+    const standardPrice = selectedCourse?.priceEur ?? config.priceEur;
+    const friendPrice = selectedCourse?.friendPriceEur === null ? null : selectedCourse?.friendPriceEur ?? config.friendPriceEur;
+    renderPrice("[data-course-price]", standardPrice);
+    renderPrice("[data-friend-price]", friendPrice);
+    const friendPriceAvailable = Number.isFinite(friendPrice) && friendPrice >= 0 && friendPrice < standardPrice;
+    document.querySelectorAll(".fine-print").forEach((element) => {
+      if (element.querySelector("[data-friend-price]")) element.hidden = !friendPriceAvailable;
+    });
     const friendOptionEnabled = courseMode === "open" && friendPriceAvailable;
     setFieldGroupEnabled(friendPricing, friendOptionEnabled);
     const withFriend = friendOptionEnabled && friendRegistration?.checked;
     setFieldGroupEnabled(friendNameGroup, withFriend);
     if (friendName) friendName.required = Boolean(withFriend);
-    const price = withFriend ? config.friendPriceEur : config.priceEur;
+    const price = withFriend ? friendPrice : standardPrice;
     renderPrice("[data-binding-price]", price);
     if (bindingPriceField) bindingPriceField.value = Number.isFinite(price) ? String(price) : "";
   };
@@ -484,15 +531,16 @@
   const getCourseFormat = (course) => {
     if (!course || typeof course.format !== "string") return "";
     if (course.format === "online") return copy.courseFormatOnline;
-    if (course.format === "vor_ort") return copy.courseFormatInPerson;
+    if (course.format === "vor_ort") return [copy.courseFormatInPerson, course.location].filter(Boolean).join(" · ");
     return "";
   };
 
   const getCourseAvailability = (course) => {
     if (!course) return "";
-    if (courseRegistrationClosed(course)) return copy.registrationClosed;
-    if (course.status === "waitlist") return copy.waitlistStatus;
+    course = availabilityCourse(course);
+    if (!course || course.archived || course.status === "closed" || courseHasStarted(course) || courseRegistrationClosed(course)) return copy.registrationClosed;
     if (course.remainingPlaces === 0) return copy.fullyBooked;
+    if (course.status === "waitlist") return copy.waitlistStatus;
     if (course.remainingPlaces <= 3) return copy.placesRemaining(course.remainingPlaces);
     return copy.placesAvailable;
   };
@@ -545,6 +593,7 @@
     return course.dates[0] <= withdrawalDeadline;
   };
 
+  let courseChangeNotice;
   const applyCourseSelection = (course) => {
     selectedCourse = course || null;
     courseMode = selectedCourse ? selectedCourse.status : "inquiry";
@@ -564,8 +613,22 @@
     if (bindingMobileCourseSchedule && selectedCourse) {
       bindingMobileCourseSchedule.textContent = formatMobileCourseSchedule(selectedCourse);
     }
+    let sessionList = courseForm?.querySelector("[data-binding-session-dates]");
+    if (!sessionList && bindingCourseSchedule) {
+      sessionList = document.createElement("ul");
+      sessionList.dataset.bindingSessionDates = "";
+      bindingCourseSchedule.after(sessionList);
+    }
+    if (sessionList) {
+      sessionList.replaceChildren();
+      sessionList.hidden = !selectedCourse || !irregularSchedule(selectedCourse);
+      if (!sessionList.hidden) sessionScheduleText(selectedCourse).forEach((text) => {
+        const item = document.createElement("li"); item.textContent = text; sessionList.append(item);
+      });
+    }
     setCourseFormatFields(selectedCourse);
     updateCourseRegistrationStatus(selectedCourse);
+    if (courseChangeNotice) courseChangeNotice.hidden = true;
     setFieldGroupEnabled(bindingFields, courseMode === "open");
     setFieldGroupEnabled(bindingCheckout, courseMode === "open");
     updateRegistrationPrice();
@@ -595,7 +658,7 @@
   }
 
   const syncCourseSelection = () => {
-    const selected = visibleCourseOptions.find((course) => course.id === courseSelect?.value);
+    const selected = latestCourses?.get(courseSelect?.value) || visibleCourseOptions.find((course) => course.id === courseSelect?.value);
     applyCourseSelection(selected || featuredCourse);
   };
   applyCourseSelection(featuredCourse);
@@ -608,7 +671,7 @@
     courses.forEach((course) => {
       const item = document.createElement("li");
       const bookable = courseIsBookable(course);
-      const link = document.createElement(bookable ? "a" : "div");
+      const link = document.createElement("a");
       link.className = "course-option";
       if (bookable) {
         link.href = language === "de" ? "#anmeldung" : "#contact";
@@ -621,6 +684,12 @@
       title.textContent = formatDateRange(course);
       const schedule = document.createElement("span");
       schedule.textContent = [formatSchedule(course), getCourseFormat(course)].filter(Boolean).join(" · ");
+      if (course.labelDe || course.labelEn) {
+        const label = document.createElement("span");
+        label.className = "course-label";
+        label.textContent = language === "de" ? course.labelDe : course.labelEn;
+        details.append(label);
+      }
       details.append(title, schedule);
 
       const availability = document.createElement("span");
@@ -644,9 +713,102 @@
         link.append(action);
       }
       item.append(link);
+      if (irregularSchedule(course)) {
+        const sessionDetails = document.createElement("details");
+        sessionDetails.className = "course-session-details";
+        const summary = document.createElement("summary");
+        summary.textContent = language === "de" ? "Alle Termine und Uhrzeiten" : "All dates and times";
+        const sessions = document.createElement("ul");
+        sessionScheduleText(course).forEach((text) => { const row = document.createElement("li"); row.textContent = text; sessions.append(row); });
+        sessionDetails.append(summary, sessions);
+        item.append(sessionDetails);
+      }
       courseList.append(item);
     });
   }
+
+  // Availability refreshes run independently of submission. Slow or unavailable hosting must not delay a registration.
+  let lastAvailabilityAttempt = -Infinity;
+  let availabilityLoading = false;
+  const courseFormVisible = () => courseForm && !courseForm.closest("[data-form-panel]")?.hidden
+    && courseForm.getBoundingClientRect().top < window.innerHeight && courseForm.getBoundingClientRect().bottom > 0;
+  refreshCourseAvailability = async () => {
+    if (!config.dataVersion || availabilityLoading || Date.now() - lastAvailabilityAttempt < 60000 || document.visibilityState === "hidden") return;
+    lastAvailabilityAttempt = Date.now();
+    availabilityLoading = true;
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 10000);
+    try {
+      const response = await fetch(`/assets/course-config.json?t=${Date.now()}`, { cache: "no-store", signal: controller.signal });
+      if (!response.ok) return;
+      const data = await response.json();
+      if (!Array.isArray(data.courses)) return;
+      const normalized = data.courses.map((course) => normalizeCourse({ ...course,
+        priceEur: course.priceEur ?? data.priceEur,
+        friendPriceEur: course.friendPriceEur === null ? null : course.friendPriceEur ?? data.friendPriceEur,
+        startTime: course.startTime || data.defaultStartTime || "20:00",
+        endTime: course.endTime || data.defaultEndTime || "22:00"
+      }));
+      if (normalized.some((course) => !course)) return;
+      latestCourses = new Map(normalized.map((course) => [course.id, course]));
+      if (courseSelect) {
+        courseSelect.replaceChildren();
+        if (!selectedCourse) {
+          const inquiry = document.createElement("option"); inquiry.value = "on-request"; inquiry.textContent = copy.courseOptionFallback;
+          courseSelect.append(inquiry);
+        }
+        for (const original of courses) {
+          const current = latestCourses.get(original.id);
+          const bookable = current && courseIsBookable(current);
+          if (!bookable && original.id !== selectedCourse?.id) continue;
+          const option = document.createElement("option");
+          option.value = original.id;
+          option.textContent = [language === "de" ? original.labelDe : original.labelEn, formatDateRange(current || original)].filter(Boolean).join(" · ");
+          option.disabled = !bookable;
+          courseSelect.append(option);
+        }
+        courseSelect.value = selectedCourse?.id || "on-request";
+        if (!selectedCourse && courseSelectWrap) courseSelectWrap.hidden = courseSelect.options.length < 2;
+      }
+      if (selectedCourse && !courseIsBookable(selectedCourse) && courseSelectWrap) courseSelectWrap.hidden = false;
+      for (const row of courseList?.querySelectorAll("[data-course-id]") || []) {
+        const current = latestCourses.get(row.dataset.courseId);
+        if (!current || current.archived || current.status === "closed" || courseHasStarted(current)) { row.closest("li").remove(); continue; }
+        const original = courses.find((course) => course.id === current.id);
+        row.querySelector("[data-course-availability]").textContent = getCourseAvailability(original);
+        if (!courseIsBookable(original)) {
+          row.removeAttribute("href"); delete row.dataset.openForm;
+          row.querySelector(".course-option-action")?.remove();
+        } else {
+          row.href = language === "de" ? "#anmeldung" : "#contact";
+          row.dataset.openForm = "course";
+          row.addEventListener("click", openFormFromTrigger);
+          let action = row.querySelector(".course-option-action");
+          if (!action) { action = document.createElement("span"); action.className = "course-option-action"; row.append(action); }
+          action.textContent = modeCopy[current.status].cta;
+        }
+      }
+      updateCourseRegistrationStatus(selectedCourse);
+      if (courseChangeNotice) courseChangeNotice.hidden = !selectedCourse || !courseIsBookable(selectedCourse) || !courseTermsChanged(selectedCourse);
+    } catch (_) { /* Continue using the most recently known availability. */ }
+    finally { window.clearTimeout(timeout); availabilityLoading = false; }
+  };
+  if (courseForm) {
+    courseChangeNotice = document.createElement("div");
+    courseChangeNotice.className = "course-change-notice";
+    courseChangeNotice.hidden = true;
+    const explanation = document.createElement("p"); explanation.textContent = copy.courseChanged;
+    const action = document.createElement("button"); action.type = "button"; action.textContent = copy.courseChangedAction;
+    action.addEventListener("click", () => {
+      const latest = selectedCourse && availabilityCourse(selectedCourse);
+      if (latest && courseIsBookable(latest)) applyCourseSelection(latest);
+    });
+    courseChangeNotice.append(explanation, action);
+    courseForm.prepend(courseChangeNotice);
+  }
+  courseForm?.addEventListener("focusin", () => { refreshCourseAvailability(); });
+  document.addEventListener("visibilitychange", () => { if (courseFormVisible()) refreshCourseAvailability(); });
+  window.setInterval(() => { if (courseFormVisible()) refreshCourseAvailability(); }, 60000);
 
   // Safari can show :focus-visible after a pointer-triggered programmatic focus.
   // Keep the focus itself, suppressing only this target's ring until blur or a key.
@@ -785,8 +947,8 @@
     });
   }
 
-  document.querySelectorAll("[data-open-form]").forEach((trigger) => {
-    trigger.addEventListener("click", (event) => {
+  function openFormFromTrigger(event) {
+      const trigger = event.currentTarget;
       const targetName = trigger.dataset.openForm;
       const panel = formPanels.find((element) => element.dataset.formPanel === targetName);
       if (!panel) return;
@@ -806,8 +968,8 @@
       heading.focus({ preventScroll: true });
       heading.addEventListener("blur", () => heading.removeAttribute("tabindex"), { once: true });
       panel.closest(".contact-form-wrap").scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
-    });
-  });
+  }
+  document.querySelectorAll("[data-open-form]").forEach((trigger) => trigger.addEventListener("click", openFormFromTrigger));
 
   const confirmationTemplate = document.querySelector("[data-form-confirmation-template]");
   const showFormConfirmation = (form, payload) => {
@@ -854,9 +1016,15 @@
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
       if (submitting || completed || !form.reportValidity()) return;
+      if (form === courseForm && selectedCourse && courseTermsChanged(selectedCourse) && courseIsBookable(selectedCourse)) {
+        setStatus(copy.courseChanged);
+        return;
+      }
       if (form === courseForm && selectedCourse && !courseIsBookable(selectedCourse)) {
-        setStatus(courseHasStarted(selectedCourse) ? copy.courseStarted
-          : courseRegistrationClosed(selectedCourse) ? copy.registrationClosedError : copy.fullyBookedError);
+        const current = availabilityCourse(selectedCourse);
+        setStatus(!current || current.archived || current.status === "closed" ? copy.courseUnavailableError
+          : courseHasStarted(current) ? copy.courseStarted
+            : courseRegistrationClosed(current) ? copy.registrationClosedError : copy.fullyBookedError);
         updateCourseRegistrationStatus(selectedCourse);
         return;
       }

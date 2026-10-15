@@ -1,4 +1,5 @@
 name: Site quality
+run-name: ${{ inputs.request_id && format('Kurse · {0}', inputs.request_id) || github.workflow }}
 
 on:
   pull_request:
@@ -6,52 +7,63 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      courses:
+        description: Course array from the course editor
+        type: string
+        required: false
+      expected_head:
+        description: Main commit loaded by the editor
+        type: string
+        required: false
+      request_id:
+        description: Publication identifier
+        type: string
+        required: false
 
 permissions:
   contents: read
 
 concurrency:
-  group: site-quality-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: pages-${{ github.event.pull_request.number || 'main' }}
+  cancel-in-progress: false
 
 jobs:
   quality:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    outputs:
+      base: ${{ steps.base.outputs.commit }}
+      version: ${{ steps.version.outputs.version }}
     steps:
       - name: Check out repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-
+        with:
+          persist-credentials: false
+      - name: Record base commit
+        id: base
+        run: echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
       - name: Set up Node.js
         uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238
         with:
           node-version: 24
           cache: npm
-
+      - name: Validate course changes
+        if: github.event_name == 'workflow_dispatch' && inputs.courses != ''
+        env:
+          COURSES_JSON: ${{ inputs.courses }}
+          EXPECTED_HEAD: ${{ inputs.expected_head }}
+          REQUEST_ID: ${{ inputs.request_id }}
+        run: node tools/course-publication.mjs prepare
       - name: Install quality dependencies
         run: npm ci
-
-      - name: Lint JavaScript
-        run: npm run lint
-
-      - name: Validate HTML
-        run: npm run validate:html
-
-      - name: Check site invariants
-        run: npm run check:site
-
-      - name: Run unit tests
-        run: npm run test:unit
-
       - name: Install browser engines
         run: npx playwright install --with-deps chromium webkit
-
-      - name: Run browser smoke tests
-        run: npm run test:e2e
-
-      - name: Run Lighthouse budgets
-        run: npm run test:lighthouse
-
+      - name: Run complete quality suite
+        run: npm run test:ci
+      - name: Record tested data version
+        id: version
+        run: node --input-type=module -e 'import fs from "node:fs"; fs.appendFileSync(process.env.GITHUB_OUTPUT, `version=${JSON.parse(fs.readFileSync("assets/course-version.json", "utf8")).version}\n`);'
       - name: Upload quality reports
         if: always()
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
@@ -63,3 +75,56 @@ jobs:
             artifacts/lighthouse/
           if-no-files-found: ignore
           retention-days: 7
+
+  publish:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: quality
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Check out the tested base
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: ${{ needs.quality.outputs.base }}
+      - name: Set up Node.js
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238
+        with:
+          node-version: 24
+      - name: Reproduce validated course changes
+        if: github.event_name == 'workflow_dispatch' && inputs.courses != ''
+        env:
+          COURSES_JSON: ${{ inputs.courses }}
+          EXPECTED_HEAD: ${{ inputs.expected_head }}
+          REQUEST_ID: ${{ inputs.request_id }}
+        run: node tools/course-publication.mjs prepare
+      - name: Verify tested version and current main
+        env:
+          TESTED_BASE: ${{ needs.quality.outputs.base }}
+          TESTED_VERSION: ${{ needs.quality.outputs.version }}
+        run: |
+          node tools/build-course-config.mjs
+          node --input-type=module -e 'import fs from "node:fs"; if (JSON.parse(fs.readFileSync("assets/course-version.json", "utf8")).version !== process.env.TESTED_VERSION) throw new Error("Data differs from tested version");'
+          test "$(git ls-remote origin refs/heads/main | cut -f1)" = "$TESTED_BASE"
+      - name: Commit tested course changes
+        if: github.event_name == 'workflow_dispatch' && inputs.courses != ''
+        env:
+          EXPECTED_HEAD: ${{ inputs.expected_head }}
+        run: node tools/course-publication.mjs commit
+      - name: Assemble public files
+        run: node tools/course-publication.mjs package
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa
+        with:
+          path: dist
+      - name: Deploy tested site
+        id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e
+      - name: Confirm public data version
+        run: node tools/course-publication.mjs check-deployment

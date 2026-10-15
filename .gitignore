@@ -38,3 +38,7 @@ artifacts/lighthouse/
 /.private/
 /artifacts/meta-ads-*/
 /tools/build-meta-*.mjs
+
+# Local browser inspection output
+.playwright-cli/
+output/playwright/

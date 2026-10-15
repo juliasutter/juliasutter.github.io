@@ -2,12 +2,15 @@ import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
 import { fileURLToPath } from "node:url";
+import { validateCourses } from "../assets/course-model.mjs";
+import { configVersion } from "./build-course-config.mjs";
 import { isFullyCrawlableRobotsPolicy } from "./robots-policy.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const origin = "https://juliasutter.de";
 const errors = [];
 const pages = [
+  { file: "verwaltung/index.html", route: "/verwaltung/", lang: "de", noindex: true },
   { file: "index.html", route: "/", lang: "de", canonical: "/", indexable: true, alternate: "/en/" },
   { file: "starterclass/index.html", route: "/starterclass/", lang: "de", canonical: "/#starter-class", noindex: true },
   { file: "en/index.html", route: "/en/", lang: "en", canonical: "/en/", indexable: true, alternate: "/" },
@@ -144,26 +147,16 @@ for (const file of ["index.html", "en/index.html"]) {
   }
 }
 
-const isValidCourseDate = (value) => {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value || "");
-  if (!match) return false;
-  const [, yearValue, monthValue, dayValue] = match;
-  const year = Number(yearValue);
-  const month = Number(monthValue);
-  const day = Number(dayValue);
-  const parsed = new Date(Date.UTC(year, month - 1, day));
-  return parsed.getUTCFullYear() === year && parsed.getUTCMonth() === month - 1 && parsed.getUTCDate() === day;
-};
-
-for (const course of Array.isArray(siteConfig?.courses) ? siteConfig.courses : []) {
-  const label = course?.id || "without id";
-  const dates = Array.isArray(course?.dates) ? course.dates : [];
-  if (dates.length !== 6) fail(`course ${label} must contain exactly six dates`);
-  if (dates.some((date) => !isValidCourseDate(date))) fail(`course ${label} contains an invalid date`);
-  if (new Set(dates).size !== dates.length) fail(`course ${label} contains duplicate dates`);
+try {
+  const canonical = JSON.parse(read("assets/course-config.json"));
+  validateCourses(canonical.courses, canonical);
+  if (JSON.stringify(siteConfig) !== JSON.stringify({ ...canonical, dataVersion: configVersion(canonical) })) fail("Generated course config differs from the JSON source; run npm run build:courses");
+} catch (error) { fail(error.message); }
+if (siteConfig.formEndpoint && !/^https:\/\/formcarry\.com\//.test(siteConfig.formEndpoint)) fail("formEndpoint must be an HTTPS Formcarry URL");
+if (!read("verwaltung/index.html").includes("default-src 'none'")) fail("Admin page requires a restrictive CSP");
+for (const file of ["index.html", "en/index.html", "sitemap.xml", "robots.txt"]) {
+  if (read(file).includes("/verwaltung")) fail(`${file} must not advertise the admin route`);
 }
-const endpoint = courseConfig.match(/formEndpoint:\s*["']([^"']*)["']/)?.[1] ?? "";
-if (endpoint && !/^https:\/\/formcarry\.com\//.test(endpoint)) fail("formEndpoint must be an HTTPS Formcarry URL");
 
 const sitemap = read("sitemap.xml");
 const locations = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
@@ -178,6 +171,6 @@ if (errors.length) {
   console.error(errors.map((error) => `- ${error}`).join("\n"));
   process.exitCode = 1;
 } else {
-  const formNote = endpoint ? "Formcarry endpoint configured." : "Formcarry endpoint still needs to be configured.";
+  const formNote = siteConfig.formEndpoint ? "Formcarry endpoint configured." : "Formcarry endpoint still needs to be configured.";
   console.log(`Site checks passed for ${pages.length} HTML routes. ${formNote}`);
 }

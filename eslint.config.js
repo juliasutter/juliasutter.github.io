@@ -30,12 +30,24 @@ export default [
     }
   },
   {
-    files: ["tools/**/*.mjs", "tests/**/*.js", "playwright.config.js", "eslint.config.js"],
+    files: ["assets/*.mjs", "verwaltung/*.mjs", "tools/**/*.mjs", "tests/**/*.js", "playwright.config.js", "eslint.config.js"],
     languageOptions: {
       ecmaVersion: "latest",
       sourceType: "module",
       globals: {
+        AbortSignal: "readonly",
+        Buffer: "readonly",
         console: "readonly",
+        fetch: "readonly",
+        localStorage: "readonly",
+        navigator: "readonly",
+        TextDecoder: "readonly",
+        TextEncoder: "readonly",
+        atob: "readonly",
+        FormData: "readonly",
+        clearInterval: "readonly",
+        setInterval: "readonly",
+        structuredClone: "readonly",
         document: "readonly",
         Event: "readonly",
         process: "readonly",

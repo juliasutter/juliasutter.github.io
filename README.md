@@ -2,25 +2,27 @@
 
 Statische, zweisprachige Website für Julia Sutter. Die deutsche Version unter `/` ist primär, die englische Version liegt unter `/en/`. Die Seite wird ohne Laufzeit-Framework über GitHub Pages ausgeliefert. Optionale Meta-Werbemessung lädt ausschließlich nach Einwilligung. Google-Terminbuchung wird erst nach einem bewussten Klick geladen; dabei gelten zusätzlich Googles Datenschutz- und Cookie-Regeln.
 
-## Starter-Class-Termine aktualisieren
+## Kurse verwalten
 
-Alle Kursdaten stehen ausschließlich in [`assets/course-config.js`](assets/course-config.js). Für einen neuen Kurs den dort auskommentierten Beispielblock kopieren, die sechs Termine im Format `YYYY-MM-DD` eintragen und den Status setzen:
+Die eigene Verwaltung liegt unter `/verwaltung/`. Einrichtung, Veröffentlichung, Token und Fehlerbehandlung sind in [docs/kursverwaltung.md](docs/kursverwaltung.md) beschrieben. Es gibt keinen öffentlichen Navigationslink und keinen Sitemap-Eintrag.
 
-- `open`: zeigt Termine und das Anmeldeformular; Rechnungsadresse, Bestellübersicht sowie der Hinweis auf AGB und Widerruf werden automatisch eingeblendet. Der abschließende Button heißt „Anmelden“; für AGB und Widerrufsbelehrung sind keine separaten Checkboxen vorgesehen.
-- `waitlist`: zeigt Termine und „Auf die Warteliste“; die Anmeldung bleibt unverbindlich.
-- `closed`: blendet den Kurs aus.
-- `format`: optional `online` oder `vor_ort`; ohne Wert wird kein Format angezeigt.
-- `remainingPlaces`: tatsächlich verfügbare Plätze, nach Buchungen, Reservierungen und Absagen aktualisieren. Ab drei Restplätzen erscheint die genaue Zahl, darüber „Freie Plätze“. Bei null Plätzen erscheint „Ausgebucht“ und der Kurs ist nicht mehr buchbar; eine ausdrücklich konfigurierte Warteliste bleibt möglich. Die Website zählt Anmeldungen nicht automatisch und reserviert beim Ausfüllen keinen Platz.
-- `registrationDeadline`: Anmeldeschluss als ISO-Zeitstempel mit explizitem UTC-Offset, z. B. `2026-10-16T21:00:00+02:00` für 21 Uhr deutscher Sommerzeit. Im Winter gilt `+01:00`. Die vorhandenen Kurse schließen jeweils am Vortag um 21 Uhr. In der Terminübersicht erscheint die Frist während der letzten sieben Kalendertage vor Kursstart, im Formular immer beim ausgewählten Kurs.
-- Keine sichtbaren zukünftigen Kurse: die gesamte Seite wechselt automatisch auf „Kursplatz anfragen“.
+Die einzige gepflegte Datenquelle ist `assets/course-config.json`. `npm run build:courses` erzeugt daraus `assets/course-config.js` und `assets/course-version.json`; `./dev` und `npm run test:ci` führen diesen Schritt automatisch aus. Erzeugte Dateien nicht manuell bearbeiten. Die übrigen Website-Einstellungen in der JSON-Datei können über den Kurseditor nicht verändert werden.
 
-Nach Anmeldeschluss bleiben Kurse bis zum ersten Termin als „Anmeldung geschlossen“ in der Übersicht stehen und sind nicht mehr auswählbar. Sobald ihr erster Termin zur konfigurierten Startzeit beginnt, verschwinden sie auch aus der Übersicht. Ohne explizite Frist endet die Anmeldung weiterhin zum Kursstart. Maßgeblich ist die Zeitzone aus der Kurskonfiguration. Auch ein bereits geöffnetes Formular verhindert eine Anmeldung nach Fristende oder Kursstart; ein späterer Einstieg ist nicht vorgesehen. Diese Prüfung erfolgt im Browser, nicht beim Formularanbieter. Offene Kurse und Wartelistenkurse stehen gemeinsam in der Terminübersicht. Der jeweilige Anmeldelink wählt den Kurs im Formular vor; die Auswahl dort bleibt änderbar und schaltet das Formular passend um. Deutsche und englische Seite nutzen dieselbe Konfiguration.
+Die Verwaltung pflegt sechs Termine, gemeinsame oder abweichende Uhrzeiten, Bezeichnungen DE/EN, Format, öffentlichen Ort, Preise, freie Plätze, optionale Gesamtkapazität und Anmeldeschluss. Zeitzone ist `Europe/Berlin`. Neue Kurse erhalten sechs wöchentliche Termine und den Vortag um 21 Uhr als vorgeschlagenen Anmeldeschluss. Bestehende Fristen mit explizitem UTC-Offset bleiben gültig.
 
-Beginnt ein offener Kurs innerhalb der nächsten 14 Kalendertage, blendet das Anmeldeformular zusätzlich die verpflichtende Zustimmung zum vorzeitigen Leistungsbeginn ein. Maßgeblich ist aktuell der erste Kurstermin aus `dates`. Falls Unterlagen, Onboarding oder persönliche Begleitung schon davor beginnen, muss stattdessen dieser frühere Leistungsbeginn in der Logik berücksichtigt werden.
+- `open`: verbindliche Anmeldung; Rechnungsadresse und Bestellübersicht werden eingeblendet.
+- `waitlist`: unverbindliche Warteliste; auch hier schließen null freie Plätze die Auswahl aus.
+- `closed`: ausgeblendet; `archived: true` blendet ebenfalls aus und bewahrt den Kurs im Verwaltungsarchiv.
+- `remainingPlaces`: manuell gepflegte freie Plätze. Bis drei wird die genaue Zahl angezeigt, darüber „Freie Plätze“. Die Website reserviert und zählt keine Anmeldungen.
+- Nach Anmeldeschluss bleibt der Kurs bis zum Start als geschlossen sichtbar. Ab Beginn seines ersten Termins verschwindet er aus Übersicht und Auswahl. Ohne buchbare Kurse erscheint die unverbindliche Kursanfrage.
+
+Im geöffneten Formular wird die Verfügbarkeit im Hintergrund aktualisiert (beim Öffnen, bei Rückkehr zum Tab und höchstens einmal je Minute, während es sichtbar ist). Das Absenden wartet nicht auf diesen Abruf. Fehler beim Aktualisieren ändern den Ablauf nicht; bekannte Sperren und Zeitgrenzen werden vor dem Absenden geprüft. Eingaben und Preise werden nicht stillschweigend ersetzt. Tatsächlich geänderte Vertragsangaben müssen über „Aktuelle Kursangaben ansehen“ übernommen werden; unveränderte Anmeldungen benötigen keinen weiteren Schritt. Die Prüfung erfolgt im Browser, nicht bei Formcarry; gleichzeitige Überbuchungen sind dadurch nicht ausgeschlossen.
+
+Beginnt ein Kurs innerhalb der nächsten 14 Kalendertage, erfordert das Formular die Zustimmung zum vorzeitigen Leistungsbeginn. Wenn eine Leistung bereits vor dem ersten Termin beginnt, muss die bestehende Logik vorher entsprechend angepasst werden.
 
 ## Formulare
 
-Beide Formulare senden an denselben Formcarry-Endpunkt aus `assets/course-config.js`. Der Endpunkt darf nur dort geändert werden. Empfängerin ist `julia@juliasutter.de`. Falls JavaScript nicht verfügbar ist, zeigt die Seite stattdessen einen direkten E-Mail-Kontakt und verhindert einen wirkungslosen POST an GitHub Pages.
+Beide Formulare senden an denselben Formcarry-Endpunkt aus `assets/course-config.json`. Der Endpunkt darf nur in dieser Quelle geändert werden; anschließend `npm run build:courses` ausführen. Empfängerin ist `julia@juliasutter.de`. Falls JavaScript nicht verfügbar ist, zeigt die Seite stattdessen einen direkten E-Mail-Kontakt und verhindert einen wirkungslosen POST an GitHub Pages.
 
 Bei offenen Kursen können Freund:innen den gemeinsamen Tarif wählen. Jede Person meldet sich selbst an und nennt die andere Person; Elternpaare besuchen getrennte Kurse zum regulären Preis. Die Bestellübersicht und das übermittelte Feld `price_eur` verwenden denselben ausgewählten Preis aus der Kurskonfiguration. Beim Freund:innen-Tarif werden zusätzlich `friend_registration=yes` und `friend_name` übermittelt. Unverbindliche Anfragen und Wartelisteneinträge enthalten diese Preis- und Freund:innen-Felder nicht.
 
@@ -28,7 +30,7 @@ Nach einer bestätigten erfolgreichen Formcarry-Antwort ersetzt eine große Best
 
 ## Kostenfreies Kennenlerngespräch
 
-`introCallUrl` und `introCallEmbedUrl` in `assets/course-config.js` enthalten den öffentlichen Buchungslink und die kanonische Google-Kalender-Einbettung mit `gv=true`. Bei einer Änderung des Direktlinks müssen auch die statischen `data-booking-trigger`-Links in beiden Sprachseiten aktualisiert werden; `npm run check:site` prüft ihre Übereinstimmung.
+`introCallUrl` und `introCallEmbedUrl` in `assets/course-config.json` enthalten den öffentlichen Buchungslink und die kanonische Google-Kalender-Einbettung mit `gv=true`. Bei einer Änderung des Direktlinks müssen auch die statischen `data-booking-trigger`-Links in beiden Sprachseiten aktualisiert werden; `npm run check:site` prüft ihre Übereinstimmung.
 
 Die Gesprächslinks öffnen einen nativen Dialog, mobil bildschirmfüllend. Das iframe wird erst beim ersten Klick erzeugt und während des Seitenbesuchs wiederverwendet. Vorher werden keine Google-Ressourcen für die Buchung geladen. Ohne JavaScript oder Dialog-Unterstützung führen die Links direkt zur Buchungsseite. Der Dialog enthält nur den Kopfbereich mit Schließen-Button und die Terminauswahl; eine Fußzeile mit zusätzlichen Links gibt es nicht. Buchung und Bestätigung liegen vollständig bei Google; die Website liest keine Buchungsdaten oder Erfolgszustände aus.
 
@@ -56,7 +58,7 @@ Formularinhalte wie Namen, E-Mail-Adressen, Rechnungsadressen und Nachrichten we
 ./dev
 ```
 
-Der Server benötigt Python 3 und gibt nach dem Start seine vollständige URL aus. Er nutzt Port 8000 oder den nächsten freien Port. `./dev --port 8005` verlangt einen festen Port und bricht ab, wenn dieser belegt ist. `npm run dev` startet denselben Server. Für die Prüfungen einmalig `npm ci` mit Node.js ab 24.8.0 ausführen.
+Der Server benötigt Python 3 und Node.js ab 24.8.0; vor dem Start erzeugt er die Kurskonfiguration und gibt anschließend seine vollständige URL aus. Er nutzt Port 8000 oder den nächsten freien Port. `./dev --port 8005` verlangt einen festen Port und bricht ab, wenn dieser belegt ist. `npm run dev` startet denselben Server. Für die Prüfungen einmalig `npm ci` mit Node.js ab 24.8.0 ausführen.
 
 Vollständiger Qualitätslauf:
 

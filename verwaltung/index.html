@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self' https://api.github.com; base-uri 'none'; form-action 'none'; object-src 'none'">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
+  <title>Kursverwaltung · Julia Sutter</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/brand/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon-32.png">
+  <link rel="apple-touch-icon" href="/assets/images/apple-touch-icon.png">
+  <link rel="stylesheet" href="/verwaltung/admin.css">
+  <script type="module" src="/verwaltung/admin.mjs"></script>
+</head>
+<body>
+  <header class="masthead">
+    <img src="/assets/brand/julia-logo.svg" alt="Julia Sutter" width="145" height="64">
+    <span>Kursverwaltung</span>
+    <button type="button" id="logout" class="quiet" hidden>Abmelden</button>
+  </header>
+  <main>
+    <h1>Raum für den nächsten Kurs.</h1>
+    <p class="intro">Termine planen, Plätze pflegen und in Ruhe vorbereiten.</p>
+    <p id="status" role="status" aria-live="polite"></p>
+    <section id="login-panel" class="login card" aria-labelledby="login-title">
+      <p class="eyebrow">Willkommen, Julia</p>
+      <h2 id="login-title">Deine Kurse verwalten</h2>
+      <p>Öffne deinen gespeicherten Zugang in Apple Passwörter oder füge deinen GitHub-Schlüssel ein.</p>
+      <form id="login-form">
+        <label for="username">GitHub-Benutzername</label>
+        <input type="text" id="username" name="username" autocomplete="username" required value="juliasutter" autocapitalize="none" spellcheck="false">
+        <label for="token">Zugangsschlüssel</label>
+        <input id="token" name="password" type="password" autocomplete="current-password" required spellcheck="false">
+        <button type="submit">Verwaltung öffnen</button>
+      </form>
+      <details><summary>Den Zugang einmalig einrichten</summary><p>In GitHub einen Fine-grained Personal Access Token für <strong>juliasutter.github.io</strong> mit <strong>Actions: Read and write</strong> anlegen. Den Schlüssel in Apple Passwörter für diese Website speichern. Ein abgelaufener oder widerrufener Schlüssel muss dort ersetzt werden.</p><p>Der Schlüssel bleibt hier nur bis zum Neuladen im Arbeitsspeicher. Entwürfe werden unabhängig davon lokal gespeichert.</p></details>
+      <button id="local-preview" type="button" class="quiet" hidden>Lokalen Entwurf öffnen</button>
+    </section>
+    <section id="workspace" hidden aria-label="Kursübersicht">
+      <div class="workspace-toolbar">
+        <p id="draft-status">Alles auf dem aktuellen Stand</p>
+        <div class="actions"><button type="button" id="discard" class="quiet">Entwurf verwerfen</button><button type="button" id="review">Änderungen ansehen</button></div>
+      </div>
+      <div class="section-heading"><h2>Deine Kurse</h2><button type="button" id="add-course">+ Neuer Kurs</button></div>
+      <p class="hint">Plätze werden manuell gepflegt. Entwürfe bleiben in diesem Browser, bis du sie veröffentlichst.</p>
+      <div id="course-list" class="course-grid"></div>
+      <details id="past-section"><summary>Vergangene und archivierte Kurse</summary><div id="past-list" class="course-grid"></div></details>
+    </section>
+  </main>
+  <dialog id="editor" aria-labelledby="editor-title">
+    <form id="editor-form">
+      <div class="dialog-heading"><h2 id="editor-title">Kurs bearbeiten</h2><button type="button" data-close="editor" class="quiet">Schließen</button></div>
+      <p id="editor-error" role="alert"></p>
+      <div class="fields">
+        <div><label for="label-de">Bezeichnung · Deutsch</label><input type="text" id="label-de" name="labelDe" required maxlength="120"></div>
+        <div><label for="label-en">Bezeichnung · Englisch</label><input type="text" id="label-en" name="labelEn" required maxlength="120"></div>
+        <div><label for="course-status">Sichtbarkeit und Anmeldung</label><select id="course-status" name="status"><option value="open">Sichtbar · Anmeldung offen</option><option value="waitlist">Sichtbar · Warteliste</option><option value="closed">Ausgeblendet / abgesagt</option></select></div>
+        <div><label for="course-format">Format</label><select id="course-format" name="format"><option value="online">Online</option><option value="vor_ort">Vor Ort</option></select></div>
+        <div class="full"><label for="location">Öffentlicher Veranstaltungsort (optional)</label><input type="text" id="location" name="location" maxlength="200"><small>Keine privaten Einwahllinks oder Zugangscodes eintragen.</small></div>
+        <div><label for="start-time">Beginn · Berliner Zeit</label><input id="start-time" name="startTime" type="time" required></div>
+        <div><label for="end-time">Ende</label><input id="end-time" name="endTime" type="time" required></div>
+      </div>
+      <fieldset><legend>Die sechs Termine</legend><p class="hint">Einzelne Termine lassen sich verschieben. Leere Uhrzeiten übernehmen die gemeinsame Kurszeit.</p><div id="dates"></div><button type="button" id="weekly" class="quiet">Ab erstem Termin wöchentlich ergänzen</button></fieldset>
+      <div class="fields">
+        <div><label for="remaining">Freie Plätze</label><input id="remaining" name="remainingPlaces" type="number" min="0" max="999" step="1" required></div>
+        <div><label for="capacity">Gesamtzahl der Plätze (optional)</label><input id="capacity" name="capacity" type="number" min="1" max="999" step="1"></div>
+        <div><label for="deadline-date">Anmeldeschluss · Datum</label><input id="deadline-date" name="deadlineDate" type="date" required></div>
+        <div><label for="deadline-time">Anmeldeschluss · Berliner Zeit</label><input id="deadline-time" name="deadlineTime" type="time" required></div>
+        <div><label for="price">Standardpreis · €</label><input id="price" name="priceEur" type="number" min="0" max="99999" step="0.01" required></div>
+        <div><label for="friend-price">Freund:innenpreis · € (leer = deaktiviert)</label><input id="friend-price" name="friendPriceEur" type="number" min="0" max="99999" step="0.01"></div>
+      </div>
+      <div class="dialog-footer"><button type="button" data-close="editor" class="quiet">Abbrechen</button><button type="submit">Entwurf speichern</button></div>
+    </form>
+  </dialog>
+  <dialog id="review-dialog" aria-labelledby="review-title">
+    <div class="dialog-heading"><h2 id="review-title">Vor dem Veröffentlichen</h2><button type="button" data-close="review-dialog" class="quiet">Schließen</button></div>
+    <p>Diese Änderungen werden geprüft und anschließend auf der Website veröffentlicht. Das kann einige Minuten dauern.</p>
+    <div id="change-summary"></div>
+    <h3>So erscheinen die Kurse</h3>
+    <label for="preview-language">Sprache der Vorschau</label><select id="preview-language"><option value="de">Deutsch</option><option value="en">English</option></select>
+    <div id="public-preview" class="course-grid"></div>
+    <p id="publish-status" role="status" aria-live="polite"></p>
+    <a id="workflow-link" href="https://github.com/juliasutter/juliasutter.github.io/actions" target="_blank" rel="noopener noreferrer" hidden>Status auf GitHub ansehen</a>
+    <div class="dialog-footer"><button type="button" data-close="review-dialog" class="quiet">Weiter bearbeiten</button><button type="button" id="publish">Jetzt veröffentlichen</button></div>
+  </dialog>
+  <noscript><p>Bitte JavaScript aktivieren, um Kurse zu verwalten. Es wurden keine Zugangsdaten übertragen.</p></noscript>
+</body>
+</html>

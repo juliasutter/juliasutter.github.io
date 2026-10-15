@@ -1,4 +1,7 @@
 import { expect, test } from "@playwright/test";
+import { installCourseFixture } from "./course-fixtures.js";
+
+test.beforeEach(async ({ page }) => { await installCourseFixture(page); });
 
 test.use({ timezoneId: "America/Los_Angeles" });
 
@@ -62,11 +65,12 @@ test("winter registration closes at 21:00 Berlin time, independent of the visito
   await expect(page.locator('[data-course-list] [data-course-id="starter-2027-winter"]')).toContainText("Anmeldung geschlossen");
 });
 
-test("an explicit waitlist remains available when all places are taken", async ({ page }) => {
+test("a waitlist with no remaining places is also excluded from booking", async ({ page }) => {
   await page.clock.install({ time: new Date("2026-10-15T10:00:00Z") });
   await configureCourses(page, [{ id: "waiting", status: "waitlist", remainingPlaces: 0, dates }]);
   await page.goto("/");
-  await expect(page.locator('[data-course-list] [data-course-id="waiting"]')).toHaveAttribute("href", "#anmeldung");
-  await expect(page.locator("[name=registration_mode]")).toHaveValue("waitlist");
+  await expect(page.locator('[data-course-list] [data-course-id="waiting"]')).not.toHaveAttribute("href");
+  await expect(page.locator('[data-course-select] option[value="waiting"]')).toHaveCount(0);
+  await expect(page.locator("[name=registration_mode]")).toHaveValue("inquiry");
   await expect(page.locator("[data-binding-checkout]")).toBeHidden();
 });

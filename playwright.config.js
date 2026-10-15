@@ -24,6 +24,6 @@ export default defineConfig({
   projects: [
     { name: "chromium-mobile", use: { ...devices["Desktop Chrome"], viewport: { width: 390, height: 844 } } },
     { name: "chromium-desktop", use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 } } },
-    { name: "webkit-iphone", testMatch: ["**/dialog-focus.spec.js", "**/form-confirmation.spec.js", "**/registration.spec.js"], use: { ...devices["iPhone 13"] } }
+    { name: "webkit-iphone", testMatch: ["**/dialog-focus.spec.js", "**/form-confirmation.spec.js", "**/registration.spec.js", "**/admin.spec.js", "**/course-refresh.spec.js"], use: { ...devices["iPhone 13"] } }
   ]
 });
