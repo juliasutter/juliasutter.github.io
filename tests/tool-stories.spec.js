@@ -104,8 +104,10 @@ for (const language of ["de", "en"]) {
     const summary = page.locator(`.tool-story:has(#${longestId}) .tool-story-trigger`);
     const dialog = page.locator("#story-dialog");
     const content = dialog.locator("[data-story-content]");
-    await summary.click();
+    await summary.scrollIntoViewIfNeeded();
+    await summary.focus();
     const initialScroll = await page.evaluate(() => window.scrollY);
+    await page.keyboard.press("Enter");
     await expect(dialog.locator("[data-story-close]")).toBeInViewport();
     const height = await content.evaluate((element) => ({ scroll: element.scrollHeight, client: element.clientHeight }));
     expect(height.scroll).toBeGreaterThan(height.client);

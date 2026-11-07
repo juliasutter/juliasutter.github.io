@@ -20,6 +20,8 @@ for (const language of ["de", "en"]) {
       return route.fulfill({ json: { code: 200, status: "success" } });
     });
     await page.goto(path);
+    await page.locator("[data-consent-reject]").click();
+    await expect(page.locator(".consent-panel")).toBeHidden();
     await page.locator("[data-form-tab=contact]").click();
     const panel = page.locator("#contact-panel");
     await panel.locator("[name=name]").fill("Test Person");

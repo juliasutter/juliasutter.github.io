@@ -7,8 +7,12 @@ const consentKey = "julia-marketing-consent-v1";
 const course = { id: "future", status: "open", dates: ["2099-03-02", "2099-03-09", "2099-03-16", "2099-03-23", "2099-03-30", "2099-04-06"] };
 const metaStub = `window.metaCalls=[]; const q=window.fbq; q.callMethod=(...args)=>window.metaCalls.push(args); for(const args of q.queue) q.callMethod(...args); q.queue=[];`;
 
+const pendingProxies = new WeakMap();
+
 async function setup(page, baseURL, { courses = [course], delayPixel, pixelFailures = 0, openai = false } = {}) {
   const requests = [];
+  const proxies = new Set();
+  pendingProxies.set(page, proxies);
   page.on("request", (request) => {
     if (/facebook\.(net|com)/.test(request.url())) requests.push(request.url());
   });
@@ -18,8 +22,14 @@ async function setup(page, baseURL, { courses = [course], delayPixel, pixelFailu
     const url = new URL(route.request().url());
     if (url.pathname === "/assets/measurement-config.js") return route.fulfill({ contentType: "application/javascript", body: `window.JULIA_MEASUREMENT_CONFIG=${JSON.stringify({ pixelId: "123456789", ...(openai ? { openaiPixelId: "test-pixel" } : {}) })};` });
     if (url.pathname === "/assets/course-config.js") return route.fulfill({ contentType: "application/javascript", body: `window.JULIA_SITE_CONFIG=${JSON.stringify({ formEndpoint: endpoint, priceEur: 399, friendPriceEur: 349, courses, introCallUrl: "https://calendar.google.com/test" })};` });
-    const response = await page.request.get(`${baseURL}${url.pathname}`);
-    return route.fulfill({ response });
+    const proxy = page.request.get(`${baseURL}${url.pathname}`)
+      .then((response) => route.fulfill({ response }));
+    proxies.add(proxy);
+    try {
+      await proxy;
+    } finally {
+      proxies.delete(proxy);
+    }
   });
   await page.route("https://**.facebook.com/**", (route) => route.abort());
   await page.route("https://bzr.openai.com/**", (route) => route.abort());
@@ -36,8 +46,12 @@ async function setup(page, baseURL, { courses = [course], delayPixel, pixelFailu
   return requests;
 }
 
-// Let local asset proxies finish before the request context is disposed.
-test.afterEach(async ({ page }) => { await page.unrouteAll({ behavior: "wait" }); });
+// Drain local proxies before fixture disposal, keeping interception active.
+test.afterEach(async ({ page }) => {
+  const proxies = pendingProxies.get(page);
+  if (!proxies) return;
+  while (proxies.size) await Promise.all(proxies);
+});
 
 const eventCalls = (page) => page.evaluate(() => (window.metaCalls || []).filter((args) => args[0] === "trackSingle" || args[0] === "trackSingleCustom"));
 async function accept(page) {
