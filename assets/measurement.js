@@ -219,7 +219,6 @@
     };
     script.onerror = () => {
       loading = false;
-      pending = [];
       script.remove();
     };
     document.head.append(script);

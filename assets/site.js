@@ -441,8 +441,11 @@
     if (!Number.isFinite(price) || price < 0) return;
     document.querySelectorAll(selector).forEach((element) => { element.textContent = priceFormatter.format(price); });
   };
-  renderPrice("[data-course-price]", config.priceEur);
-  renderPrice("[data-friend-price]", config.friendPriceEur);
+  const coursePrices = (course) => {
+    const standardPrice = course?.priceEur ?? config.priceEur;
+    const friendPrice = course?.friendPriceEur === null ? null : course?.friendPriceEur ?? config.friendPriceEur;
+    return { standardPrice, friendPrice: Number.isFinite(friendPrice) && friendPrice >= 0 && friendPrice < standardPrice ? friendPrice : null };
+  };
 
   const formTabs = Array.from(document.querySelectorAll("[data-form-tab]"));
   const formPanels = Array.from(document.querySelectorAll("[data-form-panel]"));
@@ -512,14 +515,9 @@
   };
 
   const updateRegistrationPrice = () => {
-    const standardPrice = selectedCourse?.priceEur ?? config.priceEur;
-    const friendPrice = selectedCourse?.friendPriceEur === null ? null : selectedCourse?.friendPriceEur ?? config.friendPriceEur;
-    renderPrice("[data-course-price]", standardPrice);
-    renderPrice("[data-friend-price]", friendPrice);
-    const friendPriceAvailable = Number.isFinite(friendPrice) && friendPrice >= 0 && friendPrice < standardPrice;
-    document.querySelectorAll(".fine-print").forEach((element) => {
-      if (element.querySelector("[data-friend-price]")) element.hidden = !friendPriceAvailable;
-    });
+    const { standardPrice, friendPrice } = coursePrices(selectedCourse);
+    const friendPriceAvailable = friendPrice !== null;
+    if (friendPriceAvailable) renderPrice("[data-friend-pricing] [data-friend-price]", friendPrice);
     const friendOptionEnabled = courseMode === "open" && friendPriceAvailable;
     setFieldGroupEnabled(friendPricing, friendOptionEnabled);
     const withFriend = friendOptionEnabled && friendRegistration?.checked;
@@ -732,6 +730,27 @@
       courseList.append(item);
     });
   }
+  const renderCourseListPrices = () => {
+    const rows = Array.from(courseList?.querySelectorAll("[data-course-id]") || []);
+    const prices = rows.map((row) => coursePrices(availabilityCourse(courses.find((course) => course.id === row.dataset.courseId))));
+    const shared = prices[0] || coursePrices(null);
+    const individual = prices.some((price) => price.standardPrice !== shared.standardPrice || price.friendPrice !== shared.friendPrice);
+    renderPrice(".course-dates [data-course-price]", shared.standardPrice);
+    if (shared.friendPrice !== null) renderPrice(".course-dates [data-friend-price]", shared.friendPrice);
+    document.querySelectorAll(".course-dates [data-course-price]").forEach((label) => { label.closest("p").hidden = individual; });
+    document.querySelectorAll(".course-dates [data-friend-price]").forEach((label) => { label.closest(".fine-print").hidden = individual || shared.friendPrice === null; });
+    rows.forEach((row, index) => {
+      row.querySelector("[data-course-pricing]")?.remove();
+      if (!individual) return;
+      const { standardPrice, friendPrice } = prices[index];
+      const label = document.createElement("span");
+      label.dataset.coursePricing = "";
+      label.textContent = `${priceFormatter.format(standardPrice)} ${language === "de" ? "pro Person" : "per person"}`;
+      if (friendPrice !== null) label.textContent += ` · ${priceFormatter.format(friendPrice)} ${language === "de" ? "mit Freund:in" : "with a friend"}`;
+      row.firstElementChild.append(label);
+    });
+  };
+  renderCourseListPrices();
 
   // Availability refreshes run independently of submission. Slow or unavailable hosting must not delay a registration.
   let lastAvailabilityAttempt = -Infinity;
@@ -794,6 +813,7 @@
           action.textContent = modeCopy[current.status].cta;
         }
       }
+      renderCourseListPrices();
       updateCourseRegistrationStatus(selectedCourse);
       if (courseChangeNotice) courseChangeNotice.hidden = !selectedCourse || !courseIsBookable(selectedCourse) || !courseTermsChanged(selectedCourse);
     } catch (_) { /* Continue using the most recently known availability. */ }

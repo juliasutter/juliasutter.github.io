@@ -213,11 +213,12 @@ test("admin has no external resources or public navigation link and renders untr
 });
 
 // Stateful GitHub boundary: a completed run updates main and the served version.
-async function queuedGithub(page, { fail = false, uncertain = false } = {}) {
+async function queuedGithub(page, { fail = false, uncertain = false, supersede = false } = {}) {
   let remote = configCopy();
   let pending = true;
   let publicVersion = "initial";
   const runs = [];
+  const completed = new Set();
   await page.route("https://api.github.com/**", async (route) => {
     const request = route.request();
     const path = new URL(request.url()).pathname;
@@ -237,7 +238,15 @@ async function queuedGithub(page, { fail = false, uncertain = false } = {}) {
     if (/\/actions\/runs\/\d+$/.test(path)) {
       const run = runs.find((entry) => String(entry.id) === path.split("/").at(-1));
       if (pending) return route.fulfill({ json: { status: "in_progress" } });
-      if (!fail) { remote = run.data; publicVersion = run.version; }
+      if (!fail && !completed.has(run.id)) {
+        remote = structuredClone(run.data);
+        publicVersion = run.version;
+        if (supersede && run.id === 1) {
+          remote.courses[supersede === "conflict" ? 0 : 1].labelDe = "Anderer veröffentlichter Kursname";
+          publicVersion = createHash("sha256").update(JSON.stringify(remote)).digest("hex");
+        }
+        completed.add(run.id);
+      }
       return route.fulfill({ json: { status: "completed", conclusion: fail ? "failure" : "success" } });
     }
     return route.fulfill({ json: { id: 1, state: "active" } });
@@ -245,6 +254,78 @@ async function queuedGithub(page, { fail = false, uncertain = false } = {}) {
   await page.route("**/assets/course-version.json*", (route) => route.fulfill({ json: { version: publicVersion } }));
   return { runs, finish: () => { pending = false; }, remote: () => remote };
 }
+
+test("restoring the admin page requires login and resumes a pending publication", async ({ page }) => {
+  const mock = await queuedGithub(page);
+  await login(page);
+  await page.locator("#course-list article").first().getByRole("button", { name: /Eine Anmeldung mehr/ }).click();
+  await page.clock.fastForward(1000);
+  await expect(page.locator("#save-status")).toContainText("läuft im Hintergrund");
+  // Exercise the cache lifecycle deterministically in Chromium and WebKit.
+  await page.evaluate(() => {
+    window.dispatchEvent(new window.PageTransitionEvent("pagehide", { persisted: true }));
+    window.dispatchEvent(new window.PageTransitionEvent("pageshow", { persisted: true }));
+  });
+  await expect(page.locator("#workspace")).toBeHidden();
+  await expect(page.locator("#login-panel")).toBeVisible();
+  await expect(page.locator("#token")).toHaveValue("");
+  await page.locator("#token").fill(fakeToken);
+  await page.getByRole("button", { name: "Verwaltung öffnen", exact: true }).click();
+  await expect(page.locator("#save-status")).toContainText("läuft im Hintergrund");
+  mock.finish();
+  await page.clock.fastForward(5000);
+  await expect(page.locator("#save-status")).toContainText("auf der Website bestätigt");
+  expect(mock.runs).toHaveLength(1);
+  await expect(page.locator("#course-list .seat-stepper strong").first()).toHaveText("6");
+  await page.locator("#course-list article").first().getByRole("button", { name: /Eine Anmeldung mehr/ }).click();
+  await page.clock.fastForward(1000);
+  await expect(page.locator("#save-status")).toContainText("auf der Website bestätigt");
+  expect(mock.runs).toHaveLength(2);
+  expect(mock.remote().courses[0].remainingPlaces).toBe(0);
+});
+
+for (const queued of [false, true]) test(`a superseded publication reconciles an open session (${queued ? "queued edit" : "no queued edit"})`, async ({ page }) => {
+  const mock = await queuedGithub(page, { supersede: true });
+  await login(page);
+  const card = page.locator("#course-list article").first();
+  await card.getByRole("button", { name: /Eine Anmeldung mehr/ }).click();
+  await page.clock.fastForward(1000);
+  await expect(page.locator("#save-status")).toContainText("läuft im Hintergrund");
+  if (queued) await card.getByRole("button", { name: /Eine Anmeldung mehr/ }).click();
+  mock.finish();
+  await page.clock.fastForward(5000);
+  if (queued) {
+    await expect(page.locator("#save-status")).toContainText("weitere Änderungen werden als Nächstes übertragen");
+    await page.clock.fastForward(1000);
+    await expect(page.locator("#save-status")).toContainText("auf der Website bestätigt");
+  } else {
+    await expect(page.locator("#save-status")).toContainText("aktueller Website-Stand geladen");
+  }
+  expect(mock.runs).toHaveLength(queued ? 2 : 1);
+  expect(mock.remote().courses[0].remainingPlaces).toBe(queued ? 0 : 1);
+  await expect(page.locator("#course-list h3").nth(1)).toHaveText("Anderer veröffentlichter Kursname");
+  expect(await page.evaluate(() => localStorage.getItem("julia-course-publication-v1"))).toBeNull();
+});
+
+test("a superseded publication retains conflicting queued edits without overwriting remote changes", async ({ page }) => {
+  const mock = await queuedGithub(page, { supersede: "conflict" });
+  await login(page);
+  const card = page.locator("#course-list article").first();
+  await card.getByRole("button", { name: /Eine Anmeldung mehr/ }).click();
+  await page.clock.fastForward(1000);
+  await expect(page.locator("#save-status")).toContainText("läuft im Hintergrund");
+  await card.getByRole("button", { name: /Eine Anmeldung mehr/ }).click();
+  mock.finish();
+  await page.clock.fastForward(5000);
+  await expect(page.locator("#save-status")).toContainText("weitere Änderungen werden als Nächstes übertragen");
+  await page.clock.fastForward(1000);
+  await expect(page.locator("#save-status")).toContainText("auch auf GitHub geändert");
+  expect(mock.runs).toHaveLength(1);
+  await expect(card.locator(".seat-stepper strong")).toHaveText("7");
+  expect(mock.remote().courses[0].remainingPlaces).toBe(1);
+  expect(mock.remote().courses[0].labelDe).toBe("Anderer veröffentlichter Kursname");
+  expect(await page.evaluate(() => localStorage.getItem("julia-course-publication-v1"))).toBeNull();
+});
 
 test("rapid seat clicks coalesce; later course saves are serialized without losing changes", async ({ page }) => {
   const mock = await queuedGithub(page);

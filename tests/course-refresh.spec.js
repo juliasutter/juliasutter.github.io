@@ -58,6 +58,7 @@ test("refreshes are throttled and do not silently change prices", async ({ page 
   await fill(page);
   await expect.poll(() => reads).toBe(1);
   await expect(page.locator("[data-binding-price]")).toHaveText("399 €");
+  await expect(page.locator(`[data-course-list] [data-course-id="${updated.courses[0].id}"] [data-course-pricing]`)).toContainText("999 €");
   await page.locator("[name=first_name]").focus();
   expect(reads).toBe(1);
 });
@@ -79,6 +80,32 @@ test("per-course cent prices, locations and irregular times appear consistently 
     await expect(page.locator("[name=price_eur]")).toHaveValue("375.5");
     await expect(page.locator("[data-binding-price]")).toHaveText(language === "de" ? "375,5 €" : "€375.5");
   }
+});
+
+for (const language of ["de", "en"]) for (const standardPrice of [399, 499]) test(`${language}: individual course prices stay accurate when the selected registration changes (${standardPrice})`, async ({ page }) => {
+  const config = structuredClone(current);
+  config.dataVersion = undefined;
+  config.courses[1].priceEur = standardPrice;
+  config.courses[1].friendPriceEur = null;
+  await configure(page, config);
+  await page.goto(language === "de" ? "/" : "/en/");
+  const first = page.locator(`[data-course-list] [data-course-id="${config.courses[0].id}"]`);
+  const second = page.locator(`[data-course-list] [data-course-id="${config.courses[1].id}"]`);
+  const firstPrice = language === "de" ? "399 € pro Person · 349 € mit Freund:in" : "€399 per person · €349 with a friend";
+  const secondPrice = language === "de" ? `${standardPrice} € pro Person` : `€${standardPrice} per person`;
+  await expect(page.locator(".course-dates [data-course-price]")).toBeHidden();
+  await expect(page.locator(".course-dates .fine-print")).toBeHidden();
+  await expect(first.locator("[data-course-pricing]")).toHaveText(firstPrice);
+  await expect(second.locator("[data-course-pricing]")).toHaveText(secondPrice);
+  await second.click();
+  await expect(page.locator("[data-binding-price]")).toHaveText(language === "de" ? `${standardPrice} €` : `€${standardPrice}`);
+  await expect(page.locator("[data-friend-pricing]")).toBeHidden();
+  await expect(first.locator("[data-course-pricing]")).toHaveText(firstPrice);
+  await first.click();
+  await page.locator("[name=friend_registration]").check();
+  await expect(page.locator("[data-binding-price]")).toHaveText(language === "de" ? "349 €" : "€349");
+  await expect(page.locator("[data-friend-pricing] [data-friend-price]")).toHaveText(language === "de" ? "349 €" : "€349");
+  await expect(second.locator("[data-course-pricing]")).toHaveText(secondPrice);
 });
 
 for (const [before, after] of [["open", "waitlist"], ["waitlist", "open"]]) test(`a refreshed ${before}→${after} change requires reviewing the new registration type`, async ({ page }) => {

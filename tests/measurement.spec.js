@@ -241,6 +241,37 @@ test("revoking while the script loads discards pending conversions", async ({ pa
   expect(await eventCalls(page)).toEqual([["trackSingle", "123456789", "PageView"]]);
 });
 
+for (const withdraw of [false, true]) test(`a Meta load failure ${withdraw ? "discards a queued conversion on withdrawal" : "preserves a queued conversion for retry"}`, async ({ page, baseURL }) => {
+  const requests = await setup(page, baseURL);
+  let finish;
+  const loading = new Promise((resolve) => { finish = resolve; });
+  let attempts = 0;
+  await page.route(pixelScript, async (route) => {
+    if (++attempts === 1) { await loading; return route.abort("failed"); }
+    return route.fulfill({ contentType: "application/javascript", body: metaStub });
+  });
+  try {
+    await page.goto(origin);
+    await page.locator("[data-consent-accept]").click();
+    const form = await fillCourse(page);
+    await form.locator("button[type=submit]").click();
+    await expect(page.locator(".form-confirmation")).toBeVisible();
+    const failed = page.waitForEvent("requestfailed", (request) => request.url() === pixelScript);
+    finish();
+    await failed;
+    await page.locator(".consent-settings").click();
+    if (withdraw) {
+      await page.locator("[data-consent-reject]").click();
+      await page.locator(".consent-settings").click();
+    }
+    await page.locator("[data-consent-accept]").click();
+    const expected = [["trackSingle", "123456789", "PageView"]];
+    if (!withdraw) expected.push(["trackSingle", "123456789", "Purchase", { value: 399, currency: "EUR", content_name: "Starter Class" }]);
+    await expect.poll(() => eventCalls(page)).toEqual(expected);
+    expect(requests).toEqual([pixelScript, pixelScript]);
+  } finally { finish(); }
+});
+
 for (const trigger of ["renewed consent", "a confirmed submission"]) {
   test(`a failed Meta script retries on ${trigger} without reloading`, async ({ page, baseURL }) => {
     const requests = await setup(page, baseURL, { pixelFailures: 1 });

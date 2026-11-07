@@ -399,14 +399,12 @@ async function monitorRun(run, ownSession) {
       const publicVersion = await fetch(`/assets/course-version.json?v=${run.version}`, { cache: "no-store", signal: AbortSignal.timeout(10000) }).then((response) => response.ok ? response.json() : null);
       if (ownSession !== session) return false;
       if (publicVersion?.version === run.version) return { confirmed: true };
-      if (resuming) {
-        // A successful request can have been superseded while this browser was closed.
-        // Resume only from a current GitHub snapshot that is also confirmed on the website.
-        const remote = await loadRemote();
-        const version = await versionOf(remote.data);
-        if (ownSession !== session) return false;
-        if (publicVersion?.version === version) return { currentData: remote.data };
-      }
+      // Another publication may supersede this run even while the editor stays open.
+      // Accept only a current GitHub snapshot also confirmed on the website.
+      const remote = await loadRemote();
+      const version = await versionOf(remote.data);
+      if (ownSession !== session) return false;
+      if (publicVersion?.version === version) return { currentData: remote.data };
       throw new Error("Die gespeicherte Kursversion ist auf der Website noch nicht bestätigt. Bitte später den Status erneut prüfen.");
     }
     saveStatus(current.status === "queued" ? "Speichern wartet auf GitHub …" : "Speichern läuft im Hintergrund. Die Website wird nach der Prüfung aktualisiert.");
@@ -462,7 +460,8 @@ async function publishChanges(retry = false) {
     if (run.courses) {
       // Acknowledge exactly the sent snapshot; later Save clicks remain queued in courses.
       baseCourses = clone(run.courses);
-    } else {
+    }
+    if (!run.courses || (result.currentData && !changed())) {
       const data = result.currentData || (await loadRemote()).data;
       if (ownSession !== session) return;
       config = data;
@@ -523,20 +522,25 @@ $("login-form").addEventListener("submit", async (event) => {
     await enter(remote.data);
     status("");
   } catch (error) { if (ownSession === session) { token = ""; $("token").value = ""; status(error.message); } }
-  finally { control.disabled = false; }
+  finally { if (ownSession === session) control.disabled = false; }
 });
-$("logout").addEventListener("click", () => {
-  if (hasUnsentChanges() && !window.confirm("Es warten noch Änderungen auf die Übertragung. Trotzdem abmelden und diese Änderungen verwerfen?")) return;
+function signOut() {
   session += 1;
   window.clearTimeout(saveTimer);
   token = "";
   publishing = false;
+  preparing = false;
   for (const dialog of document.querySelectorAll("dialog[open]")) dialog.close();
   $("workspace").hidden = true;
   $("login-panel").hidden = false;
   $("logout").hidden = true;
   $("token").value = "";
+  $("login-form").querySelector("button").disabled = false;
   status("Abgemeldet.");
+}
+$("logout").addEventListener("click", () => {
+  if (hasUnsentChanges() && !window.confirm("Es warten noch Änderungen auf die Übertragung. Trotzdem abmelden und diese Änderungen verwerfen?")) return;
+  signOut();
 });
 $("add-course").addEventListener("click", () => {
   const date = new Date(); date.setDate(date.getDate() + 7);
@@ -546,7 +550,7 @@ for (const control of document.querySelectorAll("[data-close]")) control.addEven
 window.addEventListener("beforeunload", (event) => {
   if (hasUnsentChanges() || ($("editor").open && editorSnapshot() !== editorInitial)) { event.preventDefault(); event.returnValue = ""; }
 });
-window.addEventListener("pagehide", () => { session += 1; window.clearTimeout(saveTimer); token = ""; $("token").value = ""; });
+window.addEventListener("pagehide", signOut);
 window.setInterval(() => { if (config && !$("workspace").hidden && !$("editor").open) render(); }, 60000);
 if (local) {
   $("local-preview").hidden = false;
