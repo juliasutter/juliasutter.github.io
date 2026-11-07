@@ -8,6 +8,8 @@ const configure = async (page, config = current) => {
   await page.route("**/assets/course-config.js", (route) => route.fulfill({ contentType: "application/javascript", body: `window.JULIA_SITE_CONFIG=${JSON.stringify(config)};` }));
 };
 async function fill(page) {
+  await page.locator("[data-consent-reject]").click();
+  await expect(page.locator(".consent-panel")).toBeHidden();
   const form = page.locator("[data-course-form]");
   for (const [name, value] of Object.entries({ first_name: "Test", last_name: "Person", email: "test@example.com", street: "Testweg 1", postal_code: "10115", city: "Berlin" })) await form.locator(`[name=${name}]`).fill(value);
   await form.locator("[name=early_start_requested]").check();

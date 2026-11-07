@@ -24,6 +24,11 @@
     "html-validate": "11.5.5"
   },
   "overrides": {
-    "lighthouse": "13.1.0"
+    "lighthouse": "13.1.0",
+    "@sentry/node@9.47.1": {
+      "@opentelemetry/instrumentation-mysql2": "0.67.0",
+      "@opentelemetry/instrumentation-pg": "0.73.0",
+      "minimatch": "11.0.5"
+    }
   }
 }
