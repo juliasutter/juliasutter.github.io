@@ -213,17 +213,25 @@
     script.src = "https://connect.facebook.net/en_US/fbevents.js";
     script.async = true;
     script.onload = () => {
+      loading = false;
       ready = true;
       startMeasurement();
     };
-    script.onerror = () => { pending = []; };
+    script.onerror = () => {
+      loading = false;
+      pending = [];
+      script.remove();
+    };
     document.head.append(script);
   };
   const track = (event, parameters = {}, custom = false) => {
     if (!canMeasure || choice !== "accepted") return;
     const args = [custom ? "trackSingleCustom" : "trackSingle", pixelId, event, parameters];
     if (ready && initialized) window.fbq(...args);
-    else pending.push(args);
+    else {
+      pending.push(args);
+      startMeasurement();
+    }
   };
   // No names, contact details, addresses, child details or free text enter this API.
   window.JULIA_MEASUREMENT = {

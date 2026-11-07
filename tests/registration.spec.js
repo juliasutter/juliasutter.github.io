@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { fixtureConfig } from "./course-fixtures.js";
 
 const endpoint = "https://formcarry.com/s/registration-test";
 const course = {
@@ -116,4 +117,72 @@ test("a failed friend registration retains its price and registration button", a
   await expect(submit).toHaveText(initialLabel);
   await expect(form).toBeVisible();
   await expect(page.locator(".form-confirmation")).toHaveCount(0);
+});
+
+test.describe("early-start consent on a page left open", () => {
+  test.use({ timezoneId: "America/Los_Angeles" });
+
+  for (const language of ["de", "en"]) {
+    test(`${language}: submission rechecks early-start consent after Berlin midnight`, async ({ page }) => {
+      await page.clock.install({ time: new Date("2026-10-02T21:59:00Z") });
+      await configure(page, [fixtureConfig.courses[0]]);
+      const submissions = [];
+      await page.route(endpoint, async (route) => {
+        const payload = await new globalThis.Request(endpoint, {
+          method: "POST", headers: { "content-type": route.request().headers()["content-type"] },
+          body: route.request().postDataBuffer()
+        }).formData();
+        submissions.push(Object.fromEntries(payload));
+        await route.fulfill({ json: { code: 200, status: "success" } });
+      });
+      await page.goto(language === "de" ? "/" : "/en/");
+      await page.locator("[data-consent-reject]").click();
+      const form = page.locator("[data-course-form]");
+      const consent = form.locator("[name=early_start_requested]");
+      await expect(consent).toBeDisabled();
+      for (const [name, value] of Object.entries({ first_name: "Test", last_name: "Person", email: "test@example.com", street: "Testweg 1", postal_code: "10115", city: "Berlin" })) {
+        await form.locator(`[name=${name}]`).fill(value);
+      }
+      await form.locator("button[type=submit]").focus();
+      // Change the date without running the minute timer or focusing another field.
+      await page.clock.setFixedTime(new Date("2026-10-02T22:00:00Z"));
+      await page.keyboard.press("Enter");
+      await expect(consent).toBeVisible();
+      await expect(consent).toHaveAttribute("required", "");
+      await expect(consent).not.toBeChecked();
+      expect(submissions).toEqual([]);
+      await expect(form.locator("[name=first_name]")).toHaveValue("Test");
+      await consent.check();
+      await form.locator("button[type=submit]").click();
+      await expect(page.locator("#course-panel .form-confirmation")).toBeVisible();
+      expect(submissions).toHaveLength(1);
+      expect(submissions[0]).toMatchObject({ early_start_requested: "yes", registration_mode: "open" });
+    });
+
+    test(`${language}: visible forms update early-start consent as Berlin's date advances`, async ({ page }) => {
+      await page.clock.install({ time: new Date("2026-10-02T21:59:30Z") });
+      const open = fixtureConfig.courses[0];
+      await configure(page, [open, { ...open, id: "waitlist", status: "waitlist" }]);
+      await page.goto(language === "de" ? "/" : "/en/");
+      await page.locator("[data-consent-reject]").click();
+      const form = page.locator("[data-course-form]");
+      const consent = form.locator("[name=early_start_requested]");
+      await expect(consent).toBeHidden();
+      await form.locator("button[type=submit]").scrollIntoViewIfNeeded();
+      await page.clock.fastForward(61000);
+      await expect(consent).toBeVisible();
+      await expect(consent).toHaveAttribute("required", "");
+      await expect(consent).not.toBeChecked();
+      await consent.check();
+      await page.clock.fastForward(61000);
+      await expect(consent).toBeChecked();
+      await form.locator("[name=course_id]").selectOption("waitlist");
+      await expect(consent).toBeHidden();
+      await expect(consent).toBeDisabled();
+      await expect(consent).not.toBeChecked();
+      await form.locator("[name=course_id]").selectOption(open.id);
+      await expect(consent).toBeVisible();
+      await expect(consent).not.toBeChecked();
+    });
+  }
 });

@@ -454,7 +454,10 @@
   const contactNote = document.querySelector(".contact-note");
   let refreshCourseAvailability = () => {};
   const activateFormPanel = (name, moveFocus = false) => {
-    if (name === "course") refreshCourseAvailability();
+    if (name === "course") {
+      updateEarlyStartConsent();
+      refreshCourseAvailability();
+    }
     formTabs.forEach((tab) => {
       const selected = tab.dataset.formTab === name;
       tab.setAttribute("aria-selected", String(selected));
@@ -588,9 +591,12 @@
 
   const courseStartsWithinWithdrawalPeriod = (course) => {
     if (!course) return false;
-    const withdrawalDeadline = new Date(today.getTime());
+    const withdrawalDeadline = calendarDateInTimeZone(new Date(), courseTimeZone);
     withdrawalDeadline.setUTCDate(withdrawalDeadline.getUTCDate() + 14);
     return course.dates[0] <= withdrawalDeadline;
+  };
+  const updateEarlyStartConsent = () => {
+    setEarlyStartConsentEnabled(courseMode === "open" && courseStartsWithinWithdrawalPeriod(selectedCourse));
   };
 
   let courseChangeNotice;
@@ -632,7 +638,7 @@
     setFieldGroupEnabled(bindingFields, courseMode === "open");
     setFieldGroupEnabled(bindingCheckout, courseMode === "open");
     updateRegistrationPrice();
-    setEarlyStartConsentEnabled(courseMode === "open" && courseStartsWithinWithdrawalPeriod(selectedCourse));
+    updateEarlyStartConsent();
   };
 
   const visibleCourseOptions = bookableCourses;
@@ -806,9 +812,13 @@
     courseChangeNotice.append(explanation, action);
     courseForm.prepend(courseChangeNotice);
   }
-  courseForm?.addEventListener("focusin", () => { refreshCourseAvailability(); });
-  document.addEventListener("visibilitychange", () => { if (courseFormVisible()) refreshCourseAvailability(); });
-  window.setInterval(() => { if (courseFormVisible()) refreshCourseAvailability(); }, 60000);
+  const refreshCourseForm = () => {
+    updateEarlyStartConsent();
+    refreshCourseAvailability();
+  };
+  courseForm?.addEventListener("focusin", refreshCourseForm);
+  document.addEventListener("visibilitychange", () => { if (courseFormVisible()) refreshCourseForm(); });
+  window.setInterval(() => { if (courseFormVisible()) refreshCourseForm(); }, 60000);
 
   // Safari can show :focus-visible after a pointer-triggered programmatic focus.
   // Keep the focus itself, suppressing only this target's ring until blur or a key.
@@ -1015,7 +1025,9 @@
 
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
-      if (submitting || completed || !form.reportValidity()) return;
+      if (submitting || completed) return;
+      if (form === courseForm) updateEarlyStartConsent();
+      if (!form.reportValidity()) return;
       if (form === courseForm && selectedCourse && courseTermsChanged(selectedCourse) && courseIsBookable(selectedCourse)) {
         setStatus(copy.courseChanged);
         return;

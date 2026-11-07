@@ -7,7 +7,7 @@ const consentKey = "julia-marketing-consent-v1";
 const course = { id: "future", status: "open", dates: ["2099-03-02", "2099-03-09", "2099-03-16", "2099-03-23", "2099-03-30", "2099-04-06"] };
 const metaStub = `window.metaCalls=[]; const q=window.fbq; q.callMethod=(...args)=>window.metaCalls.push(args); for(const args of q.queue) q.callMethod(...args); q.queue=[];`;
 
-async function setup(page, baseURL, { courses = [course], delayPixel, openai = false } = {}) {
+async function setup(page, baseURL, { courses = [course], delayPixel, pixelFailures = 0, openai = false } = {}) {
   const requests = [];
   page.on("request", (request) => {
     if (/facebook\.(net|com)/.test(request.url())) requests.push(request.url());
@@ -25,6 +25,10 @@ async function setup(page, baseURL, { courses = [course], delayPixel, openai = f
   await page.route("https://bzr.openai.com/**", (route) => route.abort());
   await page.route("https://bzrcdn.openai.com/**", (route) => route.abort());
   await page.route("https://connect.facebook.net/**", async (route) => {
+    if (pixelFailures > 0) {
+      pixelFailures -= 1;
+      return route.abort("failed");
+    }
     if (delayPixel) await delayPixel;
     await route.fulfill({ contentType: "application/javascript", body: metaStub });
   });
@@ -221,6 +225,54 @@ test("revoking while the script loads discards pending conversions", async ({ pa
   await page.locator(".consent-settings").click();
   await accept(page);
   expect(await eventCalls(page)).toEqual([["trackSingle", "123456789", "PageView"]]);
+});
+
+for (const trigger of ["renewed consent", "a confirmed submission"]) {
+  test(`a failed Meta script retries on ${trigger} without reloading`, async ({ page, baseURL }) => {
+    const requests = await setup(page, baseURL, { pixelFailures: 1 });
+    await page.goto(origin);
+    const failed = page.waitForEvent("requestfailed", (request) => request.url() === pixelScript);
+    await page.locator("[data-consent-accept]").click();
+    await failed;
+    expect(await eventCalls(page)).toEqual([]);
+    if (trigger === "renewed consent") {
+      await page.locator(".consent-settings").click();
+      await accept(page);
+    }
+    const form = await fillCourse(page);
+    await form.locator("button[type=submit]").click();
+    await expect(page.locator(".form-confirmation")).toBeVisible();
+    await expect.poll(() => eventCalls(page)).toEqual([
+      ["trackSingle", "123456789", "PageView"],
+      ["trackSingle", "123456789", "Purchase", { value: 399, currency: "EUR", content_name: "Starter Class" }]
+    ]);
+    expect(requests).toEqual([pixelScript, pixelScript]);
+  });
+}
+
+test("withdrawal during a Meta retry discards pending conversions and allows later consent", async ({ page, baseURL }) => {
+  let finish;
+  const delayPixel = new Promise((resolve) => { finish = resolve; });
+  const requests = await setup(page, baseURL, { pixelFailures: 1, delayPixel });
+  try {
+    await page.goto(origin);
+    const failed = page.waitForEvent("requestfailed", (request) => request.url() === pixelScript);
+    await page.locator("[data-consent-accept]").click();
+    await failed;
+    const form = await fillCourse(page);
+    await form.locator("button[type=submit]").click();
+    await expect(page.locator(".form-confirmation")).toBeVisible();
+    await expect.poll(() => requests.length).toBe(2);
+    await page.locator(".consent-settings").click();
+    await page.locator("[data-consent-reject]").click();
+    finish();
+    await expect.poll(() => page.evaluate(() => Boolean(window.metaCalls))).toBe(true);
+    expect(await eventCalls(page)).toEqual([]);
+    await page.locator(".consent-settings").click();
+    await accept(page);
+    expect(await eventCalls(page)).toEqual([["trackSingle", "123456789", "PageView"]]);
+    expect(requests).toEqual([pixelScript, pixelScript]);
+  } finally { finish(); }
 });
 
 test("expired consent is ignored and local previews never load Meta", async ({ page, baseURL }) => {
