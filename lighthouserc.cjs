@@ -6,6 +6,7 @@ module.exports = {
       numberOfRuns: 3,
       settings: {
         chromeFlags: "--headless=new --no-sandbox --disable-gpu --disable-background-timer-throttling --disable-renderer-backgrounding --disable-backgrounding-occluded-windows",
+        onlyCategories: ["performance", "accessibility", "best-practices", "seo"],
         formFactor: "mobile",
         screenEmulation: { mobile: true, width: 390, height: 844, deviceScaleFactor: 1, disabled: false }
       }
