@@ -28,6 +28,8 @@ for (const language of ["de", "en"]) {
       await route.fulfill({ contentType: "application/json", body: JSON.stringify({ code: 200, status: "success" }) });
     });
     await page.goto(path);
+    await page.locator("[data-consent-reject]").click();
+    await expect(page.locator(".consent-panel")).toBeHidden();
     const form = page.locator("[data-course-form]");
     const friend = form.locator("[name=friend_registration]");
     const friendName = form.locator("[name=friend_name]");
